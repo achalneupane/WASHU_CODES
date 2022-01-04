@@ -768,6 +768,7 @@ length(to.remove.younger.cases.IIDs)
 
 
 
+
 FAM <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE.fam", header = F)
 sum(covars$IID %in% FAM$V2)
 # 3690
