@@ -24,21 +24,21 @@ as.data.frame(table(FASE$Project))
 
 BLOOMFIELD <- read.table("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield-WES-WGS-project.csv", header = T, sep = ",", stringsAsFactors = T)
 dim(BLOOMFIELD)
-
+# 9810
 
 ## Check what other projects fall under FASe
 ADSPFAM <- read.delim("/40/AD/AD_Seq_Data/03.-phenotype/202105-ADSP_Umbrella_NG00067.v5/ADSPFamilyBasedPhenotypes_DS_2021.02.19_ALL.txt", header = T, sep = "\t", stringsAsFactors = F)
 dim(ADSPFAM)
 ADSPCACO <- read.delim("/40/AD/AD_Seq_Data/03.-phenotype/202105-ADSP_Umbrella_NG00067.v5/ADSPCaseControlPhenotypes_DS_2021.02.19_ALL.txt", header = T, sep = "\t", stringsAsFactors = F)
 dim(ADSPCACO)
-
+# 27547
 BLOOMFIELD$FASE <- BLOOMFIELD$Bloomfield.gvcf.id..SM...9810. %in% c(ADSPFAM$SUBJID, ADSPCACO$SUBJID)
 as.data.frame(table(BLOOMFIELD$Seq_project[BLOOMFIELD$FASE == TRUE])[table(BLOOMFIELD$Seq_project[BLOOMFIELD$FASE == TRUE]) > 0])
 
 ## Get project list for FASe and then extract samples from those projects
 FASE_PR <- c(unique(FASE$Project),"202103_ADSP_FUS-familial_WGS_UNNAMED", "202104_ADSP_site27-sync-n303_WGS_UNNAMED")
 PHENO <- read.delim("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/Bloomfield_8751_metadata_20211203.csv", header = T, sep = ",", stringsAsFactors = T)
-# dim(PHENO)
+dim(PHENO)
 # # 8751
 # head(PHENO)
 
@@ -47,6 +47,8 @@ sum(PHENO$Seq_project %in% FASE_PR)
 FASE_PHENO <- PHENO[PHENO$Seq_project %in% FASE_PR,]
 
 ## GET FID and IID from FAM
+FASE_FAM <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE.fam", header = F)
+FASE_FAM$V2 <- as.character(FASE_FAM$V2)
 FASE_PHENO$Bloomfield.gvcf.id..SM...9810. %in% FASE_FAM$V2
 FASE_PHENO <- cbind.data.frame(setNames(FASE_FAM[match(FASE_PHENO$Bloomfield.gvcf.id..SM...9810., FASE_FAM$V2),1:2], c("FID", "IID")), FASE_PHENO)
 sum(FASE_PHENO$IID == FASE_PHENO$Bloomfield.gvcf.id..SM...9810.)
@@ -57,8 +59,6 @@ FASE_PHENO[FASE_PHENO=="#N/A"] <- NA
 
 
 write.table(FASE_PHENO[1:2], "/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FASE_sample_list.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-
-
 
 
 #########
@@ -173,6 +173,7 @@ table(as.character(FASE_PHENO_NOT_FOUND$Seq_project))
 
 # For any samples that were in previous release, I will update the FID from that release
 FASE_PHENO$NEW_FID <- as.character(PHENO3894$FID[match(FASE_PHENO$CLEANED_ID, PHENO3894$IID)])
+FASE_PHENO$FID <- as.character(FASE_PHENO$FID)
 FASE_PHENO$FID[!is.na(FASE_PHENO$NEW_FID)] <-  FASE_PHENO$NEW_FID[!is.na(FASE_PHENO$NEW_FID)]
 
 
@@ -288,7 +289,7 @@ ADSPFambased$IID[match(FASE_PHENO$IID[grepl ("202104_ADSP_site27-sync-n303_WGS_U
 
 table(FASE_PHENO$STATUS..CC.)
 # -9    1    2     
-# 271 1196 2194   
+# 271 1146 2194   
 
 ## Remove FID_MISSING from the NHW list
 FID_MISSING
@@ -451,6 +452,7 @@ df.ethnicity <- setNames(cbind.data.frame(PCA$PC1[!is.na(PCA$ADSPFambased_Ethnic
 
 p.sd.reportedNHW <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_NHW")) +
   scale_color_manual(values = c('green', 'black', 'red','yellow', "blue")) 
+p.sd.reportedNHW
 
 ggsave("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield-FASe-3931-PCs-COHORT-different-sd-HapMap-with-ADSP-FAM-reportedNHW.jpg", plot = p.sd.reportedNHW, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
@@ -489,7 +491,7 @@ dim(SDSelection)
 ## Get phenot for NHW samples
 FASE_PHENO_NHW <- FASE_PHENO[FASE_PHENO$IID %in% SDSelection$IID,]
 dim(FASE_PHENO_NHW)
-# [1] 3662   32
+# [1] 3690   32
 
 
 
@@ -646,6 +648,7 @@ for (i in 1:nrow(FAM_SIZE1)){
 }
 
 ## remove duplicate rows
+library(dplyr)
 related.1.FAM <- distinct(related.1.FAM)
 
 # Keep origial FID in covar
@@ -760,10 +763,48 @@ table(covars$FID)[names(table(covars$FID)) %in% names(table(covars_cases.65.yo$F
 to.remove.younger.cases <- names(table(covars$FID)[names(table(covars$FID)) %in% names(table(covars_cases.65.yo$FID))] [table(covars$FID)[names(table(covars$FID)) %in% names(table(covars_cases.65.yo$FID))] == 1])
 to.remove.younger.cases.IIDs <- covars_cases.65.yo$IID[covars_cases.65.yo$FID %in% to.remove.younger.cases]
 length(to.remove.younger.cases.IIDs)
-# 827
+# 828
 
+
+write.table(to.remove.younger.controls.IIDs, "younger_controls.txt", col.names = F, row.names = F)
+write.table(to.remove.younger.cases.IIDs, "younger_cases_without_relatives.txt", col.names = F, row.names = F)
+younger.samples.to.remove <- c(to.remove.younger.controls.IIDs, to.remove.younger.cases.IIDs)
+
+
+FINAL.Covars <- covars[!covars$IID %in% younger.samples.to.remove,]
 
 # write.table(covars[1:2], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/sample_list_postQC_3662.txt", col.names = F, row.names = F, quote = F, sep = "\t")
+
+
+Get_STATs_FASE(FINAL.Covars)
+
+table(table(FINAL.Covars$FID))
+
+
+
+####################################################################################
+####################################################################################
+####################################################################################
+####################################################################################
+####################################################################################
+####################################################################################
+####################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
