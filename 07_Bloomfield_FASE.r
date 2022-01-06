@@ -1,4 +1,5 @@
 setwd("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal")
+load("FASe_Pheno_data.RData")
 FASE <- read.table("/100/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/03-PLINK-QC-files2/Final_Pheno_FASe_3894.pheno", header = T, stringsAsFactors = F)
 dim(FASE)
 View(FASE)
@@ -423,6 +424,10 @@ p.sd <- ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1"
   scale_color_manual(values = c('green', 'black', 'red', "blue")) +
   annotate("text", x=0.008, y=0.025, label="NHW", size=4, color = "red")
 
+library(tidyverse)
+
+
+SDSelection.Table <- list()
 SD.cutoff.all <- 3:5
 for (i in 1:length(SD.cutoff.all)){
 SD.cutoff <- SD.cutoff.all[i]  
@@ -436,16 +441,42 @@ SDSelection <- NHW_SAMPLES[NHW_SAMPLES$PC1 > PC1min &
   NHW_SAMPLES$PC2 > PC2min &
   NHW_SAMPLES$PC2 < PC2max,]
 
+SDSelection.Table[[i]] <- as.vector(SDSelection$IID)
+
 ## Select NHW samples only
 p.sd <- p.sd + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
                   fill=NA, colour="red") +
   annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
 }
 
-p.sd 
 
 ggsave("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield-FASe-3931-PCs-COHORT-different-sd-HapMap.jpg", plot = p.sd, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
+#########################
+## Get table of samples shared between three different SD cutoffs
+as.character(lapply(SDSelection.Table, length))
+# [1] "3826" "3923" "3939"
+
+names(SDSelection.Table) <- c(paste("sd", SD.cutoff.all, sep = "."))
+tts <- as.data.frame(do.call("cbind", lapply(SDSelection.Table, ts)))
+table(is.na(tts$sd.3))
+table(is.na(tts$sd.4))
+
+# Reorder
+tts$sd.3 <- as.character(tts$sd.3[match(tts$sd.5,tts$sd.3)])
+sum(tts$sd.3 == tts$sd.5, na.rm = T)
+
+tts$sd.4 <- as.character(tts$sd.4[match(tts$sd.5,tts$sd.4)])
+sum(tts$sd.3 == tts$sd.4, na.rm = T)
+sum(tts$sd.4 == tts$sd.5, na.rm = T)
+
+# sum(tts$a %in% SDSelection.Table[[1]])
+# sum(tts$b %in% SDSelection.Table[[2]])
+# sum(tts$c %in% SDSelection.Table[[3]])
+
+
+# tts is the table of samples at sd 3-5; I will use this below; see heading "Finding samples within different SD and the related samples outside the SD margin"
+#########################
 
 ## Add ethnicity from ADSP Family
 df.ethnicity <- setNames(cbind.data.frame(PCA$PC1[!is.na(PCA$ADSPFambased_Ethnicity)], PCA$PC2[!is.na(PCA$ADSPFambased_Ethnicity)]), c("PC1", "PC2"))
@@ -512,6 +543,40 @@ dim(FASE_NHW_ALL_MEM)
 # [1] 3692   32
 
 
+#######################################################################################
+## Finding samples within different SD and the related samples outside the SD margin ##
+#######################################################################################
+dim(FASE_PHENO)
+# [1] 3794   34
+dim(tts)
+# 3939 4
+# Add FID
+tts$FID <- FASE_PHENO$FID[match(tts$sd.5, FASE_PHENO$IID)]
+tts.FASE <- tts[!(tts$sd.5 %in% NHW_SAMPLES_CEU$IID),]
+dim(tts.FASE)
+# 3774
+
+# Finding relatives outside each SD cutoff
+tts.SD3 <- tts.FASE[!is.na(tts.FASE$sd.3),]
+tts.SD4 <- tts.FASE[!is.na(tts.FASE$sd.4),]
+tts.SD5 <- tts.FASE[!is.na(tts.FASE$sd.5),]
+
+dim(tts.SD3)
+# 3661
+
+FASE_PHENO_ALL <- NULL
+FIDUNIQUE <- unique(tts.SD3$FID)
+length(FIDUNIQUE)
+# 2500
+for (i in 1:length(FIDUNIQUE)){
+  print(paste0("Doing_SM_", i))  
+  FASE_PHENO_ALL.tmp <- FASE_PHENO [grepl(paste0("^", FIDUNIQUE[i], "$"), FASE_PHENO$FID),]
+  FASE_PHENO_ALL <- rbind.data.frame(FASE_PHENO_ALL, FASE_PHENO_ALL.tmp)
+  print(nrow(FASE_PHENO_ALL))
+}
+
+sum(tts.SD3$sd.3 %in% FASE_PHENO_ALL$IID)
+# 3578
 
 ##################
 ## Demographics ##
@@ -772,14 +837,21 @@ younger.samples.to.remove <- c(to.remove.younger.controls.IIDs, to.remove.younge
 
 
 FINAL.Covars <- covars[!covars$IID %in% younger.samples.to.remove,]
+# Also remove sample from household size 24
+# Household 24 —> FID 203
 
-# write.table(covars[1:2], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/sample_list_postQC_3662.txt", col.names = F, row.names = F, quote = F, sep = "\t")
+sum(FINAL.Covars$FID %in% "203")
+# 24
+FINAL.Covars <- FINAL.Covars[!FINAL.Covars$FID %in% "203",]
+
+# write.table(FINAL.Covars[1:2], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/sample_list_postQC_3662.txt", col.names = F, row.names = F, quote = F, sep = "\t")
 
 
 Get_STATs_FASE(FINAL.Covars)
 
 table(table(FINAL.Covars$FID))
 
+save.image("FASe_Pheno_data.RData")
 
 
 ####################################################################################
