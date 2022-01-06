@@ -355,7 +355,7 @@ table(FASE_PHENO$APOE4ANY)
 # -9    0    1 
 # 241 1615 1938 
 
-# Select NHW samples
+# Select NHW and FASe samples, which we call NHW_SAMPLES here
 # NHW_SAMPLES <- PCA[PCA$PC1 < 0.02 & PCA$PC1 > -0.006 & PCA$PC2 < 0.03 & PCA$PC2 > -0.02,]
 # dim(NHW_SAMPLES)
 # # 3952 13
@@ -523,11 +523,11 @@ ggsave("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloo
 
 
 # create a list to store dataframe from different SDs
-FASE_NHW_ALL_MEM_LIST <- list()
+FASE_NHW_ALL_MEM_SD <- list()
 
-
+for (i in 1:length(SD.cutoff.all)){
 ## Get phenot for NHW samples
-FASE_PHENO_NHW <- FASE_PHENO[FASE_PHENO$IID %in% tts$sd.5,]
+FASE_PHENO_NHW <- FASE_PHENO[FASE_PHENO$IID %in% tts[,paste0("sd.", SD.cutoff.all[i])],]
 dim(FASE_PHENO_NHW)
 # [1] 3690   32
 
@@ -539,15 +539,19 @@ FASE_NHW_ALL_MEM <- NULL
 FIDUNIQUE <- unique(FASE_PHENO_NHW$FID)
 length(FIDUNIQUE)
 # 2438
-for (i in 1:length(FIDUNIQUE)){
-print(paste0("Doing_SM_", i))  
-FASE_NHW_ALL_MEM.tmp <- FASE_PHENO [grepl(paste0("^", FIDUNIQUE[i], "$"), FASE_PHENO$FID),]
+for (j in 1:length(FIDUNIQUE)){
+print(paste0("Doing_SM_", j, "_from_SD:", SD.cutoff.all[i])) 
+FASE_NHW_ALL_MEM.tmp <- FASE_PHENO [grepl(paste0("^", FIDUNIQUE[j], "$"), FASE_PHENO$FID),]
 FASE_NHW_ALL_MEM <- rbind.data.frame(FASE_NHW_ALL_MEM, FASE_NHW_ALL_MEM.tmp)
 print(nrow(FASE_NHW_ALL_MEM))
 }
 
+FASE_NHW_ALL_MEM_SD[[i]] <- FASE_NHW_ALL_MEM
+names(FASE_NHW_ALL_MEM_SD)[[i]] <- paste0("sd.", SD.cutoff.all[i])
 
-dim(FASE_NHW_ALL_MEM)
+}
+
+dim(FASE_NHW_ALL_MEM_SD)
 # [1] 3692   32
 
 
@@ -607,7 +611,7 @@ table(table(as.character(FASE_PHENO_NHW$FID)))
 ########################################################################################################
 ####################### Age-of-onset stratified by STATUS, ethnicity and sex ###########################
 ########################################################################################################
-covars <- FASE_PHENO_NHW
+covars <- FASE_NHW_ALL_MEM
 
 colnames(covars)[colnames(covars) == "AAO"] <- "AGE_AT_ONSET"
 colnames(covars)[colnames(covars) == "ALA"] <- "AGE_LAST_VISIT"
