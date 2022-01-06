@@ -464,6 +464,9 @@ table(is.na(tts$sd.4))
 
 # Reorder
 tts$sd.3 <- as.character(tts$sd.3[match(tts$sd.5,tts$sd.3)])
+## Keep FASE only and discard HAPMAP
+tts <- tts[tts$sd.5 %in% FASE_PHENO$IID,]
+
 sum(tts$sd.3 == tts$sd.5, na.rm = T)
 
 tts$sd.4 <- as.character(tts$sd.4[match(tts$sd.5,tts$sd.4)])
@@ -490,37 +493,37 @@ ggsave("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloo
 
 
 
-
-SD.cutoff.all <- 5
-  SD.cutoff <- SD.cutoff.all
-  PC1min <- (mean(NHW_SAMPLES_CEU$PC1) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
-  PC1max <- (mean(NHW_SAMPLES_CEU$PC1) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
-  PC2min <- (mean(NHW_SAMPLES_CEU$PC2) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
-  PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
-  
-  SDSelection <- NHW_SAMPLES[NHW_SAMPLES$PC1 > PC1min & 
-                               NHW_SAMPLES$PC1 < PC1max &
-                               NHW_SAMPLES$PC2 > PC2min &
-                               NHW_SAMPLES$PC2 < PC2max,]
-  
-SDSelection <- unique(SDSelection)
-
-dim(SDSelection) # 3939   2 # Means all samples for which are Europeans
-
-SDSelection <- SDSelection[SDSelection$IID %in% FASE_PHENO$IID,]
-dim(SDSelection)
-# [1] 3690    2
-
-
-
-
-# NONFASE <- PCA[!grepl("FASe", PCA$COHORT),]
+# 
+# SD.cutoff.all <- 5
+#   SD.cutoff <- SD.cutoff.all
+#   PC1min <- (mean(NHW_SAMPLES_CEU$PC1) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+#   PC1max <- (mean(NHW_SAMPLES_CEU$PC1) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+#   PC2min <- (mean(NHW_SAMPLES_CEU$PC2) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+#   PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+#   
+#   SDSelection <- NHW_SAMPLES[NHW_SAMPLES$PC1 > PC1min & 
+#                                NHW_SAMPLES$PC1 < PC1max &
+#                                NHW_SAMPLES$PC2 > PC2min &
+#                                NHW_SAMPLES$PC2 < PC2max,]
+#   
+# SDSelection <- unique(SDSelection)
+# 
+# dim(SDSelection) # 3939   2 # Means all samples for which are Europeans
+# 
+# SDSelection <- SDSelection[SDSelection$IID %in% FASE_PHENO$IID,]
+# dim(SDSelection)
+# # [1] 3690    2
+# 
+# 
+# 
+# 
+# # NONFASE <- PCA[!grepl("FASe", PCA$COHORT),]
 
 
 
 
 ## Get phenot for NHW samples
-FASE_PHENO_NHW <- FASE_PHENO[FASE_PHENO$IID %in% SDSelection$IID,]
+FASE_PHENO_NHW <- FASE_PHENO[FASE_PHENO$IID %in% tts$sd.5,]
 dim(FASE_PHENO_NHW)
 # [1] 3690   32
 
@@ -530,7 +533,7 @@ dim(FASE_PHENO_NHW)
 FASE_NHW_ALL_MEM <- NULL
 FIDUNIQUE <- unique(FASE_PHENO_NHW$FID)
 length(FIDUNIQUE)
-# 2443
+# 2438
 for (i in 1:length(FIDUNIQUE)){
 print(paste0("Doing_SM_", i))  
 FASE_NHW_ALL_MEM.tmp <- FASE_PHENO [grepl(paste0("^", FIDUNIQUE[i], "$"), FASE_PHENO$FID),]
@@ -543,41 +546,40 @@ dim(FASE_NHW_ALL_MEM)
 # [1] 3692   32
 
 
-
-#######################################################################################
-## Finding samples within different SD and the related samples outside the SD margin ##
-#######################################################################################
-dim(FASE_PHENO)
-# [1] 3794   34
-dim(tts)
-# 3939 4
-# Add FID
-tts$FID <- FASE_PHENO$FID[match(tts$sd.5, FASE_PHENO$IID)]
-tts.FASE <- tts[!(tts$sd.5 %in% NHW_SAMPLES_CEU$IID),]
-dim(tts.FASE)
-# 3774
-
-# Finding relatives outside each SD cutoff
-tts.SD3 <- tts.FASE[!is.na(tts.FASE$sd.3),]
-tts.SD4 <- tts.FASE[!is.na(tts.FASE$sd.4),]
-tts.SD5 <- tts.FASE[!is.na(tts.FASE$sd.5),]
-
-dim(tts.SD3)
-# 3661
-
-FASE_PHENO_ALL <- NULL
-FIDUNIQUE <- unique(tts.SD3$FID)
-length(FIDUNIQUE)
-# 2500
-for (i in 1:length(FIDUNIQUE)){
-  print(paste0("Doing_SM_", i))  
-  FASE_PHENO_ALL.tmp <- FASE_PHENO [grepl(paste0("^", FIDUNIQUE[i], "$"), FASE_PHENO$FID),]
-  FASE_PHENO_ALL <- rbind.data.frame(FASE_PHENO_ALL, FASE_PHENO_ALL.tmp)
-  print(nrow(FASE_PHENO_ALL))
-}
-
-sum(tts.SD3$sd.3 %in% FASE_PHENO_ALL$IID)
-# 3578
+# #######################################################################################
+# ## Finding samples within different SD and the related samples outside the SD margin ##
+# #######################################################################################
+# dim(FASE_PHENO)
+# # [1] 3794   34
+# dim(tts)
+# # 3939 4
+# # Add FID
+# tts$FID <- FASE_PHENO$FID[match(tts$sd.5, FASE_PHENO$IID)]
+# tts.FASE <- tts[!(tts$sd.5 %in% NHW_SAMPLES_CEU$IID),]
+# dim(tts.FASE)
+# # 3774
+# 
+# # Finding relatives outside each SD cutoff
+# tts.SD3 <- tts.FASE[!is.na(tts.FASE$sd.3),]
+# tts.SD4 <- tts.FASE[!is.na(tts.FASE$sd.4),]
+# tts.SD5 <- tts.FASE[!is.na(tts.FASE$sd.5),]
+# 
+# dim(tts.SD3)
+# # 3661
+# 
+# FASE_PHENO_ALL <- NULL
+# FIDUNIQUE <- unique(tts.SD3$FID)
+# length(FIDUNIQUE)
+# # 2500
+# for (i in 1:length(FIDUNIQUE)){
+#   print(paste0("Doing_SM_", i))  
+#   FASE_PHENO_ALL.tmp <- FASE_PHENO [grepl(paste0("^", FIDUNIQUE[i], "$"), FASE_PHENO$FID),]
+#   FASE_PHENO_ALL <- rbind.data.frame(FASE_PHENO_ALL, FASE_PHENO_ALL.tmp)
+#   print(nrow(FASE_PHENO_ALL))
+# }
+# 
+# sum(tts.SD3$sd.3 %in% FASE_PHENO_ALL$IID)
+# # 3578
 
 ##################
 ## Demographics ##
