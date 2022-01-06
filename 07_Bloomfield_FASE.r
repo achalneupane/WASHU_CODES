@@ -522,6 +522,10 @@ ggsave("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloo
 
 
 
+# create a list to store dataframe from different SDs
+FASE_NHW_ALL_MEM_LIST <- list()
+
+
 ## Get phenot for NHW samples
 FASE_PHENO_NHW <- FASE_PHENO[FASE_PHENO$IID %in% tts$sd.5,]
 dim(FASE_PHENO_NHW)
@@ -531,6 +535,7 @@ dim(FASE_PHENO_NHW)
 
 # Just to make sure I am not breaking any family apart, I will get all samples from the same family
 FASE_NHW_ALL_MEM <- NULL
+
 FIDUNIQUE <- unique(FASE_PHENO_NHW$FID)
 length(FIDUNIQUE)
 # 2438
@@ -544,6 +549,14 @@ print(nrow(FASE_NHW_ALL_MEM))
 
 dim(FASE_NHW_ALL_MEM)
 # [1] 3692   32
+
+
+
+
+
+
+# Add FID
+tts$FID <- FASE_PHENO$FID[match(tts$sd.5, FASE_PHENO$IID)]
 
 
 # #######################################################################################
