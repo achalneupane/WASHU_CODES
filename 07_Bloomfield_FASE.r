@@ -1219,6 +1219,7 @@ table(table(FINAL.Covars$FID))
 # 1226   27  101  126   66   32   14    4    5    1    1
 
 
+write.table(FINAL.Covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Phenotype_2807.txt", col.names = F, row.names = F, quote = F, sep = "\t")
 save.image("FASe_Pheno_data.RData")
 
 

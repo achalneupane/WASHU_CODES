@@ -1297,8 +1297,6 @@ dim(GWAS_DATA)
 # write.table(GWAS_DATA_UNIQUE[1:2], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/WashU_AD_samples_for_PCA.txt", col.names = F, row.names = F, quote = F, sep = "\t")
 
 
-write.table(GWAS_DATA[1:2], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/WashU_AD_samples.txt", col.names = F, row.names = F, quote = F, sep = "\t")
-
 
 
 #########################################################################################
@@ -1374,9 +1372,6 @@ GWAS_DATA$Array[grepl("^201711_CoreExome$|^2016_CoreEx$|^2014CoreEx$|^2015CoreEx
 # I have asked Samira to test her Shiny tool for sample extraction based on array freq and missingness
 IDMatrix <- read.delim("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/ID_matrix_hg38_Nov2021.csv", sep = ",")
 dim(IDMatrix)
-
-MAP_Core$KEY1 %in% IDMatrix
-
 MAP_Core$KEY <-  gsub("MAP_", "", MAP_Core$KEY1)
 WashU_IDMATRIX <- IDMatrix[IDMatrix$MAP %in% MAP_Core$KEY,]
 dim(WashU_IDMATRIX)
@@ -1384,32 +1379,14 @@ write.table(WashU_IDMATRIX[1:2], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/W
 # --maf 0.01 --geno 0.02 --hwe 1e-6
 # Prefix="WashU_MAP_for_ADGC"
 
+# On 1/11/2022, I had to ask her to run the pipeline again with the new list
+dim(WashU_IDMATRIX)
+# 5138  67
+write.table(WashU_IDMATRIX[1:2], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/WashU_AD_samples_V2.txt", col.names = F, row.names = F, quote = F, sep = "\t")
+# --maf 0.01 --geno 0.02 --hwe 1e-6
+# Prefix="WashU_MAP_for_ADGC"
 
-###############
-
-as.data.frame(table(GWAS_DATA$Array))
-# Var1 Freq
-# 1 2013Genentech_Omni1-Quad   49
-# 2            2014BioBankUK   54
-# 3       2016_Human1M-Duov3  129
-# 4              2017NeuroX2  564
-# 5                      660  779
-# 6                   CoreEx  809
-# 7                      GSA 1117
-# 8                   OmniEx 1179
-
-# How many times each array is repeated
-GWAS_DATA$nArray <- with(transform(GWAS_DATA, n = 1),  ave(n, Array, FUN = length))
-
-# Now select the unique samples
-library(dplyr)
-tt <- GWAS_DATA %>% group_by(KEY1) %>% filter(nArray==max(nArray))
-
-tt[duplicated(tt$KEY1),]
-
-
-
-
+## Demographic table before selecting samples with Samira's pipeline
 MAP_Core_TABLE <- t(do.call(rbind, by(MAP_Core, MAP_Core$ETHNICITY, FUN = Get_STATs))) 
 
 
@@ -2477,11 +2454,126 @@ PCA <- PCA[order(-as.numeric(factor(PCA$COHORT))),]
 
 ## Generate a new file that has IID, PC1,PC2, and a new column COHORT 
 p <- ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("ADGC_65777") +
-  scale_color_manual(values = c('green', 'blue', 'red', "black"))
+  scale_color_manual(values = c('green', 'blue', 'red', "black")) +
+  annotate("text", x=0.003, y=0.003, label="NHW", size=4, color = "red") +
+  annotate("text", x=-0.01, y=0, label="AA", size=4, color = "blue") +
+  annotate("text", x=0, y=0.015, label="Asian", size=4, color = "green")
 p
 
 
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-ALL-COHORT.jpg", plot = p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+
+## SD FILTER for NHW
+# Samples within SD cutoff in reference to CEU HAPMAP samples
+NHW_SAMPLES_CEU <- PCA[PCA$COHORT == "CEU",]
+AA_SAMPLES_YRI <- PCA[PCA$COHORT == "YRI",]
+ASIAN_SAMPLES_CEU_JPT <- PCA[PCA$COHORT == "JPT",]
+
+p.sd <- p
+
+## (HAPMAP)
+## Select NHW samples only
+library(tidyverse)
+
+## NHW
+SDSelection.Table.NHW <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC1min <- (mean(NHW_SAMPLES_CEU$PC1) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+  PC1max <- (mean(NHW_SAMPLES_CEU$PC1) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+  PC2min <- (mean(NHW_SAMPLES_CEU$PC2) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+  PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+  
+  SDSelection <- PCA[PCA$PC1 > PC1min &
+                       PCA$PC1 < PC1max &
+                       PCA$PC2 > PC2min &
+                       PCA$PC2 < PC2max, ]
+  
+  SDSelection.Table.NHW[[i]] <- as.vector(SDSelection$IID)
+  
+  p.sd <- p.sd + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+                          fill=NA, colour="red") +
+    annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+
+
+## AA
+SDSelection.Table.AA <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC1min <- (mean(AA_SAMPLES_YRI$PC1) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC1)))
+  PC1max <- (mean(AA_SAMPLES_YRI$PC1) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC1)))
+  PC2min <- (mean(AA_SAMPLES_YRI$PC2) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+  PC2max <- (mean(AA_SAMPLES_YRI$PC2) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+  
+  SDSelection <- NHW_SAMPLES[PCA$PC1 > PC1min & 
+                               PCA$PC1 < PC1max &
+                               PCA$PC2 > PC2min &
+                               PCA$PC2 < PC2max,]
+  
+  SDSelection.Table.AA[[i]] <- as.vector(SDSelection$IID)
+  
+  p.sd <- p.sd + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+                          fill=NA, colour="blue") +
+    annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+
+
+## Asian
+SDSelection.Table.Asian <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC1min <- (mean(ASIAN_SAMPLES_CEU_JPT$PC1) - (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC1)))
+  PC1max <- (mean(ASIAN_SAMPLES_CEU_JPT$PC1) + (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC1)))
+  PC2min <- (mean(ASIAN_SAMPLES_CEU_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC2)))
+  PC2max <- (mean(ASIAN_SAMPLES_CEU_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC2)))
+  
+  SDSelection <- NHW_SAMPLES[PCA$PC1 > PC1min & 
+                               PCA$PC1 < PC1max &
+                               PCA$PC2 > PC2min &
+                               PCA$PC2 < PC2max,]
+  
+  SDSelection.Table.Asian[[i]] <- as.vector(SDSelection$IID)
+  
+  p.sd <- p.sd + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+                          fill=NA, colour="green") +
+    annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+
+p.sd
+
+
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+
+
+
+
+
+
+MAP_Core$Race_Ethnicity
+## Add ethnicity from ADSP Family
+df.ethnicity <- setNames(cbind.data.frame(PCA$PC1[!is.na(PCA$ADSPFambased_Ethnicity)], PCA$PC2[!is.na(PCA$ADSPFambased_Ethnicity)]), c("PC1", "PC2"))
+
+p.sd.reportedNHW <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_NHW")) +
+  scale_color_manual(values = c('green', 'black', 'red','yellow', "blue")) 
+p.sd.reportedNHW
+
+
+
+ggsave("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield-FASe-3931-PCs-COHORT-different-sd-HapMap.jpg", plot = p.sd, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+
+
+
+
 
 
 ##########################################################################
@@ -2489,16 +2581,38 @@ ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/A
 ##########################################################################
 # Get subset from these objects
 # combined_NHW, ADGC_AA_covar, ADGC_Asian_covar, ADGC_Hispanic_covar
+combined_NHW <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_NHW_49586.txt", sep ="\t", header = T)
+sum(duplicated(combined_NHW$IID))
+# 372
 table(combined_NHW$STATUS)
 # -9     1     2     3 
 # 10835 19401 18207  1143
 
 # Get CA <= 70
 sum(combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 70 | combined_NHW$STATUS == 3 & combined_NHW$AGE_AT_ONSET <= 70, na.rm = T)
-# 18829
+# 6762
 
+# CA
 NHW.CA <- combined_NHW[combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 70 | combined_NHW$STATUS == 3 & combined_NHW$AGE_AT_ONSET <= 70,]
+table(is.na(NHW.CA$AGE_AT_ONSET))
+# FALSE  TRUE 
+# 6762  2442 
 NHW.CA <- NHW.CA[!is.na(NHW.CA$AGE_AT_ONSET),]
+
+
+# CO
+NHW.CO <- combined_NHW[combined_NHW$STATUS == 1 & combined_NHW$AGE_LAST_VISIT >= 70,]
+table(is.na(NHW.CO$AGE_LAST_VISIT))
+# FALSE  TRUE 
+# 14811   699 
+NHW.CO <- NHW.CO[!is.na(NHW.CO$AGE_LAST_VISIT),]
+
+AGE.Filtered.NHW <- rbind.data.frame(NHW.CA,NHW.CO)
+dim(AGE.Filtered.NHW)
+sum(duplicated(AGE.Filtered.NHW$IID))
+# 232
+setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET")
+write.table(AGE.Filtered.NHW[1:2], "ADGC-NHW-selected_CA_CO-by-AGE.csv", sep = "\t", col.names = T, row.names = F, quote = F)
 
 
 #############################################################################################################################################################################################################################
