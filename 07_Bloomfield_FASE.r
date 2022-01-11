@@ -418,7 +418,7 @@ PCA$ADSPFambased_Ethnicity <- ADSPFambased_NHW$SUBJID[match(PCA$IID, ADSPFambase
 NHW_SAMPLES_CEU <- NHW_SAMPLES[NHW_SAMPLES$COHORT == "CEU",]
 
 
-
+## (HAPMAP)
 ## Select NHW samples only
 p.sd <- ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield-FASe-3931") +
   scale_color_manual(values = c('green', 'black', 'red', "blue")) +
@@ -458,27 +458,25 @@ as.character(lapply(SDSelection.Table, length))
 # [1] "3826" "3923" "3939"
 
 names(SDSelection.Table) <- c(paste("sd", SD.cutoff.all, sep = "."))
-tts <- as.data.frame(do.call("cbind", lapply(SDSelection.Table, ts)))
-table(is.na(tts$sd.3))
-table(is.na(tts$sd.4))
 
-# Reorder
-tts$sd.3 <- as.character(tts$sd.3[match(tts$sd.5,tts$sd.3)])
-## Keep FASE only and discard HAPMAP
-tts <- tts[tts$sd.5 %in% FASE_PHENO$IID,]
-
-sum(tts$sd.3 == tts$sd.5, na.rm = T)
-
-tts$sd.4 <- as.character(tts$sd.4[match(tts$sd.5,tts$sd.4)])
-sum(tts$sd.3 == tts$sd.4, na.rm = T)
-sum(tts$sd.4 == tts$sd.5, na.rm = T)
-
-# sum(tts$a %in% SDSelection.Table[[1]])
-# sum(tts$b %in% SDSelection.Table[[2]])
-# sum(tts$c %in% SDSelection.Table[[3]])
+SD3 <- setNames(as.data.frame(SDSelection.Table$sd.3), "sd.3")
+SD4 <- setNames(as.data.frame(SDSelection.Table$sd.4), "sd.4")
+SD5 <- setNames(as.data.frame(SDSelection.Table$sd.5), "sd.5")
 
 
-# tts is the table of samples at sd 3-5; I will use this below; see heading "Finding samples within different SD and the related samples outside the SD margin"
+SD3_SD4.merged <- merge(x = SD4, y = transform(SD3, sd.3t = sd.3), by.x = "sd.4", by.y = "sd.3t", all = T)
+SD3_SD4_SD5.merged <- merge(x = SD5, y = transform(SD3_SD4.merged, sd.4t = sd.4), by.x = "sd.5", by.y = "sd.4t", all = T)
+# reorder cols
+SD3_SD4_SD5.merged <- SD3_SD4_SD5.merged[, c("sd.3", "sd.4", "sd.5")]
+
+
+# Exclude HapMap
+sum(SD3_SD4_SD5.merged$sd.5 %in% FASE_PHENO$IID)
+# 3690
+SD3_SD4_SD5.merged <- SD3_SD4_SD5.merged[SD3_SD4_SD5.merged$sd.5 %in% FASE_PHENO$IID,]
+
+
+# SD3_SD4_SD5.merged is the table of samples at sd 3-5; I will use this below; see heading "Finding samples within different SD and the related samples outside the SD margin"
 #########################
 
 ## Add ethnicity from ADSP Family
@@ -490,50 +488,33 @@ p.sd.reportedNHW
 
 ggsave("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield-FASe-3931-PCs-COHORT-different-sd-HapMap-with-ADSP-FAM-reportedNHW.jpg", plot = p.sd.reportedNHW, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
+## (HAPMAP)
+# #######################################################################################
+# ## Finding samples within different SD and the related samples outside the SD margin ##
+# #######################################################################################
 
+# Nos of samples withing SD3, SD4 and SD5
+SD3_SD4_SD5.merged %>% summarise_all(~ sum(!is.na(.)))
+# sd.3 sd.4 sd.5
+# 3578 3674 3690
 
-
-# 
-# SD.cutoff.all <- 5
-#   SD.cutoff <- SD.cutoff.all
-#   PC1min <- (mean(NHW_SAMPLES_CEU$PC1) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
-#   PC1max <- (mean(NHW_SAMPLES_CEU$PC1) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
-#   PC2min <- (mean(NHW_SAMPLES_CEU$PC2) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
-#   PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
-#   
-#   SDSelection <- NHW_SAMPLES[NHW_SAMPLES$PC1 > PC1min & 
-#                                NHW_SAMPLES$PC1 < PC1max &
-#                                NHW_SAMPLES$PC2 > PC2min &
-#                                NHW_SAMPLES$PC2 < PC2max,]
-#   
-# SDSelection <- unique(SDSelection)
-# 
-# dim(SDSelection) # 3939   2 # Means all samples for which are Europeans
-# 
-# SDSelection <- SDSelection[SDSelection$IID %in% FASE_PHENO$IID,]
-# dim(SDSelection)
-# # [1] 3690    2
-# 
-# 
-# 
-# 
-# # NONFASE <- PCA[!grepl("FASe", PCA$COHORT),]
-
-
-
+# Nos of extra samples between SD3, SD4 and SD5
+SD3_SD4_SD5.merged %>% summarise_all(~ sum(is.na(.)))
+# sd.3 sd.4 sd.5
+# 112   16    0
 
 # create a list to store dataframe from different SDs
 FASE_NHW_ALL_MEM_SD <- list()
 
 for (i in 1:length(SD.cutoff.all)){
 ## Get phenot for NHW samples
-FASE_PHENO_NHW <- FASE_PHENO[FASE_PHENO$IID %in% tts[,paste0("sd.", SD.cutoff.all[i])],]
+FASE_PHENO_NHW <- FASE_PHENO[FASE_PHENO$IID %in% SD3_SD4_SD5.merged[,paste0("sd.", SD.cutoff.all[i])],]
 dim(FASE_PHENO_NHW)
 # [1] 3690   32
 
 
 
-# Just to make sure I am not breaking any family apart, I will get all samples from the same family
+# Just to make sure I am not breaking any family apart, I will get all samples from the same family for three SDs I checked above
 FASE_NHW_ALL_MEM <- NULL
 
 FIDUNIQUE <- unique(FASE_PHENO_NHW$FID)
@@ -551,67 +532,427 @@ names(FASE_NHW_ALL_MEM_SD)[[i]] <- paste0("sd.", SD.cutoff.all[i])
 
 }
 
-dim(FASE_NHW_ALL_MEM_SD)
-# [1] 3692   32
+as.character(lapply(FASE_NHW_ALL_MEM_SD, nrow))
+# "3628" "3684" "3692" # Nos of samples at SD3, SD4 and SD5 including any relatives outside
+
+sum(FASE_NHW_ALL_MEM_SD$sd.5$IID %in% SD3_SD4_SD5.merged$sd.5)
 
 
-
-
+## Additional related samples outside each SD group
+extra.sd.3 <- FASE_NHW_ALL_MEM_SD$sd.3$IID[!FASE_NHW_ALL_MEM_SD$sd.3$IID %in% SD3_SD4_SD5.merged$sd.3]
+extra.sd.4 <- FASE_NHW_ALL_MEM_SD$sd.4$IID[!FASE_NHW_ALL_MEM_SD$sd.4$IID %in% SD3_SD4_SD5.merged$sd.4]
+extra.sd.5 <- FASE_NHW_ALL_MEM_SD$sd.5$IID[!FASE_NHW_ALL_MEM_SD$sd.5$IID %in% SD3_SD4_SD5.merged$sd.5]
+sq <- seq(max(length(extra.sd.5), length(extra.sd.3)))
+Relatives_found_outside_each_SD <- data.frame(extra.sd.3[sq], extra.sd.4[sq], extra.sd.5[sq])
 
 
 # Add FID
-tts$FID <- FASE_PHENO$FID[match(tts$sd.5, FASE_PHENO$IID)]
+SD3_SD4_SD5.merged$FID <- FASE_PHENO$FID[match(SD3_SD4_SD5.merged$sd.5, FASE_PHENO$IID)]
+
+# Samples within each SD
+write.table(SD3_SD4_SD5.merged, "/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Samples_witihin_each_SD_Category.csv", sep =",", col.names = T, quote = F, row.names = FALSE)
 
 
+## color layers to related samples outside SD
+p.sd.reportedNHW <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_NHW")) +
+  scale_color_manual(values = c('green', 'black', 'red','yellow', "blue")) 
+p.sd.reportedNHW
+
+
+Relatives_found_outside_each_SD[ , sapply(Relatives_found_outside_each_SD, function(x) all(is.na(x)) ) ] <- NULL
+Relatives_found_outside_each_SD
+
+library(tidyr)
+library(dplyr)
+
+COLOR_CODE <- Relatives_found_outside_each_SD %>% 
+  pivot_longer(
+    everything(),
+    names_to = "SD",
+    values_to = "Samples"
+  ) %>% 
+  na.omit() %>% 
+  arrange(Samples)
+
+
+COLOR_CODE <- cbind(COLOR_CODE,PCA[c(3:4)][match(COLOR_CODE$Samples, PCA$IID),])
+
+## SD3
+SD.cutoff <- 3  
+PC1min <- (mean(NHW_SAMPLES_CEU$PC1) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+PC1max <- (mean(NHW_SAMPLES_CEU$PC1) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+PC2min <- (mean(NHW_SAMPLES_CEU$PC2) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield-FASe-3931") +
+  scale_color_manual(values = c('green', 'black', 'red', "blue")) +
+  annotate("text", x=0.008, y=0.025, label="NHW", size=4, color = "red") +
+    annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+             fill=NA, colour="red") +
+    geom_point(data = COLOR_CODE[3:4][COLOR_CODE$SD == paste0("extra.sd.", SD.cutoff, ".sq."),], aes(col="related")) +
+    scale_color_manual(values = c('green', 'black', 'red','yellow', "blue")) +
+    annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff), size=4, color = "black")
+
+
+
+## SD4
+SD.cutoff <- 4
+PC1min <- (mean(NHW_SAMPLES_CEU$PC1) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+PC1max <- (mean(NHW_SAMPLES_CEU$PC1) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+PC2min <- (mean(NHW_SAMPLES_CEU$PC2) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield-FASe-3931") +
+  scale_color_manual(values = c('green', 'black', 'red', "blue")) +
+  annotate("text", x=0.008, y=0.025, label="NHW", size=4, color = "red") +
+  annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+           fill=NA, colour="red") +
+  geom_point(data = COLOR_CODE[3:4][COLOR_CODE$SD == paste0("extra.sd.", SD.cutoff, ".sq."),], aes(col="related")) +
+  scale_color_manual(values = c('green', 'black', 'red','yellow', "blue")) +
+  annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff), size=4, color = "black")
+
+
+## SD5
+SD.cutoff <- 5
+PC1min <- (mean(NHW_SAMPLES_CEU$PC1) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+PC1max <- (mean(NHW_SAMPLES_CEU$PC1) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+PC2min <- (mean(NHW_SAMPLES_CEU$PC2) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield-FASe-3931") +
+  scale_color_manual(values = c('green', 'black', 'red', "blue")) +
+  annotate("text", x=0.008, y=0.025, label="NHW", size=4, color = "red") +
+  annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+           fill=NA, colour="red") +
+  geom_point(data = COLOR_CODE[3:4][COLOR_CODE$SD == paste0("extra.sd.", SD.cutoff, ".sq."),], aes(col="related")) +
+  scale_color_manual(values = c('green', 'black', 'red','yellow', "blue")) +
+  annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff), size=4, color = "black")
+
+
+
+## (1000 genome)
+####################################
+## PLOT PCA with 1000 genome data ##
+####################################
+
+setwd("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/1000genome_PCA")
+eigen<- read.table(file="PCA_FASe_1KG_merged.eigenvec",header=F) 
+colnames(eigen)<-c("FID","IID", "C1","C2","C3","C4","C5","C6","C7","C8","C9","C10")
+
+#Using super population as population code to plot 
+race<- read.table(file="racefile_with_superpopcodes.txt",header=TRUE)
+race$FID <- NULL 
+
+datafile<- merge(eigen,race,by=c("IID"))
+table(datafile$race)
+# AFR  AMR  ASN  EUR FASe  SAN 
+# 671  348  515  522 3931  492
+##Save datafile 
+write.table(datafile, file= "FASe_PCA.csv", col.names = TRUE, row.names = FALSE, sep = '\t', quote = F) 
+
+
+
+
+
+
+
+# PCA plot with super populations
+# AFR
+# AMR
+# ASN
+# EUR
+# SAN
+
+
+p.sd.1KG.nosd <- ggplot(datafile, aes(x=C1, y=C2, color=race)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield-FASe-3931-With-1000genome") +
+  scale_color_manual(values = c(AFR='green',
+                                FASe='black',
+                                EUR='red',
+                                AMR="blue",
+                                ASN="purple",
+                                SAN="orange"))
+
+NHW_SAMPLES_CEU_1KG <- datafile[grepl("EUR",datafile$race),]
+
+SDSelection.Table <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC1min <- (mean(NHW_SAMPLES_CEU_1KG$C1) - (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C1)))
+  PC1max <- (mean(NHW_SAMPLES_CEU_1KG$C1) + (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C1)))
+  PC2min <- (mean(NHW_SAMPLES_CEU_1KG$C2) - (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C2)))
+  PC2max <- (mean(NHW_SAMPLES_CEU_1KG$C2) + (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C2)))
+  
+  SDSelection <- datafile[datafile$C1 > PC1min & 
+                            datafile$C1 < PC1max &
+                            datafile$C2 > PC2min &
+                            datafile$C2 < PC2max,]
+  
+  SDSelection.Table[[i]] <- as.vector(SDSelection$IID)
+  
+  ## Select NHW samples only
+  p.sd.1KG.nosd <- p.sd.1KG.nosd + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+                                  fill=NA, colour="red") +
+    annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+p.sd.1KG.nosd
+ggsave("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_with_1000Genome.jpg", plot = p.sd.1KG.nosd, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+
+## (1000 genome)
+#########################
+## Get table of samples shared between three different SD cutoffs
+as.character(lapply(SDSelection.Table, length))
+# [1] "4239" "4320" "4367"
+
+names(SDSelection.Table) <- c(paste("sd", SD.cutoff.all, sep = "."))
+
+SD3 <- setNames(as.data.frame(SDSelection.Table$sd.3), "sd.3")
+SD4 <- setNames(as.data.frame(SDSelection.Table$sd.4), "sd.4")
+SD5 <- setNames(as.data.frame(SDSelection.Table$sd.5), "sd.5")
+
+
+SD3_SD4.merged.1000G <- merge(x = SD4, y = transform(SD3, sd.3t = sd.3), by.x = "sd.4", by.y = "sd.3t", all = T)
+SD3_SD4_SD5.merged.1000G <- merge(x = SD5, y = transform(SD3_SD4.merged.1000G, sd.4t = sd.4), by.x = "sd.5", by.y = "sd.4t", all = T)
+# reorder cols
+SD3_SD4_SD5.merged.1000G <- SD3_SD4_SD5.merged.1000G[, c("sd.3", "sd.4", "sd.5")]
+
+
+# Exclude HapMap
+sum(SD3_SD4_SD5.merged.1000G$sd.5 %in% FASE_PHENO$IID)
+# 3692
+SD3_SD4_SD5.merged.1000G <- SD3_SD4_SD5.merged.1000G[SD3_SD4_SD5.merged.1000G$sd.5 %in% FASE_PHENO$IID,]
+# Two related samples excluded with HAPMAP analysis at 5 SD are included in this analysis
+
+## (1000 genome)
 # #######################################################################################
 # ## Finding samples within different SD and the related samples outside the SD margin ##
 # #######################################################################################
-# dim(FASE_PHENO)
-# # [1] 3794   34
-# dim(tts)
-# # 3939 4
-# # Add FID
-# tts$FID <- FASE_PHENO$FID[match(tts$sd.5, FASE_PHENO$IID)]
-# tts.FASE <- tts[!(tts$sd.5 %in% NHW_SAMPLES_CEU$IID),]
-# dim(tts.FASE)
-# # 3774
-# 
-# # Finding relatives outside each SD cutoff
-# tts.SD3 <- tts.FASE[!is.na(tts.FASE$sd.3),]
-# tts.SD4 <- tts.FASE[!is.na(tts.FASE$sd.4),]
-# tts.SD5 <- tts.FASE[!is.na(tts.FASE$sd.5),]
-# 
-# dim(tts.SD3)
-# # 3661
-# 
-# FASE_PHENO_ALL <- NULL
-# FIDUNIQUE <- unique(tts.SD3$FID)
-# length(FIDUNIQUE)
-# # 2500
-# for (i in 1:length(FIDUNIQUE)){
-#   print(paste0("Doing_SM_", i))  
-#   FASE_PHENO_ALL.tmp <- FASE_PHENO [grepl(paste0("^", FIDUNIQUE[i], "$"), FASE_PHENO$FID),]
-#   FASE_PHENO_ALL <- rbind.data.frame(FASE_PHENO_ALL, FASE_PHENO_ALL.tmp)
-#   print(nrow(FASE_PHENO_ALL))
-# }
-# 
-# sum(tts.SD3$sd.3 %in% FASE_PHENO_ALL$IID)
-# # 3578
 
+# Nos of samples withing SD3, SD4 and SD5
+SD3_SD4_SD5.merged.1000G %>% summarise_all(~ sum(!is.na(.)))
+## HAPMAP
+# sd.3 sd.4 sd.5
+# 3578 3674 3690
+## 1000 Genome
+# sd.3 sd.4 sd.5
+# 3614 3682 3692
+
+
+# Nos of extra samples between SD3, SD4 and SD5
+SD3_SD4_SD5.merged.1000G %>% summarise_all(~ sum(is.na(.)))
+## HAPMAP
+# sd.3 sd.4 sd.5
+# 112   16    0
+## 1000 Genome
+# sd.3 sd.4 sd.5
+# 78   10    0
+
+
+# create a list to store dataframe from different SDs
+FASE_NHW_ALL_MEM_SD.1000G <- list()
+
+for (i in 1:length(SD.cutoff.all)){
+  ## Get phenot for NHW samples
+  FASE_PHENO_NHW <- FASE_PHENO[FASE_PHENO$IID %in% SD3_SD4_SD5.merged.1000G[,paste0("sd.", SD.cutoff.all[i])],]
+  dim(FASE_PHENO_NHW)
+  # [1] 3690   32
+  
+  
+  
+  # Just to make sure I am not breaking any family apart, I will get all samples from the same family for three SDs I checked above
+  FASE_NHW_ALL_MEM <- NULL
+  
+  FIDUNIQUE <- unique(FASE_PHENO_NHW$FID)
+  length(FIDUNIQUE)
+  # 2438
+  for (j in 1:length(FIDUNIQUE)){
+    print(paste0("Doing_SM_", j, "_from_SD:", SD.cutoff.all[i])) 
+    FASE_NHW_ALL_MEM.tmp <- FASE_PHENO [grepl(paste0("^", FIDUNIQUE[j], "$"), FASE_PHENO$FID),]
+    FASE_NHW_ALL_MEM <- rbind.data.frame(FASE_NHW_ALL_MEM, FASE_NHW_ALL_MEM.tmp)
+    print(nrow(FASE_NHW_ALL_MEM))
+  }
+  
+  FASE_NHW_ALL_MEM_SD.1000G[[i]] <- FASE_NHW_ALL_MEM
+  names(FASE_NHW_ALL_MEM_SD.1000G)[[i]] <- paste0("sd.", SD.cutoff.all[i])
+  
+}
+
+as.character(lapply(FASE_NHW_ALL_MEM_SD.1000G, nrow))
+## HAPMAP (all samples including relatives found outside SD3, SD4 and SD5 from HAPMAP analysis)
+# "3628" "3684" "3692" # Nos of samples at SD3, SD4 and SD5 including any relatives outside
+## 1000 Genome (all samples including relatives found outside SD3, SD4 and SD5 from 1000G analysis)
+# "3646" "3688" "3699"
+
+
+sum(FASE_NHW_ALL_MEM_SD.1000G$sd.5$IID %in% SD3_SD4_SD5.merged.1000G$sd.5)
+
+
+## Additional related samples outside each SD group
+extra.sd.3 <- FASE_NHW_ALL_MEM_SD.1000G$sd.3$IID[!FASE_NHW_ALL_MEM_SD.1000G$sd.3$IID %in% SD3_SD4_SD5.merged.1000G$sd.3]
+extra.sd.4 <- FASE_NHW_ALL_MEM_SD.1000G$sd.4$IID[!FASE_NHW_ALL_MEM_SD.1000G$sd.4$IID %in% SD3_SD4_SD5.merged.1000G$sd.4]
+extra.sd.5 <- FASE_NHW_ALL_MEM_SD.1000G$sd.5$IID[!FASE_NHW_ALL_MEM_SD.1000G$sd.5$IID %in% SD3_SD4_SD5.merged.1000G$sd.5]
+sq <- seq(max(length(extra.sd.5), length(extra.sd.3)))
+
+Relatives_found_outside_each_SD <- data.frame(extra.sd.3[sq], extra.sd.4[sq], extra.sd.5[sq])
+
+
+# Add FID
+SD3_SD4_SD5.merged.1000G$FID <- FASE_PHENO$FID[match(SD3_SD4_SD5.merged.1000G$sd.5, FASE_PHENO$IID)]
+
+# Samples within each SD
+write.table(SD3_SD4_SD5.merged.1000G, "/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Samples_witihin_each_SD_Category_1000G.csv", sep =",", col.names = T, quote = F, row.names = FALSE)
+
+
+## color layers to related samples outside SD
+datafile$ADSPFambased_Ethnicity <- ADSPFambased_NHW$SUBJID[match(datafile$IID, ADSPFambased_NHW$SUBJID)]
+df.ethnicity.C <- setNames(cbind.data.frame(datafile$C1[!is.na(datafile$ADSPFambased_Ethnicity)], datafile$C2[!is.na(datafile$ADSPFambased_Ethnicity)]), c("C1", "C2"))
+
+p.sd.1KG.nosd.reportedNHW <- p.sd.1KG.nosd + geom_point(data = df.ethnicity.C, aes(col="Reported_NHW")) +
+  scale_color_manual(
+    values = c(
+      AFR = 'green',
+      FASe = 'black',
+      EUR = 'red',
+      AMR = 'blue',
+      ASN = 'purple',
+      SAN = 'orange',
+      Reported_NHW = "yellow"
+    )
+  ) 
+p.sd.1KG.nosd.reportedNHW
+ggsave("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_with_1000Genome_with_reported_NHW.jpg", plot = p.sd.1KG.nosd.reportedNHW, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+
+
+Relatives_found_outside_each_SD[ , sapply(Relatives_found_outside_each_SD, function(x) all(is.na(x)) ) ] <- NULL
+Relatives_found_outside_each_SD
+
+library(tidyr)
+library(dplyr)
+
+COLOR_CODE <- Relatives_found_outside_each_SD %>% 
+  pivot_longer(
+    everything(),
+    names_to = "SD",
+    values_to = "Samples"
+  ) %>% 
+  na.omit() %>% 
+  arrange(Samples)
+
+
+COLOR_CODE <- cbind(COLOR_CODE,datafile[c(3:4)][match(COLOR_CODE$Samples, datafile$IID),])
+
+## SD3
+SD.cutoff <- 3  
+PC1min <- (mean(NHW_SAMPLES_CEU_1KG$C1) - (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C1)))
+PC1max <- (mean(NHW_SAMPLES_CEU_1KG$C1) + (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C1)))
+PC2min <- (mean(NHW_SAMPLES_CEU_1KG$C2) - (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C2)))
+PC2max <- (mean(NHW_SAMPLES_CEU_1KG$C2) + (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C2)))
+
+
+ggplot(datafile, aes(x=C1, y=C2, color=race)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield-FASe-3931-1000G") +
+  annotate("text", x=0.008, y=0.025, label="NHW", size=4, color = "red") +
+  annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+           fill=NA, colour="red") +
+  geom_point(data = COLOR_CODE[3:4][COLOR_CODE$SD == paste0("extra.sd.", SD.cutoff, ".sq."),], aes(col="related")) +
+  scale_color_manual(values = c(AFR='green',
+                                FASe='black',
+                                EUR='red',
+                                AMR="blue",
+                                ASN="purple",
+                                SAN="orange", 
+                                related = "white")) +
+  annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff), size=4, color = "black")
+
+
+
+## SD4
+SD.cutoff <- 4  
+PC1min <- (mean(NHW_SAMPLES_CEU_1KG$C1) - (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C1)))
+PC1max <- (mean(NHW_SAMPLES_CEU_1KG$C1) + (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C1)))
+PC2min <- (mean(NHW_SAMPLES_CEU_1KG$C2) - (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C2)))
+PC2max <- (mean(NHW_SAMPLES_CEU_1KG$C2) + (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C2)))
+
+
+
+ggplot(datafile, aes(x=C1, y=C2, color=race)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield-FASe-3931-1000G") +
+  annotate("text", x=0.008, y=0.025, label="NHW", size=4, color = "red") +
+  annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+           fill=NA, colour="red") +
+  geom_point(data = COLOR_CODE[3:4][COLOR_CODE$SD == paste0("extra.sd.", SD.cutoff, ".sq."),], aes(col="related")) +
+  scale_color_manual(values = c(AFR='green',
+                                FASe='black',
+                                EUR='red',
+                                AMR="blue",
+                                ASN="purple",
+                                SAN="orange", 
+                                related = "white")) +
+  annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff), size=4, color = "black")
+
+
+## SD5
+SD.cutoff <- 5
+PC1min <- (mean(NHW_SAMPLES_CEU_1KG$C1) - (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C1)))
+PC1max <- (mean(NHW_SAMPLES_CEU_1KG$C1) + (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C1)))
+PC2min <- (mean(NHW_SAMPLES_CEU_1KG$C2) - (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C2)))
+PC2max <- (mean(NHW_SAMPLES_CEU_1KG$C2) + (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C2)))
+
+
+
+ggplot(datafile, aes(x=C1, y=C2, color=race)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield-FASe-3931-1000G") +
+  annotate("text", x=0.008, y=0.025, label="NHW", size=4, color = "red") +
+  annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+           fill=NA, colour="red") +
+  geom_point(data = COLOR_CODE[3:4][COLOR_CODE$SD == paste0("extra.sd.", SD.cutoff, ".sq."),], aes(col="related")) +
+  scale_color_manual(values = c(AFR='green',
+                                FASe='black',
+                                EUR='red',
+                                AMR="blue",
+                                ASN="purple",
+                                SAN="orange", 
+                                related = "white")) +
+  annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff), size=4, color = "black")
+
+
+
+## Plot all the population in 1000 genome data
+#Read population file
+race<- read.table(file="racefile_with_popcodes.txt",header=T)
+race$FID <- NULL 
+datafile<- merge(eigen,race,by=c("IID"))
+table(datafile$race)
+# ACB  ASW  BEB  CDX  CEU  CHB  CHS  CLM  ESN FASe  FIN  GBR  GIH  GWD  IBS  ITU  JPT  KHV  LWK  MSL  MXL  PEL  PJL  PUR  STU 
+# 97   61   86  100   99  106  105   95  100 3931  105  100  106  113  107  102  105   99  103   90   64   85   96  104  102 
+# TSI  YRI 
+# 111  107 
+
+myCol = c("pink1", "violet", "mediumpurple1", "slateblue1", "purple", "purple3",
+          "turquoise2", "skyblue", "steelblue", "black", "blue2", "navyblue",
+          "orange", "tomato", "coral2", "palevioletred", "violetred", "red2",
+          "springgreen2", "yellowgreen", "palegreen4",
+          "wheat2", "tan", "tan2", "tan3",
+          "grey70", "grey50")
+length(myCol)
+p <- ggplot(datafile, aes(x=C1, y=C2)) + geom_point(size=2, aes(colour =race)) + scale_color_manual(values= myCol)
+p
+ggsave("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_with_1000Genome_with_reported_NHW_all_population.jpg", plot = p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+# Rest of the code is based on HapMap analysis
 ##################
 ## Demographics ##
 ##################
 
-## Start demographic table
-# FASE_PHENO$IID <- as.character(FASE_PHENO$IID)
-table(table(as.character(FASE_PHENO_NHW$FID)))
-# 1    2    3    4    5    6    7    8    9   10   12   14   24 
-# 2061   20  102  127   65   36   14    5    4    1    1    1    1 
-
 ########################################################################################################
 ####################### Age-of-onset stratified by STATUS, ethnicity and sex ###########################
 ########################################################################################################
-covars <- FASE_NHW_ALL_MEM
+covars <- FASE_NHW_ALL_MEM_SD$sd.5
+
+## Start demographic table
+# FASE_PHENO$IID <- as.character(FASE_PHENO$IID)
+table(table(covars$FID))
+# 1    2    3    4    5    6    7    8    9   10   12   14   24 
+# 2061   20  101  128   64   37   14    5    4    1    1    1    1 
+
+
 
 colnames(covars)[colnames(covars) == "AAO"] <- "AGE_AT_ONSET"
 colnames(covars)[colnames(covars) == "ALA"] <- "AGE_LAST_VISIT"
@@ -747,6 +1088,8 @@ covars$FID [grepl("^MAP_61952$|^MAP_64869$", covars$IID)] <- "MR181"
 covars$FID [grepl("^MAP_61401.WES.phs000572_201508$|^MAP_68161$", covars$IID)] <- "MR045"
 covars$FID [grepl("^MAP_86353$|^MAP_86361$", covars$IID)] <- "FD238"
 covars$FID [grepl("^MAP_86495.WES.MGI_FASeEOAD_201605$|^MAP_86496$", covars$IID)] <- "FD257"
+
+table(table(covars$FID))
   
 ## Find cases and controls of age < 65 yo
 covars_controls <- as.data.table(covars[covars$STATUS == 1,])
@@ -767,7 +1110,7 @@ ageGroup.cases <- cut(covars_cases$AGE_AT_ONSET,
 table(ageGroup.cases)
 # ageGroup.cases
 # <=40 >40-50 >50-60 >60-65 >65-70 >70-75 >75-80 >80-85 >85-90    >90 
-# 3     24    292    793    237    299    253    110     74     20 
+# 3     24    292    793    237    299    253    110     75     20 
 
 
 ageGroup.controls <- cut(covars_controls$AGE_LAST_VISIT,
@@ -779,7 +1122,7 @@ ageGroup.controls <- cut(covars_controls$AGE_LAST_VISIT,
 table(ageGroup.controls)
 # ageGroup.controls
 # <40 40-50 50-60 60-65 65-70 70-75 75-80 80-85 85-90   >90 
-# 2     5    15    12    30    54    52    71   792    33 
+# 2     5    15    12    30    54    52    72   792    33 
 
 # sum(covars_controls$AGE_LAST_VISIT > 0 & covars_controls$AGE_LAST_VISIT <= 40 , na.rm = T)
 # sum(covars_controls$AGE_LAST_VISIT > 85 & covars_controls$AGE_LAST_VISIT <= 90 , na.rm = T)
@@ -794,8 +1137,8 @@ AGE.Groups
 # 5  >65-70 237  30
 # 6  >70-75 299  54
 # 7  >75-80 253  52
-# 8  >80-85 110  71
-# 9  >85-90  74 792
+# 8  >80-85 110  72
+# 9  >85-90  75 792
 # 10    >90  20  33
 
 
@@ -864,12 +1207,17 @@ sum(FINAL.Covars$FID %in% "203")
 # 24
 FINAL.Covars <- FINAL.Covars[!FINAL.Covars$FID %in% "203",]
 
-# write.table(FINAL.Covars[1:2], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/sample_list_postQC_3662.txt", col.names = F, row.names = F, quote = F, sep = "\t")
+dim(FINAL.Covars)
+# 2807 
+write.table(FINAL.Covars[1:2], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/sample_list_postQC_2807.txt", col.names = F, row.names = F, quote = F, sep = "\t")
 
 
 Get_STATs_FASE(FINAL.Covars)
 
 table(table(FINAL.Covars$FID))
+# 1    2    3    4    5    6    7    8    9   10   13 
+# 1226   27  101  126   66   32   14    4    5    1    1
+
 
 save.image("FASe_Pheno_data.RData")
 

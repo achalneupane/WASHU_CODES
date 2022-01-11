@@ -1620,6 +1620,7 @@ ADGC_NHW_covar <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/NHW_c
 # All FAM files
 fileName <- "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/ADGC_NHW/fam.list"
 
+library(tidyverse)
 ## Loop over a file connection
 conn <- file(fileName,open="r")
 linn <-readLines(conn)
@@ -1926,7 +1927,9 @@ head(ADGC_NHW_FAM)
 combined_NHW <- combined[grepl("YES",combined$FOUND),]
 combined_NHW$ETHNICITY <- "NHW"
 
-write.table(combined_NHW, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_NHW_49586.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+# write.table(combined_NHW, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_NHW_49586.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+
 
 
 ################################################################
@@ -2139,7 +2142,7 @@ sum(ADGC_AA_covar$KEY2 %in% ADGC_AA_FAM$KEY2)
 ADGC_AA_covar <- RECODE_CACO_SEX(ADGC_AA_covar)
 
 
-write.table(ADGC_AA_covar, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_AA_8563.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+# write.table(ADGC_AA_covar, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_AA_8563.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
 # ###########################
 # ## Recode SEX and STATUS ##
@@ -2289,7 +2292,7 @@ sum(!ADGC_Asian_covar$KEY2 %in% ADGC_Asian_FAM$KEY2)
 ## recode STATUS and SEX
 ADGC_Asian_covar <- RECODE_CACO_SEX(ADGC_Asian_covar)
 
-write.table(ADGC_Asian_covar, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_Asian_4742.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+# write.table(ADGC_Asian_covar, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_Asian_4742.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
 
 ##########################
@@ -2384,7 +2387,7 @@ sum(!ADGC_Hispanic_covar$KEY2 %in% ADGC_Hispanic_FAM$KEY2)
 ## recode STATUS and SEX
 ADGC_Hispanic_covar <- RECODE_CACO_SEX(ADGC_Hispanic_covar)
 
-write.table(ADGC_Hispanic_covar, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_Hispanic_2292.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+# write.table(ADGC_Hispanic_covar, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_Hispanic_2292.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
 
 ############################################################################################
@@ -2454,17 +2457,48 @@ unname(cbind.data.frame(as.data.frame(t(Get_STATs(ADGC_AA_covar))), as.data.fram
 ###################################### HapMap All Ethnicities ######################################
 ####################################################################################################
 
+PCA <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC_HAPMAP_VARIANTS_ALL_COHORT-HAPMAP-FINAL-MERGED-for_PCA.eigenvec", header =T, stringsAsFactors=FALSE)
+dim(PCA)
+HAPMAP.ethnicty <- read.table("relationships_w_pops_121708.txt", header = T )
+head(HAPMAP.ethnicty)
 
 
+PCA$COHORT <- "ADGC"
+PCA$COHORT <- HAPMAP.ethnicty$population[match(PCA$IID, HAPMAP.ethnicty$IID)]
+PCA <- PCA[c("FID", "IID", c(paste0("PC", 1:10), "COHORT"))]
+PCA$COHORT <- as.character(PCA$COHORT)
+PCA$COHORT[is.na(PCA$COHORT)] <- "ADGC"
+# write.table(PCA, "Bloomfield_Amyloid_Imaging_1989-round1.txt", sep ="\t", col.names = T, quote = F)
+
+target <- c("JPT", "YRI", "CEU", "ADGC")
+PCA$COHORT <- factor(PCA$COHORT, levels = target)
+PCA <- PCA[order(-as.numeric(factor(PCA$COHORT))),]
 
 
+## Generate a new file that has IID, PC1,PC2, and a new column COHORT 
+p <- ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("ADGC_65777") +
+  scale_color_manual(values = c('green', 'blue', 'red', "black"))
+p
 
 
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-ALL-COHORT.jpg", plot = p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 
+##########################################################################
+## Subset data by Age criteria EOAD - subset demographics CA≤70; CO ≥70 ##
+##########################################################################
+# Get subset from these objects
+# combined_NHW, ADGC_AA_covar, ADGC_Asian_covar, ADGC_Hispanic_covar
+table(combined_NHW$STATUS)
+# -9     1     2     3 
+# 10835 19401 18207  1143
 
+# Get CA <= 70
+sum(combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 70 | combined_NHW$STATUS == 3 & combined_NHW$AGE_AT_ONSET <= 70, na.rm = T)
+# 18829
 
-
+NHW.CA <- combined_NHW[combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 70 | combined_NHW$STATUS == 3 & combined_NHW$AGE_AT_ONSET <= 70,]
+NHW.CA <- NHW.CA[!is.na(NHW.CA$AGE_AT_ONSET),]
 
 
 #############################################################################################################################################################################################################################
