@@ -1223,6 +1223,30 @@ write.table(FINAL.Covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109
 save.image("FASe_Pheno_data.RData")
 
 
+
+## POST QC HapMap PCA
+PCA <- read.table("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield_9810-FASe-2807-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_post_QC3-HAPMAP-MERGED3-for_PCA.eigenvec", header =T, stringsAsFactors=FALSE)
+
+library(ggplot2)
+HAPMAP.ethnicty <- read.table("relationships_w_pops_121708.txt", header = T )
+head(HAPMAP.ethnicty)
+
+dim(PCA)
+PCA$COHORT <- "FASe"
+PCA$COHORT <- HAPMAP.ethnicty$population[match(PCA$IID, HAPMAP.ethnicty$IID)]
+PCA <- PCA[c("FID", "IID", c(paste0("PC", 1:10), "COHORT"))]
+PCA$COHORT <- as.character(PCA$COHORT)
+PCA$COHORT[is.na(PCA$COHORT)] <- "FASe"
+write.table(PCA, "/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield_9810-FASe-2807-Hapmap.txt", sep ="\t", col.names = T, quote = F)
+
+##plotting:
+p <- ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield_9810-FASe-2807") +
+  scale_color_manual(values = c('green', 'black', 'red', "blue"))  
+p
+ggsave("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield_9810-FASe-2807_with_HAPMAP.jpg", plot = p, device = NULL, scale = 1, width = 8, height = 4, dpi = 600, limitsize = TRUE)
+
+
+
 ####################################################################################
 ####################################################################################
 ####################################################################################

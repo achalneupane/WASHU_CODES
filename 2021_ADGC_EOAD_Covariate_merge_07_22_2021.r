@@ -802,6 +802,7 @@ NACC$STATUS_AN[grepl("^CA$|^Neuro_AD$|^Neuro_AD_DLB$|^Neuro_PreSymptomatic_AD$",
 table(NACC$STATUS_AN)
 NACC <- change_names(NACC)
 colnames(NACC)[colnames(NACC) == "final_CC_status"] <- "Final_CC_status"
+NACC.AD <- NACC
 
 ################
 ### MAP_Core ###
@@ -1411,6 +1412,8 @@ MAP_Core_TABLE <- t(do.call(rbind, by(MAP_Core, MAP_Core$ETHNICITY, FUN = Get_ST
 # # 2036/ 3621
 # sum(CA.65.NACC.NOTMATCHED %in% ADGC.fam.NACC$KEY)
 
+FENGXIAN_COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/WASHU-GWAS/ALL_WASHU_COVARIATES_SELECTED_BY_AD_STATUS.txt", header = T, sep = "\t", stringsAsFactors = F)
+
 NACC_WASHU <- covars_WASHU[grepl("NACC", covars_WASHU$COHORT),]
 dim(NACC_WASHU)
 # 28319    10
@@ -1480,7 +1483,7 @@ sum(GWAS.fam.NACC$KEY1 %in% NACC_ALL_with_MAP_ID$NACC_ID)
 # 0
 
 NACC_WASHU_FOUND_IN_ADGC.fam$Final_CC_status <- as.character(NACC_WASHU_FOUND_IN_ADGC.fam$Final_CC_status)
-
+as.data.frame(table(NACC_WASHU_FOUND_IN_ADGC.fam$Final_CC_status))
 # Var1 Freq
 # 1                      CA 6210
 # 2                      CO 6395
@@ -1489,7 +1492,6 @@ NACC_WASHU_FOUND_IN_ADGC.fam$Final_CC_status <- as.character(NACC_WASHU_FOUND_IN
 # 5                Neuro_CO  130
 # 6 Neuro_PreSymptomatic_AD  107
 # 7                  OT(CO)  727
-
 
 NACC_Core_TABLE <- t(do.call(rbind, by(NACC_WASHU_FOUND_IN_ADGC.fam, NACC_WASHU_FOUND_IN_ADGC.fam$ETHNICITY, FUN = Get_STATs)))
 
@@ -2430,10 +2432,19 @@ View(as.data.frame(t(Get_STATs(combined_NHW))))
 
 unname(cbind.data.frame(as.data.frame(t(Get_STATs(ADGC_AA_covar))), as.data.frame(t(Get_STATs(ADGC_Asian_covar))), as.data.frame(t(Get_STATs(ADGC_Hispanic_covar))), as.data.frame(t(Get_STATs(combined_NHW)))))
 
+
+FINAL.COVAR <- Reduce(function(x, y) merge(x, y, all=TRUE), list(combined_NHW, ADGC_AA_covar, ADGC_Asian_covar, ADGC_Hispanic_covar))
+
+# write.table(FINAL.COVAR, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ALL_ETHNICITIES_65183.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+##############################################
+## Merge all covariates with common columns ##
+##############################################
+
 ####################################################################################################
 ###################################### HapMap All Ethnicities ######################################
 ####################################################################################################
-
+setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC")
 PCA <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC_HAPMAP_VARIANTS_ALL_COHORT-HAPMAP-FINAL-MERGED-for_PCA.eigenvec", header =T, stringsAsFactors=FALSE)
 dim(PCA)
 HAPMAP.ethnicty <- read.table("relationships_w_pops_121708.txt", header = T )
@@ -2553,26 +2564,69 @@ p.sd
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 
+## Add presumed ethnicity from NACC phenotype I got from Fengxian
+# Since some NACC samples in ADGC have same IID but different FID, I will get the presumed ethcity/race of Unique IDs only
+NACC.non.duplicated.pca.IID <- PCA$IID[!(duplicated(PCA$IID) | duplicated(PCA$IID, fromLast = TRUE))][grepl("NACC", PCA$IID[!(duplicated(PCA$IID) | duplicated(PCA$IID, fromLast = TRUE))])]
+sum(NACC.AD$NACC_ID %in% NACC.non.duplicated.pca.IID)
+# 14555
+PCA$Reported_Ethnicity <- NACC.AD[match(PCA$IID, NACC.AD$NACC_ID), "ETHNICITY"]
+PCA$Reported_race <- NACC.AD[match(PCA$IID, NACC.AD$NACC_ID), "race"]
+PCA$Reported_Race.Ethnicity <- paste(PCA$Reported_Ethnicity, PCA$Reported_race, sep = ":")
+as.data.frame(table(PCA$Reported_Race.Ethnicity))
+# 1              Hispanic/Latino:American Indian or Alaska Native    28
+# 2                     Hispanic/Latino:Black or African American    38
+# 3      Hispanic/Latino:Native Hawaiian or Other PacificIslander     1
+# 4                                         Hispanic/Latino:Other   183
+# 5                                       Hispanic/Latino:Unknown    47
+# 6                                         Hispanic/Latino:White   630
+# 7                     Missing/Unknown:Black or African American     1
+# 8                                       Missing/Unknown:Unknown     6
+# 9                                         Missing/Unknown:White    38
+# 10                                                        NA:NA 51484
+# 11         Non Hispanic/Latino:American Indian or Alaska Native     2
+# 12                                    Non Hispanic/Latino:Asian   318
+# 13                Non Hispanic/Latino:Black or African American  1629
+# 14 Non Hispanic/Latino:Native Hawaiian or Other PacificIslander     1
+# 15                                    Non Hispanic/Latino:Other     4
+# 16                                  Non Hispanic/Latino:Unknown     9
+# 17                                    Non Hispanic/Latino:White 11776
 
 
 
-
-
-MAP_Core$Race_Ethnicity
-## Add ethnicity from ADSP Family
-df.ethnicity <- setNames(cbind.data.frame(PCA$PC1[!is.na(PCA$ADSPFambased_Ethnicity)], PCA$PC2[!is.na(PCA$ADSPFambased_Ethnicity)]), c("PC1", "PC2"))
-
+## Add ethnicity from NACC
+## Non Hispanic/Latino:White
+df.ethnicity <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:White", 3:4]
 p.sd.reportedNHW <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_NHW")) +
-  scale_color_manual(values = c('green', 'black', 'red','yellow', "blue")) 
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue")) 
 p.sd.reportedNHW
 
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-NHW-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedNHW, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 
-ggsave("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield-FASe-3931-PCs-COHORT-different-sd-HapMap.jpg", plot = p.sd, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+## Hispanic Latino: White
+df.ethnicity <- PCA[PCA$Reported_Race.Ethnicity == "Hispanic/Latino:White", 3:4]
+p.sd.reportedHISPANIC <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_Hispanic_Latino_white")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_Hispanic_Latino_white = 'yellow', YRI = "blue")) 
+p.sd.reportedHISPANIC
+
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-Hispanic-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedHISPANIC, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 
+## Non Hispanic/Latino:Asian
+df.ethnicity <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:Asian", 3:4]
+p.sd.reportedASIAN <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_Asian")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_Asian = 'yellow', YRI = "blue")) 
+p.sd.reportedASIAN
 
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ASIAN-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedASIAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
+## Non Hispanic/Latino:Black or African American
+df.ethnicity <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:Black or African American", 3:4]
+p.sd.reportedBLACK <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_NH_Black")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NH_Black = 'yellow', YRI = "blue")) 
+p.sd.reportedBLACK
+
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-AA-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedBLACK, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 
 
