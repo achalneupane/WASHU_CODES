@@ -2942,11 +2942,12 @@ PCA.AA.PHENO <- ADGC_AA_covar[ADGC_AA_covar$KEY2 %in% PCA.AA$KEY,]
 ##########################################################################
 ## Subset data by Age criteria EOAD - subset demographics CA≤70; CO ≥70 ##
 ##########################################################################
+####################
+## NHW for subset ##
+####################
 table(combined_NHW$STATUS)
 # -9     1     2     3 
 # 10835 19401 18207  1143 
-
-NHW.CA
 
 # Get subset from these objects
 # combined_NHW, ADGC_AA_covar, ADGC_Asian_covar, ADGC_Hispanic_covar
@@ -2956,26 +2957,24 @@ table(PCA.NHW.PHENO$STATUS)
 # -9     1     2     3 
 # 9128 16679 15677  1022 
 
-
-
-
 # Get CA <= 70
 sum(combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 70 | combined_NHW$STATUS == 3 & combined_NHW$AGE_AT_ONSET <= 70, na.rm = T)
-# 6762
+# 9116
 
 # CA
-NHW.CA <- combined_NHW[combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 70 | combined_NHW$STATUS == 3 & combined_NHW$AGE_AT_ONSET <= 70,]
+NHW.CA <- combined_NHW[(combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 70 | combined_NHW$STATUS == 3 & combined_NHW$AGE_AT_ONSET <= 70),]
 table(is.na(NHW.CA$AGE_AT_ONSET))
-# FALSE  TRUE 
-# 6762  2442 
+# FALSE 
+# 9116
 NHW.CA <- NHW.CA[!is.na(NHW.CA$AGE_AT_ONSET),]
 
-
-# CO
+# Get CO >= 70
+sum(combined_NHW$STATUS == 1 & combined_NHW$AGE_LAST_VISIT >= 70, na.rm = T)
+# 14811
 NHW.CO <- combined_NHW[combined_NHW$STATUS == 1 & combined_NHW$AGE_LAST_VISIT >= 70,]
 table(is.na(NHW.CO$AGE_LAST_VISIT))
-# FALSE  TRUE 
-# 14811   699 
+# FALSE 
+# 14811 
 NHW.CO <- NHW.CO[!is.na(NHW.CO$AGE_LAST_VISIT),]
 
 AGE.Filtered.NHW <- rbind.data.frame(NHW.CA,NHW.CO)
@@ -2984,6 +2983,48 @@ sum(duplicated(AGE.Filtered.NHW$IID))
 # 232
 setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET")
 write.table(AGE.Filtered.NHW[1:2], "ADGC-NHW-selected_CA_CO-by-AGE.csv", sep = "\t", col.names = T, row.names = F, quote = F)
+####################################################
+## NHW - for Analysis demographics CA ≤65; CO >80 ##
+####################################################
+table(combined_NHW$STATUS)
+# -9     1     2     3 
+# 10835 19401 18207  1143 
+
+# Get subset from these objects
+# combined_NHW, ADGC_AA_covar, ADGC_Asian_covar, ADGC_Hispanic_covar
+sum(duplicated(PCA.NHW.PHENO$IID))
+# 315
+table(PCA.NHW.PHENO$STATUS)
+# -9     1     2     3 
+# 9128 16679 15677  1022 
+
+# Get CA <= 70
+sum(combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 65, na.rm = T)
+# 5518
+
+# CA
+NHW.CA <- combined_NHW[(combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 65),]
+table(is.na(NHW.CA$AGE_AT_ONSET))
+# FALSE  TRUE 
+# 5518    88 
+NHW.CA <- NHW.CA[!is.na(NHW.CA$AGE_AT_ONSET),]
+
+# Get CO > 80
+sum(combined_NHW$STATUS == 1 & combined_NHW$AGE_LAST_VISIT > 80, na.rm = T)
+# 5782
+NHW.CO <- combined_NHW[combined_NHW$STATUS == 1 & combined_NHW$AGE_LAST_VISIT > 80,]
+table(is.na(NHW.CO$AGE_LAST_VISIT))
+# FALSE 
+# 5782 
+NHW.CO <- NHW.CO[!is.na(NHW.CO$AGE_LAST_VISIT),]
+
+AGE.Filtered.NHW <- rbind.data.frame(NHW.CA,NHW.CO)
+dim(AGE.Filtered.NHW)
+sum(duplicated(AGE.Filtered.NHW$IID))
+# 232
+setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET")
+write.table(AGE.Filtered.NHW[1:2], "ADGC-NHW-selected_CA_CO-by-AGE-for-analysis-without-MCI.csv", sep = "\t", col.names = T, row.names = F, quote = F)
+
 
 
 #############################################################################################################################################################################################################################
