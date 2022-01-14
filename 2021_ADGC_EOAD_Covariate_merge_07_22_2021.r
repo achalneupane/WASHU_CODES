@@ -142,12 +142,27 @@ assign(all.dfs[i], `[[<-`(get(all.dfs[i]), 'cohort', value=all.dfs[i])) #creatin
 }
 
 AFRICAN <- Reduce(function(x, y) merge(x, y, all=TRUE), list(TARCC3_AA, NIALOAD_NCRAD_AA, MIRAGE600_AA, MIRAGE300_AA, JHU_AA, INDIANAPOLIS_AA, CHOP_AA, CHAP_AA, ADC9_AA, ADC8_AA, ADC3_AA, ADC12_AA, ADC11_AA, ADC10_AA, ADC1_2_AA, ACT_AA, ACT3_AA))
-wanted.cols <- c("FID", "IID", "SEX", "STATUS", "cohort",  "age", "Age_at_Onset", "Age_at_LastExam", "Age_at_Death", "old_fid", "old_iid", "merged_id", "omit", "aaoaae", "aaoaae2", "apoe_1", "apoe_2", "apoe4any", "apoe4dose", "pc1", "pc2", "pc3", "pc4", "pc5", "pc6", "pc7", "pc8", "pc9", "p10", "gen_order", "aaoaae_orig", "omit_reason", "missing", "samp_order", "APOE", "RACE", "HISPANIC", "DX", "age_baseline")
+
+AFRICAN$RACE[AFRICAN$RACE == 1] <- "Caucasian"
+AFRICAN$RACE[AFRICAN$RACE == 2] <-  "African American"
+AFRICAN$RACE[AFRICAN$RACE == 3] <- "American Indian or Alaskan Native"
+AFRICAN$RACE[AFRICAN$RACE == 4] <- "American Indian or Alaskan Native"
+AFRICAN$RACE[AFRICAN$RACE == 5] <- "Native Hawaiian or Other Pacific Islander"
+AFRICAN$RACE[AFRICAN$RACE == -9] <- "Unknown"
+AFRICAN$RACE[AFRICAN$RACE == 99] <- "Unknown"
+AFRICAN$RACE[AFRICAN$RACE == 50] <- "Unknown"
+
+AFRICAN$ETHNICITY <- AFRICAN$HISPANIC
+AFRICAN$ETHNICITY[AFRICAN$ETHNICITY == 0] <-  "Not Hispanic"
+AFRICAN$ETHNICITY[AFRICAN$ETHNICITY == 1] <-  "Hispanic"
+AFRICAN$ETHNICITY[AFRICAN$ETHNICITY == -9] <- "Unknown"
+
+wanted.cols <- c("FID", "IID", "SEX", "STATUS", "cohort",  "age", "Age_at_Onset", "Age_at_LastExam", "Age_at_Death", "old_fid", "old_iid", "merged_id", "omit", "aaoaae", "aaoaae2", "apoe_1", "apoe_2", "apoe4any", "apoe4dose", "pc1", "pc2", "pc3", "pc4", "pc5", "pc6", "pc7", "pc8", "pc9", "p10", "gen_order", "aaoaae_orig", "omit_reason", "missing", "samp_order", "APOE", "RACE", "ETHNICITY", "DX", "age_baseline")
 # wanted.cols <- c("FID", "IID", "SEX", "STATUS", "cohort",  "age", "Age_at_Onset", "Age_at_LastExam", "Age_at_Death", "old_fid", "old_iid", "merged_id", "omit", "aaoaae", "aaoaae2", "apoe_1", "apoe_2", "apoe4any", "apoe4dose", "pc1", "pc2", "pc3", "pc4", "pc5", "pc6", "pc7", "pc8", "pc9", "p10", "gen_order", "aaoaae_orig", "omit_reason", "missing", "samp_order", "APOE", "RACE", "HISPANIC", "DX", "age_baseline", "APOE_A", "APOE_B")
 colnames(AFRICAN)
 AFRICAN <- AFRICAN[wanted.cols]
 
-View(AFRICAN)
+# View(AFRICAN)
 
 ############## Hispanic
 
@@ -198,7 +213,25 @@ for(i in seq_along(all.dfs)){
 
 
 HISPANIC <- Reduce(function(x, y) merge(x, y, all=TRUE), list(TARCC3_Hispanic, ADC9_Hispanic, ADC8_Hispanic, ADC12_Hispanic, ADC11_Hispanic, ADC10_Hispanic, ACT3_Hispanic))
-View(HISPANIC)
+
+HISPANIC$RACE[HISPANIC$RACE == 1] <- "Caucasian"
+HISPANIC$RACE[HISPANIC$RACE == 2] <-  "African American"
+HISPANIC$RACE[HISPANIC$RACE == 3] <- "American Indian or Alaskan Native"
+HISPANIC$RACE[HISPANIC$RACE == 4] <- "American Indian or Alaskan Native"
+HISPANIC$RACE[HISPANIC$RACE == 5] <- "Native Hawaiian or Other Pacific Islander"
+HISPANIC$RACE[HISPANIC$RACE == -9] <- "Unknown"
+HISPANIC$RACE[HISPANIC$RACE == 99] <- "Unknown"
+HISPANIC$RACE[HISPANIC$RACE == 50] <- "Unknown"
+
+HISPANIC$ETHNICITY <- HISPANIC$HISPANIC
+HISPANIC$ETHNICITY[HISPANIC$ETHNICITY == 0] <-  "Not Hispanic"
+HISPANIC$ETHNICITY[HISPANIC$ETHNICITY == 1] <-  "Hispanic"
+HISPANIC$ETHNICITY[HISPANIC$ETHNICITY == -9] <- "Unknown"
+
+table(HISPANIC$ETHNICITY)
+table(HISPANIC$RACE)
+
+# View(HISPANIC)
 #######Asian
 
 JPN <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/ADGC_Asian/JPN/Covariates/jpn2012_asian.covariate_20Jan_2021.txt", header = T, sep = "\t", stringsAsFactors = FALSE)
@@ -249,6 +282,23 @@ for(i in seq_along(all.dfs)){
 
 
 ASIAN <- Reduce(function(x, y) merge(x, y, all=TRUE), list(JPN, ASA_JPN, ADC12_Asian, ADC11_Asian, ADC10_Asian, ACT3_Asian))
+
+ASIAN$RACE[ASIAN$RACE == 1] <- "Caucasian"
+ASIAN$RACE[ASIAN$RACE == 2] <-  "African American"
+ASIAN$RACE[ASIAN$RACE == 3] <- "American Indian or Alaskan Native"
+ASIAN$RACE[ASIAN$RACE == 4] <- "American Indian or Alaskan Native"
+ASIAN$RACE[ASIAN$RACE == 5] <- "Native Hawaiian or Other Pacific Islander"
+ASIAN$RACE[ASIAN$RACE == -9] <- "Unknown"
+ASIAN$RACE[ASIAN$RACE == 99] <- "Unknown"
+ASIAN$RACE[ASIAN$RACE == 50] <- "Unknown"
+
+ASIAN$ETHNICITY <- ASIAN$HISPANIC
+ASIAN$ETHNICITY[ASIAN$ETHNICITY == 0] <-  "Not Hispanic"
+ASIAN$ETHNICITY[ASIAN$ETHNICITY == 1] <-  "Hispanic"
+ASIAN$ETHNICITY[ASIAN$ETHNICITY == -9] <- "Unknown"
+
+table(ASIAN$RACE)
+table(ASIAN$ETHNICITY)
 
 
 ########## NHW
@@ -470,21 +520,56 @@ NHW <- Reduce(function(x, y) merge(x, y, all=TRUE), list(ACT2, ACT1, WHICAP, WAS
                                                          ADC7, ADC6, ADC5, ADC4, ADC3, ADC2, ADC12, ADC11, ADC10, ADC1, ACT3))
 
 
+
+
+NHW$RACE[NHW$RACE == 1] <- "Caucasian"
+NHW$RACE[NHW$RACE == 2] <-  "African American"
+NHW$RACE[NHW$RACE == 3] <- "American Indian or Alaskan Native"
+NHW$RACE[NHW$RACE == 4] <- "American Indian or Alaskan Native"
+NHW$RACE[NHW$RACE == 5] <- "Native Hawaiian or Other Pacific Islander"
+NHW$RACE[NHW$RACE == -9] <- "Unknown"
+NHW$RACE[NHW$RACE == 99] <- "Unknown"
+NHW$RACE[NHW$RACE == 6] <- "Unknown"
+NHW$RACE[NHW$RACE == 50] <- "Unknown"
+
+
+NHW$ETHNICITY <- NHW$HISPANIC
+NHW$ETHNICITY[NHW$ETHNICITY == 0] <-  "Not Hispanic"
+NHW$ETHNICITY[NHW$ETHNICITY == 1] <-  "Hispanic"
+NHW$ETHNICITY[NHW$ETHNICITY == -9] <- "Unknown"
+
+
+
+
+
 major.columns <- c("FID", "IID", "sex", "status", "age_onset", "age_death", "age_last_visit", "aaoaae", "aaoaae2", "apoe_1", "apoe_2",
                     "apoe4any", "apoe4dose", "omit", "pc1", "pc2", "pc3", "pc4", "pc5", "pc6", "pc7", "pc8", "pc9", "pc10", "cohort",
                     "merged_id", "gen_order", "old_fid", "old_iid", "aaoaae_orig", "omit_reason", "HISPANIC", "apoe",
-                    "Sum_ID", "DX", "RACE", "age_baseline")
+                    "Sum_ID", "DX", "RACE", "ETHNICITY", "age_baseline")
 
 NHW <- NHW[major.columns]
 
 
 
+## KEEP RACE and ETHNICITY as presumed
+NHW$PRESUMED_RACE <- NHW$RACE
+AFRICAN$PRESUMED_RACE <- AFRICAN$RACE
+ASIAN$PRESUMED_RACE <- ASIAN$RACE
+HISPANIC$PRESUMED_RACE <- HISPANIC$RACE
 
-View(as.data.frame(unique(ASIAN$cohort)))
+NHW$PRESUMED_ETHNICITY <- NHW$ETHNICITY
+AFRICAN$PRESUMED_ETHNICITY <- AFRICAN$ETHNICITY
+ASIAN$PRESUMED_ETHNICITY <- ASIAN$ETHNICITY
+HISPANIC$PRESUMED_ETHNICITY <- HISPANIC$ETHNICITY
+
+
+# View(as.data.frame(unique(ASIAN$cohort)))
 
 #################################################
 # AFRICAN$ETNICITY <- "AFRICAN"
 lst1 <- list(AFRICAN=AFRICAN, HISPANIC=HISPANIC, ASIAN=ASIAN, NHW=NHW)
+
+
 
 # add cohortID to each dataframe
 f <- function (data, ETHNICITY){
@@ -1098,8 +1183,8 @@ Get_STATs <- function(covars){
 #######################################################################################
 # ## check if these are in our latest GWAs plink file
 # # GWAS.fam <- read.table("/40/AD/GWAS_data/Combined_Plink/Full_Imputation/2021_Aug/All_cohorts_merged_sep_2021_clean.fam", stringsAsFactors = FALSE)
-# GWAS.fam <- read.table("/40/AD/GWAS_data/Combined_Plink/Full_Imputation/2021_Aug/All_cohorts_merged_Nov_2021.fam", stringsAsFactors = FALSE)
-# GWAS.fam$KEY1 <-   sapply(strsplit(GWAS.fam$V2,"\\^"), `[`, 1)
+GWAS.fam <- read.table("/40/AD/GWAS_data/Combined_Plink/Full_Imputation/2021_Aug/All_cohorts_merged_Nov_2021.fam", stringsAsFactors = FALSE)
+GWAS.fam$KEY1 <-   sapply(strsplit(GWAS.fam$V2,"\\^"), `[`, 1)
 
 ## Use ID matrix instead
 ADGC_NHW.fam <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/ADGC_NHW/ADGC_NHW_Cohort.fam", stringsAsFactors = FALSE)
@@ -1211,7 +1296,7 @@ length(GWAS.fam.MAP$KEY1 [!duplicated(GWAS.fam.MAP$KEY1 )])
 MAP_Core$KEY1 <- paste0("MAP_", gsub("MAP_", "", MAP_Core$IID))
 # # of samples in phenotype 
 nrow(MAP_Core)
-# 3860
+# 3446
 
 # MAP_Core is the phenotype file I received from Fengxian
 # 3446 of 3860 WASHU samples are available in WashU's GWAS fam file
@@ -1302,24 +1387,6 @@ dim(GWAS_DATA)
 
 #########################################################################################
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Since there are duplicate samples from different arrays, I will check the 
 # frequency of their arrays. We want to minimize the number of different arrays
 # used to increase the statistical power. I checked with Muhammad to decide
@@ -1331,7 +1398,7 @@ dim(GWAS_DATA)
 sum(GWAS.fam$KEY1 %in% MAP_Core$KEY1)
 # 4680
 nrow(MAP_Core)
-# 3360
+# 3446
 GWAS_DATA <- GWAS.fam[GWAS.fam$KEY1 %in% MAP_Core$KEY1,]
 GWAS_DATA$Array <- sapply(strsplit(GWAS_DATA$V2, "\\^"), `[`, 3)
 as.data.frame(table(GWAS_DATA$Array))
@@ -1564,6 +1631,9 @@ dim(ADGC.fam)
 sum(covars$IID %in% ADGC.fam$V2)
 # 43874
 
+
+
+
 # Get those that were not matched
 NHW_NOT_FOUND_IN_COVAR <- ADGC_NHW.fam[!ADGC_NHW.fam$V2 %in% covars$IID,]
 #####################################################################################################################
@@ -1592,7 +1662,7 @@ NHW_NOT_FOUND_IN_COVAR <- ADGC_NHW.fam[!ADGC_NHW.fam$V2 %in% covars$IID,]
 ##########################
 ##########################
 # ADGC NHW covariate
-ADGC_NHW_covar <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/NHW_covariate.tsv", header = T)
+ADGC_NHW_covar <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/NHW_covariate.tsv", header = T, sep = "\t", stringsAsFactors = F)
 ## ADGC FAM
 # ADGC_NHW_FAM <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/ADGC_NHW/ADGC_NHW_Cohort.fam", header = F)
 ## Identify FAM STUDY
@@ -1908,7 +1978,7 @@ combined_NHW$ETHNICITY <- "NHW"
 
 # write.table(combined_NHW, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_NHW_49586.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
-
+combined_NHW <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_NHW_49586.txt", sep = "\t", header  = T)
 
 
 ################################################################
@@ -1976,7 +2046,7 @@ combined_NHW$ETHNICITY <- "NHW"
 ##########################
 ##########################
 # ADGC AA covariate
-ADGC_AA_covar <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/African_American_covariate.tsv", header = T)
+ADGC_AA_covar <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/African_American_covariate.tsv", header = T, sep = "\t")
 ADGC_AA_covar$COHORT <- as.character(ADGC_AA_covar$COHORT)
 ADGC_AA_covar$COHORT[ADGC_AA_covar$COHORT =="ADC1_2_AA"] <- "ADC1-2_AA"
 
@@ -2189,7 +2259,7 @@ ADGC_AA_covar <- RECODE_CACO_SEX(ADGC_AA_covar)
 ##########################
 
 # ADGC AA covariate
-ADGC_Asian_covar <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/ASIAN_covariate.tsv", header = T)
+ADGC_Asian_covar <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/ASIAN_covariate.tsv", header = T, sep = "\t")
 ADGC_Asian_covar$COHORT  <- as.character(ADGC_Asian_covar$COHORT )
 ADGC_Asian_covar$COHORT [ADGC_Asian_covar$COHORT == "ASA_JPN"] <- "ASA-JPN"
 
@@ -2281,7 +2351,7 @@ ADGC_Asian_covar <- RECODE_CACO_SEX(ADGC_Asian_covar)
 ##########################
 
 # ADGC Hispanic covariate
-ADGC_Hispanic_covar <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/HISPANIC_covariate.tsv", header = T)
+ADGC_Hispanic_covar <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/HISPANIC_covariate.tsv", header = T, sep ="\t")
 ADGC_Hispanic_covar$COHORT  <- as.character(ADGC_Hispanic_covar$COHORT )
 
 ADGC_Hispanic_covar$COHORT <- as.character(ADGC_Hispanic_covar$COHORT)
@@ -2563,8 +2633,9 @@ p.sd
 
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
-
-## Add presumed ethnicity from NACC phenotype I got from Fengxian
+####################################################################
+## Add presumed ethnicity from NACC phenotype I got from Fengxian ##
+####################################################################
 # Since some NACC samples in ADGC have same IID but different FID, I will get the presumed ethcity/race of Unique IDs only
 NACC.non.duplicated.pca.IID <- PCA$IID[!(duplicated(PCA$IID) | duplicated(PCA$IID, fromLast = TRUE))][grepl("NACC", PCA$IID[!(duplicated(PCA$IID) | duplicated(PCA$IID, fromLast = TRUE))])]
 sum(NACC.AD$NACC_ID %in% NACC.non.duplicated.pca.IID)
@@ -2628,19 +2699,265 @@ p.sd.reportedBLACK
 
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-AA-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedBLACK, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
+## All presumed in one plot
+df.ethnicity.NHW <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:White", 3:4]
+df.ethnicity.HISPANIC <- PCA[PCA$Reported_Race.Ethnicity == "Hispanic/Latino:White", 3:4]
+df.ethnicity.ASIAN <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:Asian", 3:4]
+df.ethnicity.AFRICAN <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:Black or African American", 3:4]
+
+p.sd.reportedNHW.ALL <- p.sd + geom_point(data = df.ethnicity.NHW, aes(col="Reported_NHW")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue")) 
+p.sd.reportedNHW
+
+p.sd.reportedHISPANIC <- p.sd.reportedNHW + geom_point(data = df.ethnicity.HISPANIC, aes(col="Reported_Hispanic_Latino_white")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', YRI = "blue")) 
+p.sd.reportedHISPANIC
+
+p.sd.reportedASIAN <- p.sd.reportedHISPANIC + geom_point(data = df.ethnicity.ASIAN, aes(col="Reported_Asian")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', Reported_Asian = 'violet', YRI = "blue")) 
+p.sd.reportedASIAN
+
+p.sd.reportedAFRICAN <- p.sd.reportedASIAN + geom_point(data = df.ethnicity.AFRICAN, aes(col="Reported_African")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN
+
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-NACC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedAFRICAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+############################################
+## ADD presumed Ethnicity from ADGC covar ##
+############################################
+# exclude duplicated IDs
+non.duplicated.pca.IID <- PCA$IID[!(duplicated(PCA$IID) | duplicated(PCA$IID, fromLast = TRUE))]
+sum(FINAL.COVAR$IID %in% non.duplicated.pca.IID)
+# 63785
+PCA$Reported_Ethnicity <- FINAL.COVAR[match(PCA$IID, FINAL.COVAR$IID), "PRESUMED_ETHNICITY"]
+PCA$Reported_race <- FINAL.COVAR[match(PCA$IID, FINAL.COVAR$IID), "PRESUMED_RACE"]
+PCA$Reported_Race.Ethnicity <- paste(PCA$Reported_Ethnicity, PCA$Reported_race, sep = ":")
+as.data.frame(table(PCA$Reported_Race.Ethnicity))
+# Var1  Freq
+# 1                                             9:Caucasian     8
+# 2                                                9:Uknown     4
+# 3                               Hispanic:African American    22
+# 4              Hispanic:American Indian or Alaskan Native    15
+# 5                                      Hispanic:Caucasian  1379
+# 6      Hispanic:Native Hawaiian or Other Pacific Islander    54
+# 7                                         Hispanic:Uknown   172
+# 8                                     NA:African American   795
+# 9                                                   NA:NA 55765
+# 10                          Not Hispanic:African American   790
+# 11         Not Hispanic:American Indian or Alaskan Native    24
+# 12                                 Not Hispanic:Caucasian  6842
+# 13 Not Hispanic:Native Hawaiian or Other Pacific Islander   304
+# 14                                    Not Hispanic:Uknown     3
+# 15                                Uknown:African American     1
+# 16                                       Uknown:Caucasian     1
+# 17                                          Uknown:Uknown    16
+
+
+
+
+
+## All presumed in one plot
+
+p.sd.reportedNHW.ALL <- p.sd + geom_point(data = PCA$COHORT == "NHW", aes(col="Reported_NHW")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue")) 
+p.sd.reportedNHW
+
+p.sd.reportedHISPANIC <- p.sd.reportedNHW + geom_point(data = df.ethnicity.HISPANIC, aes(col="Reported_Hispanic_Latino_white")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', YRI = "blue")) 
+p.sd.reportedHISPANIC
+
+p.sd.reportedASIAN <- p.sd.reportedHISPANIC + geom_point(data = df.ethnicity.ASIAN, aes(col="Reported_Asian")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', Reported_Asian = 'violet', YRI = "blue")) 
+p.sd.reportedASIAN
+
+p.sd.reportedAFRICAN <- p.sd.reportedASIAN + geom_point(data = df.ethnicity.AFRICAN, aes(col="Reported_African")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN
+
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedAFRICAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+##################################
+## With Presumed Ethnic cohorts ##
+##################################
+dim(FINAL.COVAR)
+# [1] 65841    45
+FINAL.COVAR$KEY1 <- paste(FINAL.COVAR$FID, FINAL.COVAR$IID, sep = ":")
+
+PCA$ADGC_COHORT <- FINAL.COVAR$ETHNICITY [match(PCA$KEY, FINAL.COVAR$KEY1)]
+
+PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- PCA$COHORT[is.na(PCA$ADGC_COHORT)] 
+
+
+p.sd.reportedNHW.ALL <- p.sd + geom_point(data = PCA[PCA$ADGC_COHORT == "NHW", c(3:4)], aes(col="Reported_NHW")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue")) 
+p.sd.reportedNHW.ALL
+
+p.sd.reportedHISPANIC <- p.sd.reportedNHW.ALL + geom_point(data = PCA[PCA$ADGC_COHORT == "HISPANIC", c(3:4)], aes(col="Reported_Hispanic")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', YRI = "blue")) 
+p.sd.reportedHISPANIC
+
+p.sd.reportedASIAN <- p.sd.reportedHISPANIC + geom_point(data = PCA[PCA$ADGC_COHORT == "ASIAN", c(3:4)], aes(col="Reported_Asian")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', YRI = "blue")) 
+p.sd.reportedASIAN
+
+p.sd.reportedAFRICAN <- p.sd.reportedASIAN + geom_point(data = PCA[PCA$ADGC_COHORT == "AFRICAN", c(3:4)], aes(col="Reported_African")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN
+
+## Reordering HapMap colors on top
+p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "CEU", c(3:4)], aes(col="CEU")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "JPT", c(3:4)], aes(col="JPT")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "JPT", c(3:4)], aes(col="JPT")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "YRI", c(3:4)], aes(col="YRI")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+
+p.sd.reportedAFRICAN
+
+
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-FROM-4ETHNIC-COHORT-ALL-COHORT-SD-cutoff2.jpg", plot = p.sd.reportedAFRICAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+#########################################
+## PCA anchored to 1000 genome project ##
+#########################################
+
+
+
+
+
+##################################
+## Extract samples based on PCA ##
+##################################
+## See the regions to be selected from each Ethnicity
+# p.sd.reportedAFRICAN + annotate("rect", xmin=-0.015, xmax=-0.0025, ymin=-0.008, ymax=-0.0014,
+#                                 fill=NA, colour="blue") +
+#   annotate("text", x=PC1max, y=PC2max, label=paste0("selected: ",SD.cutoff.all[i]), size=4, color = "black")
+
+SD.cutoff <- 5  
+## AFRICAN
+PC1min <- (mean(AA_SAMPLES_YRI$PC1) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC1)))
+PC1max <- (mean(AA_SAMPLES_YRI$PC1) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC1)))
+PC2min <- (mean(AA_SAMPLES_YRI$PC2) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+PC2max <- (mean(AA_SAMPLES_YRI$PC2) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+
+# For African American, we will keep the subset in the shaded region within the blue rectangle
+SELECTED.p <- p.sd.reportedAFRICAN + annotate("rect", xmin=-0.0129, xmax=-0.0029, ymin=PC2min, ymax=0.0012, 
+                                colour="blue", alpha = .3) 
+
+SD.cutoff <- 4
+## ASIAN
+PC1min <- (mean(ASIAN_SAMPLES_CEU_JPT$PC1) - (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC1)))
+PC1max <- (mean(ASIAN_SAMPLES_CEU_JPT$PC1) + (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC1)))
+PC2min <- (mean(ASIAN_SAMPLES_CEU_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC2)))
+PC2max <- (mean(ASIAN_SAMPLES_CEU_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC2)))
+
+# For Asian, we will keep the subset in the shaded green square because the center of SD is a little bit displaced from our center
+SELECTED.p <- SELECTED.p + annotate("rect", xmin=PC1min, xmax=-0.001, ymin=0.0096, ymax=PC2max, 
+                                              colour="green", alpha = .3)
+
+SD.cutoff <- 5  
+## NHW
+PC1min <- (mean(NHW_SAMPLES_CEU$PC1) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+PC1max <- (mean(NHW_SAMPLES_CEU$PC1) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+PC2min <- (mean(NHW_SAMPLES_CEU$PC2) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+
+# For NHW, we will keep samples within 5SD
+SELECTED.p <- SELECTED.p + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+                                    colour="red", alpha = .3) 
+
+SELECTED.p
+
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-FROM-4ETHNIC-COHORT-ALL-COHORT-SD-cutoff2-final-selection.jpg", plot = SELECTED.p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+
+########################################################
+## Subset NHW, Asian and AA based on HAPMAP PCA above ##
+########################################################
+
+#########
+## NHW ##
+#########
+table(PCA$COHORT)
+# JPT   YRI   CEU  ADGC 
+# 86   167   165 65777
+
+PCA.ADGC <- PCA[PCA$COHORT == "ADGC",]
+
+
+SD.cutoff <- 5  
+## NHW
+PC1min <- (mean(NHW_SAMPLES_CEU$PC1) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+PC1max <- (mean(NHW_SAMPLES_CEU$PC1) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+PC2min <- (mean(NHW_SAMPLES_CEU$PC2) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+
+PCA.NHW <- PCA.ADGC[PCA.ADGC$PC1 > PC1min &
+                      PCA.ADGC$PC1 < PC1max &
+                      PCA.ADGC$PC2 > PC2min &
+                      PCA.ADGC$PC1 < PC2max,]
+
+dim(PCA.NHW)
+# 43994    18
+
+
+sum(combined_NHW$KEY1 %in% PCA.NHW$KEY)
+# 42506
+
+PCA.NHW.PHENO <- combined_NHW[combined_NHW$KEY1 %in% PCA.NHW$KEY,]
+
+########
+## AA ##
+########
+
+SD.cutoff <- 5  
+## AFRICAN
+PC1min <- (mean(AA_SAMPLES_YRI$PC1) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC1)))
+PC1max <- (mean(AA_SAMPLES_YRI$PC1) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC1)))
+PC2min <- (mean(AA_SAMPLES_YRI$PC2) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+PC2max <- (mean(AA_SAMPLES_YRI$PC2) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+
+PCA.AA <- PCA.ADGC[PCA.ADGC$PC1 > -0.0129 &
+                      PCA.ADGC$PC1 < -0.0029 &
+                      PCA.ADGC$PC2 > PC2min &
+                      PCA.ADGC$PC1 < 0.0012,]
+
+
+
+dim(PCA.AA)
+# 13459   18
+
+
+dim(ADGC_AA_covar)
+# 8563   51
+
+sum(ADGC_AA_covar$KEY2 %in% PCA.AA$KEY)
+# 8471
+
+PCA.AA.PHENO <- ADGC_AA_covar[ADGC_AA_covar$KEY2 %in% PCA.AA$KEY,]
 
 
 ##########################################################################
 ## Subset data by Age criteria EOAD - subset demographics CA≤70; CO ≥70 ##
 ##########################################################################
-# Get subset from these objects
-# combined_NHW, ADGC_AA_covar, ADGC_Asian_covar, ADGC_Hispanic_covar
-combined_NHW <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_NHW_49586.txt", sep ="\t", header = T)
-sum(duplicated(combined_NHW$IID))
-# 372
 table(combined_NHW$STATUS)
 # -9     1     2     3 
-# 10835 19401 18207  1143
+# 10835 19401 18207  1143 
+
+NHW.CA
+
+# Get subset from these objects
+# combined_NHW, ADGC_AA_covar, ADGC_Asian_covar, ADGC_Hispanic_covar
+sum(duplicated(PCA.NHW.PHENO$IID))
+# 315
+table(PCA.NHW.PHENO$STATUS)
+# -9     1     2     3 
+# 9128 16679 15677  1022 
+
+
+
 
 # Get CA <= 70
 sum(combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 70 | combined_NHW$STATUS == 3 & combined_NHW$AGE_AT_ONSET <= 70, na.rm = T)
