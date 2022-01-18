@@ -2442,6 +2442,7 @@ ADGC_Hispanic_covar <- RECODE_CACO_SEX(ADGC_Hispanic_covar)
 ############################################################################################
 ####################### Get Demographic table for cleaned covar data #######################
 ############################################################################################
+# covars <- combined_NHW
 
 Get_STATs <- function(covars){
   covars$ETHNICITY <- as.character(covars$ETHNICITY)
@@ -2452,14 +2453,14 @@ Get_STATs <- function(covars){
   N.mci <- sum(covars$STATUS==3)
   
   # Number of CA <= 65 and 70 (Cases==2)
-  CA.65 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 2,"AGE_AT_ONSET"])))) <= 65)
-  CA.70 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 2,"AGE_AT_ONSET"])))) <= 70)
+  CA.65 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 2,"AGE_AT_ONSET"])))) <= 65 & as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 2,"AGE_AT_ONSET"])))) > 0)
+  CA.70 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 2,"AGE_AT_ONSET"])))) <= 70 & as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 2,"AGE_AT_ONSET"])))) > 0)
   # Number of CO > 70 (Cases==2)
   CO.70 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 1,"AGE_LAST_VISIT"])))) > 70)
   CO.80 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 1,"AGE_LAST_VISIT"])))) > 80)
   # Number of MCI <= 65 and 70 (Cases==2)
-  MCI.65 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 3,"AGE_AT_ONSET"])))) <= 65)
-  MCI.70 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 3,"AGE_AT_ONSET"])))) <= 70)
+  MCI.65 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 3,"AGE_AT_ONSET"])))) <= 65 & as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 3,"AGE_AT_ONSET"])))) > 0 )
+  MCI.70 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 3,"AGE_AT_ONSET"])))) <= 70 & as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 3,"AGE_AT_ONSET"])))) > 0)
   # Number of Others
   N.OTHERS <- sum(covars$STATUS == -9)
   
@@ -2549,7 +2550,7 @@ ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/A
 # Samples within SD cutoff in reference to CEU HAPMAP samples
 NHW_SAMPLES_CEU <- PCA[PCA$COHORT == "CEU",]
 AA_SAMPLES_YRI <- PCA[PCA$COHORT == "YRI",]
-ASIAN_SAMPLES_CEU_JPT <- PCA[PCA$COHORT == "JPT",]
+ASIAN_SAMPLES_JPT <- PCA[PCA$COHORT == "JPT",]
 
 p.sd <- p
 
@@ -2610,10 +2611,10 @@ SDSelection.Table.Asian <- list()
 SD.cutoff.all <- 3:5
 for (i in 1:length(SD.cutoff.all)){
   SD.cutoff <- SD.cutoff.all[i]  
-  PC1min <- (mean(ASIAN_SAMPLES_CEU_JPT$PC1) - (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC1)))
-  PC1max <- (mean(ASIAN_SAMPLES_CEU_JPT$PC1) + (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC1)))
-  PC2min <- (mean(ASIAN_SAMPLES_CEU_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC2)))
-  PC2max <- (mean(ASIAN_SAMPLES_CEU_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC2)))
+  PC1min <- (mean(ASIAN_SAMPLES_JPT$PC1) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC1)))
+  PC1max <- (mean(ASIAN_SAMPLES_JPT$PC1) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC1)))
+  PC2min <- (mean(ASIAN_SAMPLES_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
+  PC2max <- (mean(ASIAN_SAMPLES_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
   
   SDSelection <- NHW_SAMPLES[PCA$PC1 > PC1min & 
                                PCA$PC1 < PC1max &
@@ -2848,10 +2849,10 @@ SELECTED.p <- p.sd.reportedAFRICAN + annotate("rect", xmin=-0.0129, xmax=-0.0029
 
 SD.cutoff <- 4
 ## ASIAN
-PC1min <- (mean(ASIAN_SAMPLES_CEU_JPT$PC1) - (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC1)))
-PC1max <- (mean(ASIAN_SAMPLES_CEU_JPT$PC1) + (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC1)))
-PC2min <- (mean(ASIAN_SAMPLES_CEU_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC2)))
-PC2max <- (mean(ASIAN_SAMPLES_CEU_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC2)))
+PC1min <- (mean(ASIAN_SAMPLES_JPT$PC1) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC1)))
+PC1max <- (mean(ASIAN_SAMPLES_JPT$PC1) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC1)))
+PC2min <- (mean(ASIAN_SAMPLES_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
+PC2max <- (mean(ASIAN_SAMPLES_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
 
 # For Asian, we will keep the subset in the shaded green square because the center of SD is a little bit displaced from our center
 SELECTED.p <- SELECTED.p + annotate("rect", xmin=PC1min, xmax=-0.001, ymin=0.0096, ymax=PC2max, 
@@ -2876,15 +2877,16 @@ ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/A
 ########################################################
 ## Subset NHW, Asian and AA based on HAPMAP PCA above ##
 ########################################################
-
-#########
-## NHW ##
-#########
 table(PCA$COHORT)
 # JPT   YRI   CEU  ADGC 
 # 86   167   165 65777
 
 PCA.ADGC <- PCA[PCA$COHORT == "ADGC",]
+
+
+#########
+## NHW ##
+#########
 
 
 SD.cutoff <- 5  
@@ -2897,14 +2899,15 @@ PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
 PCA.NHW <- PCA.ADGC[PCA.ADGC$PC1 > PC1min &
                       PCA.ADGC$PC1 < PC1max &
                       PCA.ADGC$PC2 > PC2min &
-                      PCA.ADGC$PC1 < PC2max,]
+                      PCA.ADGC$PC2 < PC2max,]
 
 dim(PCA.NHW)
-# 43994    18
+# [1] 50416    18
 
-
+# Keep those in NHW only
+combined_NHW$KEY1 <- paste(combined_NHW$FID, combined_NHW$IID, sep = ":")
 sum(combined_NHW$KEY1 %in% PCA.NHW$KEY)
-# 42506
+# 49174
 
 PCA.NHW.PHENO <- combined_NHW[combined_NHW$KEY1 %in% PCA.NHW$KEY,]
 
@@ -2922,63 +2925,116 @@ PC2max <- (mean(AA_SAMPLES_YRI$PC2) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
 PCA.AA <- PCA.ADGC[PCA.ADGC$PC1 > -0.0129 &
                       PCA.ADGC$PC1 < -0.0029 &
                       PCA.ADGC$PC2 > PC2min &
-                      PCA.ADGC$PC1 < 0.0012,]
+                      PCA.ADGC$PC2 < 0.0012,]
 
 
 
 dim(PCA.AA)
-# 13459   18
+# 8884   18
 
 
 dim(ADGC_AA_covar)
 # 8563   51
 
-sum(ADGC_AA_covar$KEY2 %in% PCA.AA$KEY)
+# Keep those in AA only
+ADGC_AA_covar$KEY1 <- paste(ADGC_AA_covar$FID, ADGC_AA_covar$IID, sep = ":")
+sum(ADGC_AA_covar$KEY1 %in% PCA.AA$KEY)
 # 8471
 
 PCA.AA.PHENO <- ADGC_AA_covar[ADGC_AA_covar$KEY2 %in% PCA.AA$KEY,]
+
+###########
+## ASIAN ##
+###########
+SD.cutoff <- 4
+## ASIAN
+PC1min <- (mean(ASIAN_SAMPLES_JPT$PC1) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC1)))
+PC1max <- (mean(ASIAN_SAMPLES_JPT$PC1) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC1)))
+PC2min <- (mean(ASIAN_SAMPLES_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
+PC2max <- (mean(ASIAN_SAMPLES_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
+
+PCA.ASIAN <- PCA.ADGC[PCA.ADGC$PC1 > PC1min &
+                     PCA.ADGC$PC1 < -0.001 &
+                     PCA.ADGC$PC2 > 0.0096 &
+                     PCA.ADGC$PC2 < PC2max,]
+
+
+
+
+dim(PCA.ASIAN)
+# 4755   18
+
+
+dim(ADGC_Asian_covar)
+# 4742   52
+
+ADGC_Asian_covar$KEY1 <- paste(ADGC_Asian_covar$FID, ADGC_Asian_covar$IID, sep = ":")
+sum(ADGC_Asian_covar$KEY1 %in% PCA.ASIAN$KEY)
+# 4714
+
+PCA.ASIAN.PHENO <- ADGC_Asian_covar[ADGC_Asian_covar$KEY1 %in% PCA.ASIAN$KEY,]
+
+
+###############################
+## PLOT the selected samples ##
+###############################
+SELECTED.POST.HAPMAP <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$KEY %in% PCA.NHW.PHENO$KEY1, c(3:4)], aes(col="SELECTED_NHW")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", SELECTED_NHW = "purple")) 
+
+SELECTED.POST.HAPMAP <- SELECTED.POST.HAPMAP + geom_point(data = PCA[PCA$KEY %in% PCA.AA.PHENO$KEY1, c(3:4)], aes(col="SELECTED_AA")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", SELECTED_NHW = "purple", SELECTED_AA = "skyblue")) 
+
+
+SELECTED.POST.HAPMAP <- SELECTED.POST.HAPMAP + geom_point(data = PCA[PCA$KEY %in% PCA.ASIAN.PHENO$KEY1, c(3:4)], aes(col="SELECTED_ASIAN")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", SELECTED_NHW = "purple", SELECTED_AA = "skyblue", SELECTED_ASIAN = "chocolate")) 
+
+
+SELECTED.POST.HAPMAP
+
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-FROM-4ETHNIC-COHORT-ALL-COHORT-SD-cutoff2-final-selection-samples.jpg", plot = SELECTED.POST.HAPMAP, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 
 ##########################################################################
 ## Subset data by Age criteria EOAD - subset demographics CA≤70; CO ≥70 ##
 ##########################################################################
+# Get subset from these objects
+# PCA.NHW.PHENO, PCA.AA.PHENO, PCA.ASIAN.PHENO
 ####################
 ## NHW for subset ##
 ####################
-table(combined_NHW$STATUS)
-# -9     1     2     3 
-# 10835 19401 18207  1143 
-
-# Get subset from these objects
-# combined_NHW, ADGC_AA_covar, ADGC_Asian_covar, ADGC_Hispanic_covar
-sum(duplicated(PCA.NHW.PHENO$IID))
-# 315
 table(PCA.NHW.PHENO$STATUS)
 # -9     1     2     3 
-# 9128 16679 15677  1022 
+# 10541 19321 18169  1143 
+
+sum(duplicated(PCA.NHW.PHENO$IID))
+# 372
 
 # Get CA <= 70
-sum(combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 70 | combined_NHW$STATUS == 3 & combined_NHW$AGE_AT_ONSET <= 70, na.rm = T)
-# 9116
-
+# sum(PCA.NHW.PHENO$STATUS == 2 & PCA.NHW.PHENO$AGE_AT_ONSET <= 70 | PCA.NHW.PHENO$STATUS == 3 & PCA.NHW.PHENO$AGE_AT_ONSET <= 70, na.rm = T)
+# # 9099
+sum((PCA.NHW.PHENO$STATUS == 2 & PCA.NHW.PHENO$AGE_AT_ONSET <= 70 & PCA.NHW.PHENO$AGE_AT_ONSET > 0) | (PCA.NHW.PHENO$STATUS == 3 & PCA.NHW.PHENO$AGE_AT_ONSET <= 70 & PCA.NHW.PHENO$AGE_AT_ONSET > 0), na.rm = T)
+# 6748
 # CA
-NHW.CA <- combined_NHW[(combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 70 | combined_NHW$STATUS == 3 & combined_NHW$AGE_AT_ONSET <= 70),]
+NHW.CA <- PCA.NHW.PHENO[(PCA.NHW.PHENO$STATUS == 2 & PCA.NHW.PHENO$AGE_AT_ONSET <= 70 & PCA.NHW.PHENO$AGE_AT_ONSET > 0) | (PCA.NHW.PHENO$STATUS == 3 & PCA.NHW.PHENO$AGE_AT_ONSET <= 70 & PCA.NHW.PHENO$AGE_AT_ONSET > 0),]
+# NHW.CA <- PCA.NHW.PHENO[(PCA.NHW.PHENO$STATUS == 2 & PCA.NHW.PHENO$AGE_AT_ONSET <= 70 | PCA.NHW.PHENO$STATUS == 3 & PCA.NHW.PHENO$AGE_AT_ONSET <= 70),]
 table(is.na(NHW.CA$AGE_AT_ONSET))
-# FALSE 
-# 9116
+# FALSE  TRUE 
+# 6748    88 
 NHW.CA <- NHW.CA[!is.na(NHW.CA$AGE_AT_ONSET),]
 
 # Get CO >= 70
-sum(combined_NHW$STATUS == 1 & combined_NHW$AGE_LAST_VISIT >= 70, na.rm = T)
-# 14811
-NHW.CO <- combined_NHW[combined_NHW$STATUS == 1 & combined_NHW$AGE_LAST_VISIT >= 70,]
+sum(PCA.NHW.PHENO$STATUS == 1 & PCA.NHW.PHENO$AGE_LAST_VISIT >= 70, na.rm = T)
+# 14752
+NHW.CO <- PCA.NHW.PHENO[PCA.NHW.PHENO$STATUS == 1 & PCA.NHW.PHENO$AGE_LAST_VISIT >= 70,]
 table(is.na(NHW.CO$AGE_LAST_VISIT))
 # FALSE 
-# 14811 
+# 14752 
 NHW.CO <- NHW.CO[!is.na(NHW.CO$AGE_LAST_VISIT),]
+table(NHW.CO$AGE_LAST_VISIT)
 
 AGE.Filtered.NHW <- rbind.data.frame(NHW.CA,NHW.CO)
 dim(AGE.Filtered.NHW)
+# 21500    51
 sum(duplicated(AGE.Filtered.NHW$IID))
 # 232
 setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET")
@@ -2986,46 +3042,206 @@ write.table(AGE.Filtered.NHW[1:2], "ADGC-NHW-selected_CA_CO-by-AGE.csv", sep = "
 ####################################################
 ## NHW - for Analysis demographics CA ≤65; CO >80 ##
 ####################################################
-table(combined_NHW$STATUS)
-# -9     1     2     3 
-# 10835 19401 18207  1143 
-
-# Get subset from these objects
-# combined_NHW, ADGC_AA_covar, ADGC_Asian_covar, ADGC_Hispanic_covar
-sum(duplicated(PCA.NHW.PHENO$IID))
-# 315
-table(PCA.NHW.PHENO$STATUS)
-# -9     1     2     3 
-# 9128 16679 15677  1022 
-
-# Get CA <= 70
-sum(combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 65, na.rm = T)
-# 5518
+# Get CA <= 65
+sum(PCA.NHW.PHENO$STATUS == 2 & PCA.NHW.PHENO$AGE_AT_ONSET <= 65 & PCA.NHW.PHENO$AGE_AT_ONSET > 0, na.rm = T)
+# 3193
 
 # CA
-NHW.CA <- combined_NHW[(combined_NHW$STATUS == 2 & combined_NHW$AGE_AT_ONSET <= 65),]
+NHW.CA <- PCA.NHW.PHENO[(PCA.NHW.PHENO$STATUS == 2 & PCA.NHW.PHENO$AGE_AT_ONSET <= 65 & PCA.NHW.PHENO$AGE_AT_ONSET > 0),]
 table(is.na(NHW.CA$AGE_AT_ONSET))
 # FALSE  TRUE 
-# 5518    88 
+# 3193    88 
 NHW.CA <- NHW.CA[!is.na(NHW.CA$AGE_AT_ONSET),]
 
 # Get CO > 80
-sum(combined_NHW$STATUS == 1 & combined_NHW$AGE_LAST_VISIT > 80, na.rm = T)
-# 5782
-NHW.CO <- combined_NHW[combined_NHW$STATUS == 1 & combined_NHW$AGE_LAST_VISIT > 80,]
+sum(PCA.NHW.PHENO$STATUS == 1 & PCA.NHW.PHENO$AGE_LAST_VISIT > 80, na.rm = T)
+# 5754
+NHW.CO <- PCA.NHW.PHENO[PCA.NHW.PHENO$STATUS == 1 & PCA.NHW.PHENO$AGE_LAST_VISIT > 80,]
 table(is.na(NHW.CO$AGE_LAST_VISIT))
 # FALSE 
-# 5782 
+# 5754 
 NHW.CO <- NHW.CO[!is.na(NHW.CO$AGE_LAST_VISIT),]
 
 AGE.Filtered.NHW <- rbind.data.frame(NHW.CA,NHW.CO)
 dim(AGE.Filtered.NHW)
+# 8947   51
 sum(duplicated(AGE.Filtered.NHW$IID))
-# 232
+# 88
 setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET")
 write.table(AGE.Filtered.NHW[1:2], "ADGC-NHW-selected_CA_CO-by-AGE-for-analysis-without-MCI.csv", sep = "\t", col.names = T, row.names = F, quote = F)
+write.table(AGE.Filtered.NHW, "ADGC-NHW-selected_CA_CO-by-AGE-for-analysis-without-MCI_phenotype.csv", sep = "\t", col.names = T, row.names = F, quote = F)
+
+###################
+## AA for subset ##
+###################
+table(PCA.AA.PHENO$STATUS)
+# -9    1    2    3 
+# 1137 4843 2197  288 
+
+sum(duplicated(PCA.AA.PHENO$IID))
+# 177
+
+# Get CA <= 70
+# sum(PCA.NHW.PHENO$STATUS == 2 & PCA.NHW.PHENO$AGE_AT_ONSET <= 70 | PCA.NHW.PHENO$STATUS == 3 & PCA.NHW.PHENO$AGE_AT_ONSET <= 70, na.rm = T)
+# # 9099
+sum((PCA.AA.PHENO$STATUS == 2 & PCA.AA.PHENO$AGE_AT_ONSET <= 70 & PCA.AA.PHENO$AGE_AT_ONSET > 0) | (PCA.AA.PHENO$STATUS == 3 & PCA.AA.PHENO$AGE_AT_ONSET <= 70 & PCA.AA.PHENO$AGE_AT_ONSET > 0), na.rm = T)
+# 364
+# CA
+AA.CA <- PCA.AA.PHENO[(PCA.AA.PHENO$STATUS == 2 & PCA.AA.PHENO$AGE_AT_ONSET <= 70 & PCA.AA.PHENO$AGE_AT_ONSET > 0) | (PCA.AA.PHENO$STATUS == 3 & PCA.AA.PHENO$AGE_AT_ONSET <= 70 & PCA.AA.PHENO$AGE_AT_ONSET > 0),]
+
+table(is.na(AA.CA$AGE_AT_ONSET))
+# FALSE  TRUE 
+# 364  1655 
+AA.CA <- AA.CA[!is.na(AA.CA$AGE_AT_ONSET),]
+
+# Get CO >= 70
+sum(PCA.AA.PHENO$STATUS == 1 & PCA.AA.PHENO$AGE_LAST_VISIT >= 70, na.rm = T)
+# 758
+AA.CO <- PCA.AA.PHENO[PCA.AA.PHENO$STATUS == 1 & PCA.AA.PHENO$AGE_LAST_VISIT >= 70,]
+table(is.na(AA.CO$AGE_LAST_VISIT))
+# FALSE  TRUE 
+# 758  3799 
+AA.CO <- AA.CO[!is.na(AA.CO$AGE_LAST_VISIT),]
+table(AA.CO$AGE_LAST_VISIT)
+
+AGE.Filtered.AA <- rbind.data.frame(AA.CA,AA.CO)
+dim(AGE.Filtered.AA)
+# 1122    52
+sum(duplicated(AGE.Filtered.AA$IID))
+# 15
+setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET")
+write.table(AGE.Filtered.AA[1:2], "ADGC-AA-selected_CA_CO-by-AGE.csv", sep = "\t", col.names = T, row.names = F, quote = F)
+###################################################
+## AA - for Analysis demographics CA ≤65; CO >80 ##
+###################################################
+# Get CA <= 65
+sum(PCA.AA.PHENO$STATUS == 2 & PCA.AA.PHENO$AGE_AT_ONSET <= 65 & PCA.AA.PHENO$AGE_AT_ONSET > 0, na.rm = T)
+# 138
+
+# CA
+AA.CA <- PCA.AA.PHENO[(PCA.AA.PHENO$STATUS == 2 & PCA.AA.PHENO$AGE_AT_ONSET <= 65 & PCA.AA.PHENO$AGE_AT_ONSET > 0),]
+table(is.na(AA.CA$AGE_AT_ONSET))
+# FALSE  TRUE 
+# 138  1655 
+AA.CA <- AA.CA[!is.na(AA.CA$AGE_AT_ONSET),]
+
+# Get CO > 80
+sum(PCA.AA.PHENO$STATUS == 1 & PCA.AA.PHENO$AGE_LAST_VISIT > 80, na.rm = T)
+# 247
+AA.CO <- PCA.AA.PHENO[PCA.AA.PHENO$STATUS == 1 & PCA.AA.PHENO$AGE_LAST_VISIT > 80,]
+table(is.na(AA.CO$AGE_LAST_VISIT))
+# FALSE  TRUE 
+# 247  3799 
+AA.CO <- AA.CO[!is.na(AA.CO$AGE_LAST_VISIT),]
+
+AGE.Filtered.AA <- rbind.data.frame(AA.CA,AA.CO)
+dim(AGE.Filtered.AA)
+# 385  52
+sum(duplicated(AGE.Filtered.NHW$IID))
+# 83
+setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET")
+write.table(AGE.Filtered.AA[1:2], "ADGC-AA-selected_CA_CO-by-AGE-for-analysis-without-MCI.csv", sep = "\t", col.names = T, row.names = F, quote = F)
+write.table(AGE.Filtered.AA, "ADGC-AA-selected_CA_CO-by-AGE-for-analysis-without-MCI_phenotype.csv", sep = "\t", col.names = T, row.names = F, quote = F)
 
 
+
+######################
+## ASIAN for subset ##
+######################
+table(PCA.ASIAN.PHENO$STATUS)
+# -9    1    2    3 
+# 51 2416 2168   79 
+
+sum(duplicated(PCA.ASIAN.PHENO$IID))
+# 10
+
+# Get CA <= 70
+sum((PCA.ASIAN.PHENO$STATUS == 2 & PCA.ASIAN.PHENO$AGE_AT_ONSET <= 70 & PCA.ASIAN.PHENO$AGE_AT_ONSET > 0) | (PCA.ASIAN.PHENO$STATUS == 3 & PCA.ASIAN.PHENO$AGE_AT_ONSET <= 70 & PCA.ASIAN.PHENO$AGE_AT_ONSET > 0), na.rm = T)
+# 653
+# CA
+ASIAN.CA <- PCA.ASIAN.PHENO[(PCA.ASIAN.PHENO$STATUS == 2 & PCA.ASIAN.PHENO$AGE_AT_ONSET <= 70 & PCA.ASIAN.PHENO$AGE_AT_ONSET > 0) | (PCA.ASIAN.PHENO$STATUS == 3 & PCA.ASIAN.PHENO$AGE_AT_ONSET <= 70 & PCA.ASIAN.PHENO$AGE_AT_ONSET > 0),]
+
+table(is.na(ASIAN.CA$AGE_AT_ONSET))
+# FALSE 
+# 653 
+ASIAN.CA <- ASIAN.CA[!is.na(ASIAN.CA$AGE_AT_ONSET),]
+
+# Get CO >= 70
+sum(PCA.ASIAN.PHENO$STATUS == 1 & PCA.ASIAN.PHENO$AGE_LAST_VISIT >= 70, na.rm = T)
+# 1791
+ASIAN.CO <- PCA.ASIAN.PHENO[PCA.ASIAN.PHENO$STATUS == 1 & PCA.ASIAN.PHENO$AGE_LAST_VISIT >= 70,]
+table(is.na(ASIAN.CO$AGE_LAST_VISIT))
+# FALSE  
+# 1791   
+ASIAN.CO <- ASIAN.CO[!is.na(ASIAN.CO$AGE_LAST_VISIT),]
+table(ASIAN.CO$AGE_LAST_VISIT)
+
+AGE.Filtered.ASIAN <- rbind.data.frame(ASIAN.CA,ASIAN.CO)
+dim(AGE.Filtered.ASIAN)
+# 2444   52
+sum(duplicated(AGE.Filtered.ASIAN$IID))
+# 9
+setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET")
+write.table(AGE.Filtered.ASIAN[1:2], "ADGC-ASIAN-selected_CA_CO-by-AGE.csv", sep = "\t", col.names = T, row.names = F, quote = F)
+######################################################
+## ASIAN - for Analysis demographics CA ≤65; CO >80 ##
+######################################################
+# Get CA <= 65
+sum(PCA.ASIAN.PHENO$STATUS == 2 & PCA.ASIAN.PHENO$AGE_AT_ONSET <= 65 & PCA.ASIAN.PHENO$AGE_AT_ONSET > 0, na.rm = T)
+# 124
+
+# CA
+ASIAN.CA <- PCA.ASIAN.PHENO[(PCA.ASIAN.PHENO$STATUS == 2 & PCA.ASIAN.PHENO$AGE_AT_ONSET <= 65 & PCA.ASIAN.PHENO$AGE_AT_ONSET > 0),]
+table(is.na(ASIAN.CA$AGE_AT_ONSET))
+# FALSE 
+# 124 
+ASIAN.CA <- ASIAN.CA[!is.na(ASIAN.CA$AGE_AT_ONSET),]
+
+# Get CO > 80
+sum(PCA.ASIAN.PHENO$STATUS == 1 & PCA.ASIAN.PHENO$AGE_LAST_VISIT > 80, na.rm = T)
+# 471
+ASIAN.CO <- PCA.ASIAN.PHENO[PCA.ASIAN.PHENO$STATUS == 1 & PCA.ASIAN.PHENO$AGE_LAST_VISIT > 80,]
+table(is.na(ASIAN.CO$AGE_LAST_VISIT))
+# FALSE   
+# 471  
+ASIAN.CO <- ASIAN.CO[!is.na(ASIAN.CO$AGE_LAST_VISIT),]
+
+AGE.Filtered.ASIAN <- rbind.data.frame(ASIAN.CA,ASIAN.CO)
+dim(AGE.Filtered.ASIAN)
+# 8947   51
+sum(duplicated(AGE.Filtered.ASIAN$IID))
+# 385  52
+setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET")
+write.table(AGE.Filtered.ASIAN[1:2], "ADGC-ASIAN-selected_CA_CO-by-AGE-for-analysis-without-MCI.csv", sep = "\t", col.names = T, row.names = F, quote = F)
+write.table(AGE.Filtered.ASIAN, "ADGC-ASIAN-selected_CA_CO-by-AGE-for-analysis-without-MCI_phenotype.csv", sep = "\t", col.names = T, row.names = F, quote = F)
+
+
+
+#### Remove related samples
+
+parent_offsping <- IBD[(IBD$Z0 < 0.25 & IBD$Z1 > 0.75), ]
+
+parent_offsping$Relationship <- "parent-offspring"
+nrow(parent_offsping)
+# 3
+
+sibPairs <- IBD[(IBD$Z0 < 0.65 &
+                   IBD$Z0 > 0.10 &
+                   IBD$Z1 < 0.75 &
+                   IBD$Z1 > 0.25),] 
+sibPairs$Relationship <- "sib-pairs"
+nrow(sibPairs)
+# 90
+duplicates <- IBD[(IBD$Z0 < 0.25 &
+                     IBD$Z1 < 0.25), ]
+duplicates$Relationship <- "duplicates"
+nrow(duplicates)
+# 213
+relatives.ALL <- rbind(parent_offsping, sibPairs, duplicates)
+# check how many times each sample is related
+relatives.ALL$nIID1 <- with(transform(relatives.ALL, n = 1),  ave(n, IID1, FUN = length))
+relatives.ALL$nIID2 <- with(transform(relatives.ALL, n = 1),  ave(n, IID2, FUN = length))
+write.table(relatives.ALL, "relatives_ALL.csv", sep ="\t", col.names = T, quote = F)
 
 #############################################################################################################################################################################################################################
 #############################################################################################################################################################################################################################

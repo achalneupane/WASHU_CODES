@@ -1212,6 +1212,17 @@ dim(FINAL.Covars)
 write.table(FINAL.Covars[1:2], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/sample_list_postQC_2807.txt", col.names = F, row.names = F, quote = F, sep = "\t")
 
 
+# check if there are samples 
+samples_in_FAM <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_V2_post_QC2_V2.fam")
+
+FINAL.Covars$KEY <- paste(FINAL.Covars$FID, FINAL.Covars$IID, sep = ":")
+samples_in_FAM$KEY <- paste(samples_in_FAM$V1, samples_in_FAM$V2, sep = ":")
+sum(FINAL.Covars$KEY %in% samples_in_FAM$KEY)
+# 2807
+
+
+
+
 Get_STATs_FASE(FINAL.Covars)
 
 table(table(FINAL.Covars$FID))
@@ -1219,7 +1230,7 @@ table(table(FINAL.Covars$FID))
 # 1226   27  101  126   66   32   14    4    5    1    1
 
 
-write.table(FINAL.Covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Phenotype_2807.txt", col.names = F, row.names = F, quote = F, sep = "\t")
+write.table(FINAL.Covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Phenotype_2807.txt", col.names = T, row.names = F, quote = F, sep = "\t")
 save.image("FASe_Pheno_data.RData")
 
 
@@ -1246,6 +1257,13 @@ p
 ggsave("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield_9810-FASe-2807_with_HAPMAP.jpg", plot = p, device = NULL, scale = 1, width = 8, height = 4, dpi = 600, limitsize = TRUE)
 
 
+setwd("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal")
+load("FASe_Pheno_data.RData")
+
+dim(FINAL.Covars)
+
+FASE_3931_UPDATED_FAM <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID.fam")
+sum(FASE_3931_UPDATED_FAM$V2 %in% FINAL.Covars$IID)
 
 ####################################################################################
 ####################################################################################
@@ -1277,17 +1295,23 @@ ggsave("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloom
 
 FAM <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE.fam", header = F)
 sum(covars$IID %in% FAM$V2)
-# 3690
+# 3692
 sum(covars$FID %in% FAM$V1)
 # 273
 
 UPDATE_FID <- FAM[1:2]
 UPDATE_FID$NEW_FID <- covars$FID[match(UPDATE_FID$V2, covars$IID)]
 UPDATE_FID$NEW_IID <- covars$IID[match(UPDATE_FID$V2, covars$IID)]
-UPDATE_FID$NEW_FID[is.na(UPDATE_FID$NEW_FID)] <- UPDATE_FID$V1[is.na(UPDATE_FID$NEW_FID)]
-UPDATE_FID$NEW_IID[is.na(UPDATE_FID$NEW_IID)] <- UPDATE_FID$V2[is.na(UPDATE_FID$NEW_IID)]
 
-write.table(UPDATE_FID, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/UPDATE_FID_postQC_3662.txt", col.names = F, row.names = F, quote = F, sep = "\t")
+UPDATE_FID <- UPDATE_FID[!is.na(UPDATE_FID$NEW_FID),]
+# UPDATE_FID$NEW_FID[is.na(UPDATE_FID$NEW_FID)] <- UPDATE_FID$V1[is.na(UPDATE_FID$NEW_FID)]
+# UPDATE_FID$NEW_IID[is.na(UPDATE_FID$NEW_IID)] <- UPDATE_FID$V2[is.na(UPDATE_FID$NEW_IID)]
+
+# write.table(UPDATE_FID, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/UPDATE_FID_postQC_3662.txt", col.names = F, row.names = F, quote = F, sep = "\t")
+write.table(UPDATE_FID, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/UPDATE_FID_postQC_3692.txt", col.names = F, row.names = F, quote = F, sep = "\t")
+
+write.table(UPDATE_FID[3:4], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/sample_list_postQC_3692.txt", col.names = F, row.names = F, quote = F, sep = "\t")
+
 
 
 FAM_UPDATED <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID.fam", header = F)
@@ -1301,8 +1325,38 @@ table(table(covars$FID))
 # 2037   27  102  127   64   35   13    5    4    1    1    1    1 
 
 
-## PLOT PCA
-PCA <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_post_QC2-HAPMAP-MERGED3-for_PCA.eigenvec", header =T, stringsAsFactors=FALSE)
+# ## PLOT PCA
+# PCA <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_post_QC2-HAPMAP-MERGED3-for_PCA.eigenvec", header =T, stringsAsFactors=FALSE)
+# dim(PCA)
+# HAPMAP.ethnicty <- read.table("relationships_w_pops_121708.txt", header = T )
+# head(HAPMAP.ethnicty)
+# 
+# 
+# PCA$COHORT <- "FASe"
+# PCA$COHORT <- HAPMAP.ethnicty$population[match(PCA$IID, HAPMAP.ethnicty$IID)]
+# PCA <- PCA[c("FID", "IID", c(paste0("PC", 1:10), "COHORT"))]
+# PCA$COHORT <- as.character(PCA$COHORT)
+# PCA$COHORT[is.na(PCA$COHORT)] <- "FASe"
+# write.table(PCA, "Bloomfield_FASe_3662-round2.txt", sep ="\t", col.names = T, quote = F)
+# 
+# 
+# 
+# ## Generate a new file that has IID, PC1,PC2, and a new column COHORT 
+# p <- ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield-FASe-3662") +
+#   scale_color_manual(values = c('green', 'black', 'red', "blue"))
+# 
+# 
+# ## Select NHW samples only
+# p <- p + annotate("rect", xmin=-0.006, xmax=0.02, ymin=-0.02, ymax= 0.03, 
+#              fill=NA, colour="red") +
+#   annotate("text", x=0.012, y=0.025, label="NHW", size=4, color = "red")
+# p
+# ggsave("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_post_QC2-HAPMAP-MERGED3-for_PCA-3662-PCs-COHORT.jpg", plot = p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+
+
+
+PCA <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_V2_post_QC2_V2-HAPMAP-MERGED3-for_PCA.eigenvec", header =T, stringsAsFactors=FALSE)
 dim(PCA)
 HAPMAP.ethnicty <- read.table("relationships_w_pops_121708.txt", header = T )
 head(HAPMAP.ethnicty)
@@ -1313,21 +1367,23 @@ PCA$COHORT <- HAPMAP.ethnicty$population[match(PCA$IID, HAPMAP.ethnicty$IID)]
 PCA <- PCA[c("FID", "IID", c(paste0("PC", 1:10), "COHORT"))]
 PCA$COHORT <- as.character(PCA$COHORT)
 PCA$COHORT[is.na(PCA$COHORT)] <- "FASe"
-write.table(PCA, "Bloomfield_FASe_3662-round2.txt", sep ="\t", col.names = T, quote = F)
+write.table(PCA, "Bloomfield_FASe_3692-round2.txt", sep ="\t", col.names = T, quote = F)
 
 
 
 ## Generate a new file that has IID, PC1,PC2, and a new column COHORT 
-p <- ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield-FASe-3662") +
+p <- ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield-FASe-3692") +
   scale_color_manual(values = c('green', 'black', 'red', "blue"))
 
 
 ## Select NHW samples only
-p <- p + annotate("rect", xmin=-0.006, xmax=0.02, ymin=-0.02, ymax= 0.03, 
+p + annotate("rect", xmin=-0.006, xmax=0.02, ymin=-0.02, ymax= 0.03, 
              fill=NA, colour="red") +
   annotate("text", x=0.012, y=0.025, label="NHW", size=4, color = "red")
-p
-ggsave("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_post_QC2-HAPMAP-MERGED3-for_PCA-3662-PCs-COHORT.jpg", plot = p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+ggsave("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_post_QC2-HAPMAP-MERGED3-for_PCA-3692-PCs-COHORT.jpg", plot = last_plot(), device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+
 
 
 # Merge PCA to pheno file
