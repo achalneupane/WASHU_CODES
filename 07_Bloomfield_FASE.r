@@ -1221,6 +1221,15 @@ sum(FINAL.Covars$KEY %in% samples_in_FAM$KEY)
 # 2807
 
 
+View(FINAL.Covars)
+
+sum(FINAL.Covars$IID %in% PHENO3894$IID)
+
+
+FINAL.Covars.PID.MID <- cbind.data.frame(FINAL.Covars, PHENO3894[match(FINAL.Covars$CLEANED_ID, PHENO3894$IID), c("PID", "MID")])
+FINAL.Covars.PID.MID$PID[grepl("^\\.$", FINAL.Covars.PID.MID$PID)] <- NA
+FINAL.Covars.PID.MID$MID[grepl("^\\.$", FINAL.Covars.PID.MID$MID)] <- NA
+
 
 
 Get_STATs_FASE(FINAL.Covars)
@@ -1260,10 +1269,7 @@ ggsave("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloom
 setwd("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal")
 load("FASe_Pheno_data.RData")
 
-dim(FINAL.Covars)
 
-FASE_3931_UPDATED_FAM <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID.fam")
-sum(FASE_3931_UPDATED_FAM$V2 %in% FINAL.Covars$IID)
 
 ####################################################################################
 ####################################################################################

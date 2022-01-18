@@ -3243,6 +3243,15 @@ relatives.ALL$nIID1 <- with(transform(relatives.ALL, n = 1),  ave(n, IID1, FUN =
 relatives.ALL$nIID2 <- with(transform(relatives.ALL, n = 1),  ave(n, IID2, FUN = length))
 write.table(relatives.ALL, "relatives_ALL.csv", sep ="\t", col.names = T, quote = F)
 
+
+
+
+
+dim(AGE.Filtered.NHW)
+AGE.Filtered.NHW.with.PCA <- AGE.Filtered.NHW
+AGE.Filtered.NHW.with.PCA <-  AGE.Filtered.NHW.with.PCA[-grep("PC", colnames(AGE.Filtered.NHW.with.PCA)),]
+write.table(AGE.Filtered.NHW.with.PCA, "ADGC-NHW-PHENO-WITH-PCA.txt", sep = "\t", col.names = T, row.names = F, quote = F)
+
 #############################################################################################################################################################################################################################
 #############################################################################################################################################################################################################################
 #############################################################################################################################################################################################################################
