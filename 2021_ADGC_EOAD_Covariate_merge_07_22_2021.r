@@ -2442,7 +2442,23 @@ ADGC_Hispanic_covar <- RECODE_CACO_SEX(ADGC_Hispanic_covar)
 ############################################################################################
 ####################### Get Demographic table for cleaned covar data #######################
 ############################################################################################
-# covars <- combined_NHW
+## Fix weird numbers
+ADGC_AA_covar$AGE_AT_ONSET[grepl("^888$|^999$", ADGC_AA_covar$AGE_AT_ONSET)] <- -9
+ADGC_AA_covar$AGE_LAST_VISIT[grepl("^888$|^999$", ADGC_AA_covar$AGE_LAST_VISIT)] <- -9
+
+ADGC_Asian_covar$AGE_AT_ONSET[grepl("^888$|^999$", ADGC_Asian_covar$AGE_AT_ONSET)] <- -9
+ADGC_Asian_covar$AGE_LAST_VISIT[grepl("^888$|^999$", ADGC_Asian_covar$AGE_LAST_VISIT)] <- -9
+
+ADGC_Hispanic_covar$AGE_AT_ONSET[grepl("^888$|^999$", ADGC_Hispanic_covar$AGE_AT_ONSET)] <- -9
+ADGC_Hispanic_covar$AGE_LAST_VISIT[grepl("^888$|^999$", ADGC_Hispanic_covar$AGE_LAST_VISIT)] <- -9
+
+combined_NHW$AGE_AT_ONSET[grepl("^888$|^999$", combined_NHW$AGE_AT_ONSET)] <- -9
+combined_NHW$AGE_LAST_VISIT[grepl("^888$|^999$", combined_NHW$AGE_LAST_VISIT)] <- -9
+
+
+tt <- ADGC_Asian_covar
+tt[c("AGE_AT_ONSET", "AGE_LAST_VISIT")] <- FIX_weird_NUMS(tt[c("AGE_AT_ONSET", "AGE_LAST_VISIT")] )
+ 
 
 Get_STATs <- function(covars){
   covars$ETHNICITY <- as.character(covars$ETHNICITY)
@@ -3249,8 +3265,78 @@ write.table(relatives.ALL, "relatives_ALL.csv", sep ="\t", col.names = T, quote 
 
 dim(AGE.Filtered.NHW)
 AGE.Filtered.NHW.with.PCA <- AGE.Filtered.NHW
-AGE.Filtered.NHW.with.PCA <-  AGE.Filtered.NHW.with.PCA[-grep("PC", colnames(AGE.Filtered.NHW.with.PCA)),]
+AGE.Filtered.NHW.with.PCA <-  AGE.Filtered.NHW.with.PCA[-grep("PC", colnames(AGE.Filtered.NHW.with.PCA))]
+
+PCA.NHW <- read.table("ADGC_NHW_Cohort_without_chr_selected_CA_CO-by-AGE-NO-MCI-sex-CLEAN1-PCAS.eigenvec", header = T)
+PCA.NHW$KEY <- paste(as.character(PCA.NHW$FID), as.character(PCA.NHW$IID), sep = ":")
+
+sum(PCA.NHW$KEY %in% AGE.Filtered.NHW.with.PCA$KEY1)
+
+AGE.Filtered.NHW.with.PCA <- cbind.data.frame(PCA.NHW, AGE.Filtered.NHW.with.PCA[match(PCA.NHW$KEY, AGE.Filtered.NHW.with.PCA$KEY1), -c(1:2)])
+dim(AGE.Filtered.NHW.with.PCA)
 write.table(AGE.Filtered.NHW.with.PCA, "ADGC-NHW-PHENO-WITH-PCA.txt", sep = "\t", col.names = T, row.names = F, quote = F)
+write.table(AGE.Filtered.NHW.with.PCA[1:2], "ADGC-NHW-PHENO-WITH-PCA_subset.txt", sep = "\t", col.names = T, row.names = F, quote = F)
+
+
+#####################
+## Manhattan plots ##
+#####################
+library (qqman)
+library(data.table)
+LOGISTIC<- fread("Manhattan_LOGISTIC_ADGC_NHW_Cohort_without_chr_selected_CA_CO-by-AGE-NO-MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic",head=T)
+
+# jpeg("QQ_Manhattan_LOGISTIC_ADGC_NHW_Cohort_without_chr_selected_CA_CO-by-AGE-NO-MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic.jpg", units="mm", width=190, height=142, res=1000)
+# qq(LOGISTIC$P)
+# dev.off()
+
+
+source("https://raw.githubusercontent.com/achalneupane/rcodes/master/WashU_codes/qqrunif_with_lambda.r")# This is a helper functoin to calculate LAMBDA
+inflation <- function(pvalues) {
+  # chisq <- qchisq(1-my.pvalues, 1, lower.tail = F)
+  chisq <- qchisq(1 - pvalues, 1)
+  lambda <- median(chisq) / qchisq(0.5, 1)
+  return(lambda)
+}
+
+
+my.pvalues <- LOGISTIC$P[!is.na(LOGISTIC$P)]
+my.pvalues <- my.pvalues[my.pvalues > 0]
+
+LAMBDA <- round(inflation(my.pvalues), digits = 3)
+LAMBDA
+
+jpeg("QQ_Manhattan_LOGISTIC_ADGC_NHW_Cohort_without_chr_selected_CA_CO-by-AGE-NO-MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic.with.Lambda.jpg", units="mm", width=190, height=142, res=1000)
+qqunif.plot(my.pvalues, LAMBDA= LAMBDA)
+dev.off()
+
+
+
+
+
+library (qqman)
+jpeg("Manhattan_Manhattan_LOGISTIC_ADGC_NHW_Cohort_without_chr_selected_CA_CO-by-AGE-NO-MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic.jpg", units="mm", width=190, height=142, res=1000)
+manhattan(LOGISTIC, main = "", ylim=c(0,20), col = c("blue4", "orange3"), suggestiveline = -log10(1e-06), genomewideline = -log10(5e-08), annotateTop = TRUE, annotatePval = 1e-06, chrlabs = as.character(1:22)) 
+dev.off()
+
+head(LOGISTIC)
+sum(LOGISTIC$P < 1e-6)
+
+SIG.LOGISTIC <- LOGISTIC[LOGISTIC$P < 1e-6,]
+
+VAR=GENE=MAF_GnomAD
+1:207518704:A:G=CR1=0.86 (intronic)
+6:32461817:A:G=HLA-DRB9=0.57 (intronic)
+8:8237150:T:C=FAM86B3P=0.249 (non coding transcript exon)
+10:46039372:G:A=MSMB=0.256 (intronic)
+11:60260669:C:T=MS4A4A=0.63 (intronic)
+22:22616095:G:A= =0.147
+
+c("1:207518704:A:G",
+"6:32461817:A:G",
+"8:8237150:T:C",
+"10:46039372:G:A",
+"11:60260669:C:T",
+"22:22616095:G:A")
 
 #############################################################################################################################################################################################################################
 #############################################################################################################################################################################################################################

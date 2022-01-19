@@ -1223,15 +1223,6 @@ sum(FINAL.Covars$KEY %in% samples_in_FAM$KEY)
 
 View(FINAL.Covars)
 
-sum(FINAL.Covars$IID %in% PHENO3894$IID)
-
-
-FINAL.Covars.PID.MID <- cbind.data.frame(FINAL.Covars, PHENO3894[match(FINAL.Covars$CLEANED_ID, PHENO3894$IID), c("PID", "MID")])
-FINAL.Covars.PID.MID$PID[grepl("^\\.$", FINAL.Covars.PID.MID$PID)] <- NA
-FINAL.Covars.PID.MID$MID[grepl("^\\.$", FINAL.Covars.PID.MID$MID)] <- NA
-
-
-
 Get_STATs_FASE(FINAL.Covars)
 
 table(table(FINAL.Covars$FID))
@@ -1241,6 +1232,26 @@ table(table(FINAL.Covars$FID))
 
 write.table(FINAL.Covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Phenotype_2807.txt", col.names = T, row.names = F, quote = F, sep = "\t")
 save.image("FASe_Pheno_data.RData")
+
+
+
+sum(FINAL.Covars$IID %in% PHENO3894$IID)
+# 2588
+
+## ADD PID and MID
+FINAL.Covars.PID.MID <- cbind.data.frame(FINAL.Covars, PHENO3894[match(FINAL.Covars$CLEANED_ID, PHENO3894$IID), c("PID", "MID")])
+FINAL.Covars.PID.MID <- FINAL.Covars.PID.MID[-c(3:4)]
+FINAL.Covars.PID.MID$PID[grepl("^\\.$", FINAL.Covars.PID.MID$PID)] <- NA
+FINAL.Covars.PID.MID$MID[grepl("^\\.$", FINAL.Covars.PID.MID$MID)] <- NA
+
+FINAL.Covars.PID.MID$PID <- as.character(FINAL.Covars.PID.MID$PID)
+FINAL.Covars.PID.MID$MID <- as.character(FINAL.Covars.PID.MID$MID)
+
+FINAL.Covars.PID.MID$PID[is.na(FINAL.Covars.PID.MID$MID)] <- ADSPFambased$Father[match(FINAL.Covars.PID.MID$CLEANED_ID[is.na(FINAL.Covars.PID.MID$MID)], ADSPFambased$SUBJID)]
+FINAL.Covars.PID.MID$MID[is.na(FINAL.Covars.PID.MID$MID)] <- ADSPFambased$Mother[match(FINAL.Covars.PID.MID$CLEANED_ID[is.na(FINAL.Covars.PID.MID$MID)], ADSPFambased$SUBJID)]
+sum(is.na(FINAL.Covars.PID.MID$MID))
+# 170
+FINAL.Covars.PID.MID <- FINAL.Covars.PID.MID[-grep("^X$|X.", colnames(FINAL.Covars.PID.MID))]
 
 
 
@@ -1268,6 +1279,42 @@ ggsave("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloom
 
 setwd("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal")
 load("FASe_Pheno_data.RData")
+
+## Remove samples with mendelian variants
+MENDELIAN <- read.delim("20211124_Bloomfield_pheno.csv", header = T, sep = ",")
+dim(MENDELIAN)
+MENDELIAN <- MENDELIAN[!is.na(MENDELIAN$Mendlian_mutation_name),]
+MENDELIAN <- MENDELIAN[grepl("APP|PSEN", MENDELIAN$Mendlian_mutation_name, ignore.case = T),]
+
+MENDELIAN$Bloomfield.gvcf.id..SM...9810. <- as.character(MENDELIAN$Bloomfield.gvcf.id..SM...9810.)
+sum(FINAL.Covars.PID.MID$IID %in% MENDELIAN$Bloomfield.gvcf.id..SM...9810.)
+FINAL.Covars.PID.MID <- FINAL.Covars.PID.MID[!FINAL.Covars.PID.MID$IID %in% MENDELIAN$Bloomfield.gvcf.id..SM...9810.,]
+
+# write.table(FINAL.Covars.PID.MID, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/Phenotype_with_PID_and_MID_2807.txt", col.names = T, row.names = F, quote = F, sep = "\t")
+# write.table(FINAL.Covars.PID.MID[36:37], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/recode_PID_and_MID_2807.txt", col.names = T, row.names = F, quote = F, sep = "\t")
+write.table(FINAL.Covars.PID.MID[1:2], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/subset_2804.txt", col.names = T, row.names = F, quote = F, sep = "\t")
+
+
+
+# Re- PLot PCA
+PCAs<- read.table("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_V2_post_QC2_V2_post_QC3-No-MCI-no-mendelian-PCAS.eigenvec", header=T)
+##plotting:
+library(ggplot2)
+P <- ggplot(PCAs, aes(x=PC1, y=PC2)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield_9810-FASe-2804")
+ggsave("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/Bloomfield_9810-FASe-2804-PCs-COHORT_After_keeping_NHW_and_without_HAPMAP.jpg", plot = P, device = NULL, scale = 1, width = 16, height = 9, dpi = 300, limitsize = TRUE)
+
+
+## ADD PCA
+setwd("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT")
+PCA.NHW.FASE <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_V2_post_QC2_V2_post_QC3-No-MCI-no-mendelian-PCAS.eigenvec", header = T)
+sum(FINAL.Covars.PID.MID$IID %in% PCA.NHW.FASE$IID)
+FINAL.Covars.PID.MID <- cbind.data.frame(FINAL.Covars.PID.MID, PCA.NHW.FASE[match(FINAL.Covars.PID.MID$IID, PCA.NHW.FASE$IID), -c(1:2)])
+
+# paste(colnames(FINAL.Covars.PID.MID), collapse = ",")  
+FINAL.Covars.PID.MID <- FINAL.Covars.PID.MID[c("FID","IID","PID","MID","Bloomfield.gvcf.id..SM...9810.","FullSample.FSM","Pheno_SEX","Genetic_Sex","STATUS..CC.","APOE","AAO","ALA","AGE","ADCO","Seq_project","COHORT","CLEANED_ID","FOUND","NEW_FID","APOE4ANY","KEY","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10")]
+  
+colnames(FINAL.Covars.PID.MID)[1:4] <- c("pid", "id", "fid", "mid")
+write.table(FINAL.Covars.PID.MID, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/Phenotype_with_PID_and_MID_2804.txt", col.names = T, row.names = F, quote = F, sep = "\t")
 
 
 
