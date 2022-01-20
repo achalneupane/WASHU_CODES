@@ -3285,12 +3285,7 @@ library (qqman)
 library(data.table)
 LOGISTIC<- fread("Manhattan_LOGISTIC_ADGC_NHW_Cohort_without_chr_selected_CA_CO-by-AGE-NO-MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic",head=T)
 
-# jpeg("QQ_Manhattan_LOGISTIC_ADGC_NHW_Cohort_without_chr_selected_CA_CO-by-AGE-NO-MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic.jpg", units="mm", width=190, height=142, res=1000)
-# qq(LOGISTIC$P)
-# dev.off()
 
-
-source("https://raw.githubusercontent.com/achalneupane/rcodes/master/WashU_codes/qqrunif_with_lambda.r")# This is a helper functoin to calculate LAMBDA
 inflation <- function(pvalues) {
   # chisq <- qchisq(1-my.pvalues, 1, lower.tail = F)
   chisq <- qchisq(1 - pvalues, 1)
@@ -3299,16 +3294,16 @@ inflation <- function(pvalues) {
 }
 
 
+
 my.pvalues <- LOGISTIC$P[!is.na(LOGISTIC$P)]
-my.pvalues <- my.pvalues[my.pvalues > 0]
+my.pvalues <- my.pvalues[!my.pvalues == 0]
 
 LAMBDA <- round(inflation(my.pvalues), digits = 3)
 LAMBDA
 
-jpeg("QQ_Manhattan_LOGISTIC_ADGC_NHW_Cohort_without_chr_selected_CA_CO-by-AGE-NO-MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic.with.Lambda.jpg", units="mm", width=190, height=142, res=1000)
-qqunif.plot(my.pvalues, LAMBDA= LAMBDA)
-dev.off()
-
+# jpeg("QQ_Manhattan_LOGISTIC_ADGC_NHW_Cohort_without_chr_selected_CA_CO-by-AGE-NO-MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic.jpg", units="mm", width=190, height=142, res=1000)
+# qq(LOGISTIC$P)
+# dev.off()
 
 
 
