@@ -1,5 +1,6 @@
 setwd("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal")
 load("FASe_Pheno_data.RData")
+## FASe PHenotype from Aquilla
 FASE <- read.table("/100/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/03-PLINK-QC-files2/Final_Pheno_FASe_3894.pheno", header = T, stringsAsFactors = F)
 dim(FASE)
 View(FASE)
@@ -1212,7 +1213,8 @@ dim(FINAL.Covars)
 write.table(FINAL.Covars[1:2], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/sample_list_postQC_2807.txt", col.names = F, row.names = F, quote = F, sep = "\t")
 
 
-# check if there are samples 
+# check if there are samples in FAM file
+setwd("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal")
 samples_in_FAM <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_V2_post_QC2_V2.fam")
 
 FINAL.Covars$KEY <- paste(FINAL.Covars$FID, FINAL.Covars$IID, sep = ":")
@@ -1231,12 +1233,14 @@ table(table(FINAL.Covars$FID))
 
 
 write.table(FINAL.Covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Phenotype_2807.txt", col.names = T, row.names = F, quote = F, sep = "\t")
-save.image("FASe_Pheno_data.RData")
+
 
 
 
 sum(FINAL.Covars$IID %in% PHENO3894$IID)
 # 2588
+
+
 
 ## ADD PID and MID
 FINAL.Covars.PID.MID <- cbind.data.frame(FINAL.Covars, PHENO3894[match(FINAL.Covars$CLEANED_ID, PHENO3894$IID), c("PID", "MID")])
@@ -1313,11 +1317,57 @@ FINAL.Covars.PID.MID <- cbind.data.frame(FINAL.Covars.PID.MID, PCA.NHW.FASE[matc
 # paste(colnames(FINAL.Covars.PID.MID), collapse = ",")  
 FINAL.Covars.PID.MID <- FINAL.Covars.PID.MID[c("FID","IID","PID","MID","Bloomfield.gvcf.id..SM...9810.","FullSample.FSM","Pheno_SEX","Genetic_Sex","STATUS..CC.","APOE","AAO","ALA","AGE","ADCO","Seq_project","COHORT","CLEANED_ID","FOUND","NEW_FID","APOE4ANY","KEY","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10")]
   
-colnames(FINAL.Covars.PID.MID)[1:4] <- c("pid", "id", "fid", "mid")
-write.table(FINAL.Covars.PID.MID, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/Phenotype_with_PID_and_MID_2804.txt", col.names = T, row.names = F, quote = F, sep = "\t")
+colnames(FINAL.Covars.PID.MID)
+
+FINAL.Covars.PID.MID.SELECTED.COLS <- FINAL.Covars.PID.MID [c("FID", "IID", "PID", "MID", "Pheno_SEX", "STATUS..CC.", "APOE", "AAO", "ALA", "Seq_project",
+  "COHORT", "APOE4ANY", "PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10")]
+
+colnames(FINAL.Covars.PID.MID.SELECTED.COLS) <- c("pid", "id", "fid", "mid", "SEX", "STATUS", "APOE", "AAO", "ALA", "Seq_project",
+                                                  "COHORT", "APOE4ANY", "PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10")
 
 
+## recode SEX 
+FINAL.Covars.PID.MID.SELECTED.COLS$SEX[FINAL.Covars.PID.MID.SELECTED.COLS$SEX == -9| is.na(FINAL.Covars.PID.MID.SELECTED.COLS$STATUS)] <- 0
+FINAL.Covars.PID.MID.SELECTED.COLS$STATUS[FINAL.Covars.PID.MID.SELECTED.COLS$STATUS == -9| is.na(FINAL.Covars.PID.MID.SELECTED.COLS$STATUS)] <- 0
 
+write.table(FINAL.Covars.PID.MID.SELECTED.COLS, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/Phenotype_with_PID_and_MID_2804.txt", col.names = T, row.names = F, quote = F, sep = "\t")
+
+write.table(FINAL.Covars.PID.MID.SELECTED.COLS[1:4], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/recode_PID_and_MID_2804.txt", col.names = T, row.names = F, quote = F, sep = "\t")
+write.table(FINAL.Covars.PID.MID.SELECTED.COLS[c(1,2,5)], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/update_sex.txt", col.names = T, row.names = F, quote = F, sep = "\t")
+write.table(FINAL.Covars.PID.MID.SELECTED.COLS[c(1,2,6)], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/update_status.txt", col.names = T, row.names = F, quote = F, sep = "\t")
+
+
+save.image("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FASe_Pheno_data.RData")
+
+
+FAM_PLINK <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_V2_post_QC2_V2_post_QC3-No-MCI-no-mendelian-geno-0.02-maxmaf-0.01_with_sex.fam", header = F, check.names = F)
+head(FAM_PLINK)
+FAM_PLINK$KEY <- paste(FAM_PLINK$V1, FAM_PLINK$V2, sep = ":")
+
+FINAL.Covars.PID.MID.SELECTED.COLS$KEY <- paste(FINAL.Covars.PID.MID.SELECTED.COLS$pid, FINAL.Covars.PID.MID.SELECTED.COLS$id, sep = ":")
+sum(FAM_PLINK$KEY %in% FINAL.Covars.PID.MID.SELECTED.COLS$KEY)
+
+FAM_PLINK$PHENO_SEX <- FINAL.Covars.PID.MID.SELECTED.COLS$SEX[match(FAM_PLINK$V2, FINAL.Covars.PID.MID.SELECTED.COLS$id)]
+sum(FAM_PLINK$PHENO_SEX == FAM_PLINK$V5)
+
+read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_V2_post_QC2_V2_post_QC3-No-MCI-no-mendelian-geno-0.02-maxmaf-0.01_sex.sexcheck")
+
+PLINK.sex <- read.delim("../Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_V2_post_QC2_V2_post_QC3_sex.sexcheck_formatted", header = T, sep = "\t")
+dim(PLINK.sex)
+SEX <- read.table("update_sex.txt", header = T, sep = "\t")
+SEX$KEY <- paste(SEX$pid, SEX$id, sep = ":")
+
+sum(SEX$id %in% PLINK.sex$IID )
+PLINK.sex$PHENO_SEX <- FINAL.Covars$Pheno_SEX[match(PLINK.sex$IID, FINAL.Covars$IID )]
+
+PLINK.sex$MATCH <- ifelse(PLINK.sex$PHENO_SEX == PLINK.sex$SNPSEX, "YES", "NO")
+table(PLINK.sex$MATCH)
+
+sum(SEX$KEY %in% FINAL.Covars$KEY )
+
+SEX$PHENO_SEX <- FINAL.Covars$Pheno_SEX[match(SEX$KEY, FINAL.Covars$KEY )]
+
+table(SEX$PHENO_SEX == SEX$SEX)
 ####################################################################################
 ####################################################################################
 ####################################################################################
@@ -1326,23 +1376,40 @@ write.table(FINAL.Covars.PID.MID, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfiel
 ####################################################################################
 ####################################################################################
 
+tt <- FINAL.Covars.PID.MID.SELECTED.COLS
+sum(tt$id %in% PHENO3894$IID)
+tt$Aquilla_SEX <- PHENO3894$SEX[match(tt$id, PHENO3894$IID)]
+tt$Aquilla_STATUS <- PHENO3894$STATUS[match(tt$id, PHENO3894$IID)]
+tt$Aquilla_APOE <- PHENO3894$APOE[match(tt$id, PHENO3894$IID)]
+###
+
+PHENO
+
+tt <- FINAL.Covars.PID.MID.SELECTED.COLS
+sum(tt$id %in% PHENO$Bloomfield.gvcf.id..SM...9810.)
+tt$BLOOMFIELD_SEX <- PHENO$Pheno_SEX[match(tt$id, PHENO$IID)]
+tt$BLOOMFIELD_STATUS <- PHENO$STATUS..CC.[match(tt$id, PHENO$IID)]
+tt$BLOOMFIELD_APOE <- PHENO$APOE[match(tt$id, PHENO$IID)]
+###
 
 
+sum(tt$STATUS == tt$BLOOMFIELD_STATUS, na.rm = T)
+
+###
+
+sum(FASE$IID %in% PHENO$Bloomfield.gvcf.id..SM...9810.)
+tt <- FASE
+sum(tt$IID %in% PHENO$Bloomfield.gvcf.id..SM...9810.)
+tt$BLOOMFIELD_SEX <- PHENO$Pheno_SEX[match(tt$I, PHENO3894$IID)]
+tt$BLOOMFIELD_STATUS <- PHENO$STATUS..CC.[match(tt$id, PHENO3894$IID)]
+tt$BLOOMFIELD_APOE <- PHENO$APOE[match(tt$id, PHENO3894$IID)]
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+## PHENO (Aquilla)
+PHENO_AQUILLA <- read.delim("/40/AD/AD_Seq_Data/03.-phenotype/202101-Aquilla-phenotype/Joint_Call_Round1/Aquilla_9515_phenotype-UPDATED.csv", header = T, sep = ",")
+colnames(PHENO_AQUILLA) <- paste("Aquilla", colnames(PHENO_AQUILLA), sep = "_")
+PHENO3894 <- cbind(PHENO3894, PHENO_AQUILLA[match(PHENO3894$IID, PHENO_AQUILLA$Aquilla_Aquilla.vcfID),])
+PHENO3894 <- cbind(PHENO3894, TANZIbim[match(PHENO3894$IID, TANZIbim$V2),c(5:6)])
 
 
 

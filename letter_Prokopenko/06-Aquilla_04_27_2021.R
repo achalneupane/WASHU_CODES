@@ -18,7 +18,8 @@ sum(FAM$V2 %in% PROJECTinfo$SM)
 
 FAM <- cbind(FAM, PROJECTinfo[match(FAM$V2, PROJECTinfo$SM), ])
 
-PHENO <- read.csv("/40/AD/AD_Seq_Data/03.-phenotype/2021-01-Aquilla-phenotype/Joint_Call_Round1/Aquilla_9576_phenotype.csv", header = TRUE, sep = ",", check.names = F)
+# PHENO <- read.csv("/40/AD/AD_Seq_Data/03.-phenotype/2021-01-Aquilla-phenotype/Joint_Call_Round1/Aquilla_9576_phenotype.csv", header = TRUE, sep = ",", check.names = F)
+PHENO <- read.csv("/40/AD/AD_Seq_Data/03.-phenotype/202101-Aquilla-phenotype/Joint_Call_Round1/Aquilla_9515_phenotype-UPDATED.csv", header = TRUE, sep = ",", check.names = F)
 PHENO$`Aquilla vcfID` <- as.character(PHENO$`Aquilla vcfID`)
 dim(PHENO)
 # View(PHENO)
