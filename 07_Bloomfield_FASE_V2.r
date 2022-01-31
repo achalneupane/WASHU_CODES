@@ -61,7 +61,7 @@ sum(FASE_PHENO$IID == FASE_PHENO$Bloomfield.gvcf.id..SM...9810.)
 
 ## FIX # N/A characters
 FASE_PHENO[FASE_PHENO=="#N/A"] <- NA
-
+FASE_PHENO <- FASE_PHENO[-grep("^X$|X.", colnames(FASE_PHENO))]
 
 write.table(FASE_PHENO[1:2], "/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FASE_sample_list.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
@@ -168,19 +168,33 @@ PHENO3894$IID <- as.character(PHENO3894$IID)
 PHENO3894$IID[(grepl("^MAP_", PHENO3894$FID))] <- paste0("MAP_", gsub("MAP_", "", as.character(PHENO3894$IID[(grepl("^MAP_", PHENO3894$FID))])))
 
 
-
-
-
-## CLEAN .WGS and .WES 
+## CLEAN .WGS and .WES strings in Bloomfield phenotype
 FASE_PHENO$CLEANED_ID <- as.character(FASE_PHENO$Bloomfield.gvcf.id..SM...9810.)
 FASE_PHENO$CLEANED_ID[(grepl(".WGS|.WES", FASE_PHENO$CLEANED_ID))] <- gsub("\\..*","",FASE_PHENO$CLEANED_ID[(grepl(".WGS|.WES", FASE_PHENO$CLEANED_ID))])
-FASE_PHENO$FOUND  <- ifelse(FASE_PHENO$CLEANED_ID %in% PHENO3894$IID, "YES", "NO")
+
+FASE_PHENO$CLEANED_ID[grepl ("SHERMAN", FASE_PHENO$Seq_project)] <- sapply(strsplit(as.character(FASE_PHENO$FullSample.FSM)[grepl ("SHERMAN", FASE_PHENO$Seq_project)], "\\^"), `[`, 1)
+
+
+
+## MERGE Aquilla Phenotype with Bloomfield Phenotype
+colnames(PHENO3894) <- paste0("AQ_", colnames(PHENO3894))
+sum(FASE_PHENO$CLEANED_ID %in% PHENO3894$AQ_IID)
+# 3648
+
+FASE_PHENO <- cbind(FASE_PHENO, PHENO3894[match(FASE_PHENO$CLEANED_ID, PHENO3894$AQ_IID),])
+
+
+
+FASE_PHENO$FOUND  <- ifelse(FASE_PHENO$CLEANED_ID %in% FASE_PHENO$AQ_IID, "YES", "NO")
 table(FASE_PHENO$FOUND )
+# NO  YES 
+# 283 3648 
+
 FASE_PHENO_NOT_FOUND <- FASE_PHENO[grepl("NO", FASE_PHENO$FOUND),]
 ## These are the samples not found in older release Aquilla
 table(as.character(FASE_PHENO_NOT_FOUND$Seq_project))
 # 201907_USUHS_gDNA_SHERMAN     202103_ADSP_FUS-familial_WGS_UNNAMED 202104_ADSP_site27-sync-n303_WGS_UNNAMED                                Broad_WGS 
-# 39                                      164                                       86                                       31
+# 2                                      164                                       86                                       31
 
 
 
@@ -188,8 +202,9 @@ table(as.character(FASE_PHENO_NOT_FOUND$Seq_project))
 
 
 
+
 # For any samples that were in previous release, I will update the FID from that release
-FASE_PHENO$NEW_FID <- as.character(PHENO3894$FID[match(FASE_PHENO$CLEANED_ID, PHENO3894$IID)])
+FASE_PHENO$NEW_FID <- as.character(FASE_PHENO$AQ_FID)
 FASE_PHENO$FID <- as.character(FASE_PHENO$FID)
 
 # If NEW_FID is not empty, update FID from older release
@@ -204,46 +219,59 @@ sum(FASE_PHENO_NOT_FOUND$FID [(FASE_PHENO_NOT_FOUND$CLEANED_ID %in% AURORA$IID)]
 FASE_PHENO_NOT_FOUND <- FASE_PHENO_NOT_FOUND[!grepl("Broad_WGS", FASE_PHENO_NOT_FOUND$Seq_project),]
 
 
+## Get the missing phenotype from Aquilla
+## STATUS
+FASE_PHENO$STATUS_ADDED[is.na(FASE_PHENO$STATUS..CC.) & !is.na(FASE_PHENO$AQ_STATUS)] <- "YES"
+FASE_PHENO$STATUS..CC.[is.na(FASE_PHENO$STATUS..CC.) & !is.na(FASE_PHENO$AQ_STATUS)] <- FASE_PHENO$AQ_STATUS[is.na(FASE_PHENO$STATUS..CC.) & !is.na(FASE_PHENO$AQ_STATUS)]
 
-## Add phenotype for 201907_USUHS_gDNA_SHERMAN
-FASE_PHENO$CLEANED_ID[grepl ("SHERMAN", FASE_PHENO$Seq_project)] <- sapply(strsplit(as.character(FASE_PHENO$FullSample.FSM)[grepl ("SHERMAN", FASE_PHENO$Seq_project)], "\\^"), `[`, 1)
+## APOE
+FASE_PHENO$APOE_ADDED[is.na(FASE_PHENO$APOE) & !is.na(FASE_PHENO$AQ_APOE)] <- "YES"
+FASE_PHENO$APOE[is.na(FASE_PHENO$APOE) & !is.na(FASE_PHENO$AQ_APOE)]  <- FASE_PHENO$AQ_APOE[is.na(FASE_PHENO$APOE) & !is.na(FASE_PHENO$AQ_APOE)] 
 
+## AAO
+FASE_PHENO$AAO <- as.numeric(as.character(FASE_PHENO$AAO))
+FASE_PHENO$AAO_ADDED[is.na(FASE_PHENO$AAO) & !is.na(FASE_PHENO$AQ_AAO)] <- "YES"
+FASE_PHENO$AAO[is.na(FASE_PHENO$AAO) & !is.na(FASE_PHENO$AQ_AAO)]  <- FASE_PHENO$AQ_AAO[is.na(FASE_PHENO$AAO) & !is.na(FASE_PHENO$AQ_AAO)]
 
-## Now fix the FID for SHERMAN
-FASE_PHENO$FID[grepl ("SHERMAN", FASE_PHENO$Seq_project)]  <- as.character(PHENO3894$FID[match(FASE_PHENO$CLEANED_ID[grepl ("SHERMAN", FASE_PHENO$Seq_project)], PHENO3894$IID)])
-# No Phenotype was found for "B6-48790" "B6-48789"
-FASE_PHENO$FID[grepl ("SHERMAN", FASE_PHENO$Seq_project)][is.na(FASE_PHENO$FID[grepl ("SHERMAN", FASE_PHENO$Seq_project)])] <- FASE_PHENO$IID[grepl ("SHERMAN", FASE_PHENO$Seq_project)][is.na(FASE_PHENO$FID[grepl ("SHERMAN", FASE_PHENO$Seq_project)])]
-
-## Get the phenotype for some SHERMAN samples with missing phenotype
-FASE_PHENO$STATUS..CC.[grepl ("SHERMAN", FASE_PHENO$Seq_project)] <- PHENO3894$STATUS[match(FASE_PHENO$CLEANED_ID[grepl ("SHERMAN", FASE_PHENO$Seq_project)], PHENO3894$IID)]
-FASE_PHENO$APOE[grepl ("SHERMAN", FASE_PHENO$Seq_project)] <- PHENO3894$APOE[match(FASE_PHENO$CLEANED_ID[grepl ("SHERMAN", FASE_PHENO$Seq_project)], PHENO3894$IID)]
-FASE_PHENO$AAO[grepl ("SHERMAN", FASE_PHENO$Seq_project)] <- PHENO3894$AAO[match(FASE_PHENO$CLEANED_ID[grepl ("SHERMAN", FASE_PHENO$Seq_project)], PHENO3894$IID)]
+## ALA
 FASE_PHENO$ALA <- as.numeric(as.character(FASE_PHENO$ALA))
-FASE_PHENO$ALA[grepl ("SHERMAN", FASE_PHENO$Seq_project)] <- PHENO3894$ALA[match(FASE_PHENO$CLEANED_ID[grepl ("SHERMAN", FASE_PHENO$Seq_project)], PHENO3894$IID)]
-FASE_PHENO$AGE[grepl ("SHERMAN", FASE_PHENO$Seq_project)] <- PHENO3894$AGE[match(FASE_PHENO$CLEANED_ID[grepl ("SHERMAN", FASE_PHENO$Seq_project)], PHENO3894$IID)]
+FASE_PHENO$ALA_ADDED[is.na(FASE_PHENO$ALA) & !is.na(FASE_PHENO$AQ_ALA)] <- "YES"
+FASE_PHENO$ALA[is.na(FASE_PHENO$ALA) & !is.na(FASE_PHENO$AQ_ALA)] <- FASE_PHENO$AQ_ALA[is.na(FASE_PHENO$ALA) & !is.na(FASE_PHENO$AQ_ALA)]
 
-FASE_PHENO$FOUND  <- ifelse(FASE_PHENO$CLEANED_ID %in% PHENO3894$IID, "YES", "NO")
+
+FASE_PHENO$FOUND  <- ifelse(FASE_PHENO$CLEANED_ID %in% FASE_PHENO$AQ_IID, "YES", "NO")
 FASE_PHENO$FOUND [grepl("Broad_WGS", FASE_PHENO$Seq_project)] <- "YES"
+table(FASE_PHENO$FOUND)
+# NO  YES 
+# 252 3679 
 
 # 1=CO, 2=CA.
 ## Get the Phenotype for 202103_ADSP_FUS-familial_WGS_UNNAMED and 202104_ADSP_site27-sync-n303_WGS_UNNAMED 
 # Read ADSP FAM file
 ADSPFambased <- read.delim("/40/AD/AD_Seq_Data/03.-phenotype/202105-ADSP_Umbrella_NG00067.v5/ADSPFamilyBasedPhenotypes_DS_2021.02.19_ALL.txt", header = T, stringsAsFactors = F, sep = "\t")
 # ADSP_CACO <- read.delim("/40/AD/AD_Seq_Data/03.-phenotype/202105-ADSP_Umbrella_NG00067.v5/ADSPCaseControlPhenotypes_DS_2021.02.19_ALL.txt", header = T, stringsAsFactors = F, sep = "\t")
+colnames(ADSPFambased) <- paste0("ADSPFAM_", colnames(ADSPFambased))
+ADSPFambased$ADSPFAM_STATUS <- ADSPFambased$ADSPFAM_AD
 
-# FASE_PHENO$IID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)] %in% ADSPFambased$SUBJID
-# FASE_PHENO$IID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)][FASE_PHENO$IID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)] %in% ADSPFambased$SUBJID]
-## First, fix FID
-FASE_PHENO$FID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)] <- ADSPFambased$FamID[match(FASE_PHENO$IID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)], ADSPFambased$SUBJID)]
-FASE_PHENO$AGE[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)] <- gsub("\\+", "", ADSPFambased$Age[match(FASE_PHENO$IID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)], ADSPFambased$SUBJID)])
+ADSPFambased$ADSPFAM_STATUS[grepl("1|2|3|4", ADSPFambased$ADSPFAM_STATUS)] <- 2
+ADSPFambased$ADSPFAM_STATUS[grepl("0", ADSPFambased$ADSPFAM_STATUS)] <- 1
+ADSPFambased$ADSPFAM_STATUS[grepl("9|5", ADSPFambased$ADSPFAM_STATUS)] <- -9
+sum(FASE_PHENO$CLEANED_ID %in% ADSPFambased$ADSPFAM_SUBJID)
+# 250
+
+FASE_PHENO <- cbind(FASE_PHENO, ADSPFambased[match(FASE_PHENO$CLEANED_ID, ADSPFambased$ADSPFAM_SUBJID),])
+
+## First, fix FID from ADSPFAM
+FASE_PHENO$FID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)] <- FASE_PHENO$ADSPFAM_FamID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)]
+
+## AGE
+FASE_PHENO$AGE <- as.numeric(gsub("\\+", "",as.character(FASE_PHENO$AGE)))
+FASE_PHENO$AGE_ADDED_FROM_ADSPFAM[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)] <- "YES"
+FASE_PHENO$AGE[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)] <- FASE_PHENO$ADSPFAM_Age[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)]
 # 
 FASE_PHENO$STATUS..CC. <- as.numeric(as.character(FASE_PHENO$STATUS..CC.))
-FASE_PHENO$STATUS..CC.[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)] <- ADSPFambased$AD[match(FASE_PHENO$IID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)], ADSPFambased$SUBJID)]
+FASE_PHENO$STATUS..CC.[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)] <- FASE_PHENO$ADSPFAM_STATUS[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)]
 
-# Recode 0=No dementia	1=Definite AD	2=Probable AD	3=Possible AD	4=Family Reported AD	5=Other Dementia
-FASE_PHENO$STATUS..CC.[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)][grepl("1|2|3|4", FASE_PHENO$STATUS..CC.[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)])] <- 2
-FASE_PHENO$STATUS..CC.[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)][grepl("0", FASE_PHENO$STATUS..CC.[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)])] <- 1
-FASE_PHENO$STATUS..CC.[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)][grepl("9|5", FASE_PHENO$STATUS..CC.[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)])] <- -9
 
 # APOE
 FASE_PHENO$APOE <- as.character(FASE_PHENO$APOE)
