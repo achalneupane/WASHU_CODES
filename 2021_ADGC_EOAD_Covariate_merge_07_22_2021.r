@@ -1590,8 +1590,11 @@ write.table(tt, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/WAS
 
 
 
+tt$KEY <- paste(tt$V1, tt$V2, sep = ":")
+sum(tt$KEY %in%  FINAL.COVAR$KEY1)
+# 815
 
-
+tt$COHORT <- FINAL.COVAR$COHORT[match(tt$KEY, FINAL.COVAR$KEY1)]
 
 
 # #############
@@ -2840,6 +2843,169 @@ ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/A
 ## PCA anchored to 1000 genome project ##
 #########################################
 
+setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/1000Genome-PCA")
+eigen<- read.table(file="PCA_ADGC_1KG_merged.eigenvec",header=F) 
+eigen <- eigen[1:12]
+colnames(eigen)<-c("FID","IID", "C1","C2","C3","C4","C5","C6","C7","C8","C9","C10")
+
+#Using super population as population code to plot 
+race<- read.table(file="racefile_with_superpopcodes.txt",header=TRUE)
+# race$FID <- NULL 
+
+race$KEY <- paste(race$FID, race$IID, sep = ":")
+eigen$KEY <- paste(eigen$FID, eigen$IID, sep = ":")
+
+datafile<- merge(eigen,race,by=c("KEY"))
+table(datafile$race)
+# ADGC   AFR   AMR   ASN   EUR   SAN 
+# 68107   671   348   515   522   492
+##Save datafile 
+write.table(datafile, file= "ADGC_PCA.csv", col.names = TRUE, row.names = FALSE, sep = '\t', quote = F) 
+
+
+
+
+
+
+
+# PCA plot with super populations
+# AFR
+# AMR
+# ASN
+# EUR
+# SAN
+
+ASIAN <-  read.table("ADGC_Asian_Cohort_without_chr.fam", header = F)
+ASIAN$KEY <- paste(ASIAN$V1, ASIAN$V2, sep =":")
+ASIAN$ETHNICITY <- "ASIAN"
+
+NHW <- read.table("ADGC_NHW_Cohort_without_chr.fam", header = F)
+NHW$KEY <- paste(NHW$V1, NHW$V2, sep =":")
+NHW$ETHNICITY <- "NHW"
+
+AA <- read.table("ADGC_AA_Cohort_without_chr.fam", header = F)
+AA$KEY <- paste(AA$V1, AA$V2, sep =":")
+AA$ETHNICITY <- "AA"
+
+HISPANIC <- read.table("ADGC_Hispanic_Cohort_without_chr.fam", header = F)
+HISPANIC$KEY <- paste(HISPANIC$V1, HISPANIC$V2, sep =":")
+HISPANIC$ETHNICITY <- "HISPANIC"
+
+ALL.ADGC <- rbind.data.frame(NHW, AA, ASIAN, HISPANIC)
+
+
+datafile$race2 <- as.character(datafile$race)
+
+ALL.ADGC <- ALL.ADGC[,c("KEY", "ETHNICITY")]
+
+ALL.ADGC$ETHNICITY <- paste0("Reported_", ALL.ADGC$ETHNICITY)
+
+datafile <- merge(datafile, ALL.ADGC, all.x = T)
+
+datafile$race2[!is.na(datafile$ETHNICITY)] <- datafile$ETHNICITY[!is.na(datafile$ETHNICITY)]
+
+
+p.sd.1KG.nosd <- ggplot(datafile, aes(x=C1, y=C2, color=race2)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("ADGC 65777-With-1000genome") +
+  scale_color_manual(values = c(AFR='green',
+                                Reported_AA='black',
+                                Reported_ASIAN="pink",
+                                Reported_HISPANIC="brown",
+                                Reported_NHW="yellow",
+                                EUR='red',
+                                AMR="blue",
+                                ASN="purple",
+                                SAN="orange"))
+
+
+p.sd.1KG.nosd
+
+
+p.sd.1KG.nosd <- p.sd.1KG.nosd + geom_point(data = datafile[datafile$race2 == "EUR", c(4:5)], aes(col="EUR")) +
+  scale_color_manual(values = c(AFR='green',
+                                Reported_AA='black',
+                                Reported_ASIAN="pink",
+                                Reported_HISPANIC="brown",
+                                Reported_NHW="yellow",
+                                EUR='red',
+                                AMR="blue",
+                                ASN="purple",
+                                SAN="orange"))
+
+p.sd.1KG.nosd <- p.sd.1KG.nosd + geom_point(data = datafile[datafile$race2 == "ASN", c(4:5)], aes(col="ASN")) +
+  scale_color_manual(values = c(AFR='green',
+                                Reported_AA='black',
+                                Reported_ASIAN="pink",
+                                Reported_HISPANIC="brown",
+                                Reported_NHW="yellow",
+                                EUR='red',
+                                AMR="blue",
+                                ASN="purple",
+                                SAN="orange"))
+
+
+p.sd.1KG.nosd <- p.sd.1KG.nosd + geom_point(data = datafile[datafile$race2 == "AFR", c(4:5)], aes(col="AFR")) +
+  scale_color_manual(values = c(AFR='green',
+                                Reported_AA='black',
+                                Reported_ASIAN="pink",
+                                Reported_HISPANIC="brown",
+                                Reported_NHW="yellow",
+                                EUR='red',
+                                AMR="blue",
+                                ASN="purple",
+                                SAN="orange"))
+  
+p.sd.1KG.nosd <- p.sd.1KG.nosd + geom_point(data = datafile[datafile$race2 == "SAN", c(4:5)], aes(col="SAN")) +
+  scale_color_manual(values = c(AFR='green',
+                                Reported_AA='black',
+                                Reported_ASIAN="pink",
+                                Reported_HISPANIC="brown",
+                                Reported_NHW="yellow",
+                                EUR='red',
+                                AMR="blue",
+                                ASN="purple",
+                                SAN="orange"))
+
+
+p.sd.1KG.nosd <- p.sd.1KG.nosd + geom_point(data = datafile[datafile$race2 == "AMR", c(4:5)], aes(col="AMR")) +
+  scale_color_manual(values = c(AFR='green',
+                                Reported_AA='black',
+                                Reported_ASIAN="pink",
+                                Reported_HISPANIC="brown",
+                                Reported_NHW="yellow",
+                                EUR='red',
+                                AMR="blue",
+                                ASN="purple",
+                                SAN="orange"))
+
+ 
+
+
+NHW_SAMPLES_CEU_1KG <- datafile[grepl("EUR",datafile$race2),]
+
+SDSelection.Table <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC1min <- (mean(NHW_SAMPLES_CEU_1KG$C1) - (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C1)))
+  PC1max <- (mean(NHW_SAMPLES_CEU_1KG$C1) + (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C1)))
+  PC2min <- (mean(NHW_SAMPLES_CEU_1KG$C2) - (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C2)))
+  PC2max <- (mean(NHW_SAMPLES_CEU_1KG$C2) + (SD.cutoff*sd(NHW_SAMPLES_CEU_1KG$C2)))
+  
+  SDSelection <- datafile[datafile$C1 > PC1min & 
+                            datafile$C1 < PC1max &
+                            datafile$C2 > PC2min &
+                            datafile$C2 < PC2max,]
+  
+  SDSelection.Table[[i]] <- as.vector(SDSelection$IID)
+  
+  ## Select NHW samples only
+  p.sd.1KG.nosd <- p.sd.1KG.nosd + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+                                            fill=NA, colour="red") +
+    annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+p.sd.1KG.nosd
+ggsave("ADGC_with_1000Genome_super_population.jpg", plot = p.sd.1KG.nosd, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 
 

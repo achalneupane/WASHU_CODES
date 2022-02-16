@@ -218,7 +218,7 @@ sum(FASE_PHENO_NOT_FOUND$FID [(FASE_PHENO_NOT_FOUND$CLEANED_ID %in% AURORA$IID)]
 # 31
 FASE_PHENO_NOT_FOUND <- FASE_PHENO_NOT_FOUND[!grepl("Broad_WGS", FASE_PHENO_NOT_FOUND$Seq_project),]
 
-
+## ??
 ## Get the missing phenotype from Aquilla
 ## STATUS
 FASE_PHENO$STATUS_ADDED[is.na(FASE_PHENO$STATUS..CC.) & !is.na(FASE_PHENO$AQ_STATUS)] <- "YES"
@@ -1402,3 +1402,675 @@ sum(tt$NEW_SEX == tt$Pheno_SEX)
 # 2610
 sum(tt$NEW_SEX == tt$Genetic_Sex)
 # 2525
+
+
+###########################################
+#### Fixing the issues with Bloomfield ####
+###########################################
+library(data.table)
+AQUILLA.VARS <- fread("/40/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/Aquilla_7983_WXS_SNPS-INDELS-geno0.05-hwe-mind0.1-WXSmissingCLEAN-sexupdate-annot-snpeff-dbnsfp.vcf.tsv", header = T, sep = "\t" )
+BLOOMFIELD.VARS <- fread("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_VCF-snpeff-dbnsfp-ExAC.0.3.GRCh38-annot.vcf.tsv", header = T, sep = "\t")
+BLOOMFIELD.REMOVED.VARS <- fread("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/Bloomfield_9810-hwe-geno0.05-mind0.1-missing-WXS.list", header = F)
+BLOOMFIELD.REMOVED.VARS$KEY <- gsub("chr", "", BLOOMFIELD.REMOVED.VARS$V1)
+
+AQUILLA.VARS$KEY <- paste(AQUILLA.VARS$`#CHROM`, AQUILLA.VARS$POS, AQUILLA.VARS$REF, AQUILLA.VARS$ALT, sep = ":")
+BLOOMFIELD.VARS$KEY <- paste(BLOOMFIELD.VARS$`#CHROM`, BLOOMFIELD.VARS$POS, BLOOMFIELD.VARS$REF, BLOOMFIELD.VARS$ALT, sep = ":")
+
+## Variants in Aquilla that are missing in Bloomfield
+sum(!AQUILLA.VARS$KEY %in% BLOOMFIELD.VARS$KEY)
+# 477781
+VAR.in.AQUILLA.missing.in.BLOOMFIELD <- AQUILLA.VARS[!AQUILLA.VARS$KEY %in% BLOOMFIELD.VARS$KEY,]
+
+
+VAR.in.AQUILLA.missing.in.BLOOMFIELD$consequence <- sapply(strsplit(VAR.in.AQUILLA.missing.in.BLOOMFIELD$INFO,"\\|"), `[`, 2)
+VAR.in.AQUILLA.missing.in.BLOOMFIELD$gene <- sapply(strsplit(VAR.in.AQUILLA.missing.in.BLOOMFIELD$INFO,"\\|"), `[`, 3)
+VAR.in.AQUILLA.missing.in.BLOOMFIELD$type <- sapply(strsplit(VAR.in.AQUILLA.missing.in.BLOOMFIELD$INFO,"\\|"), `[`, 4)
+VAR.in.AQUILLA.missing.in.BLOOMFIELD$region <- sapply(strsplit(VAR.in.AQUILLA.missing.in.BLOOMFIELD$INFO,"\\|"), `[`, 5)
+## No drop INFO field
+VAR.in.AQUILLA.missing.in.BLOOMFIELD <- as.data.frame(VAR.in.AQUILLA.missing.in.BLOOMFIELD)
+
+
+table(VAR.in.AQUILLA.missing.in.BLOOMFIELD$gene)
+
+###########################################################
+## Variants in Aquilla that were discarded in Bloomfield ##
+###########################################################
+sum(VAR.in.AQUILLA.missing.in.BLOOMFIELD$KEY %in% BLOOMFIELD.REMOVED.VARS$KEY)
+# 169692
+
+## APP|PSEN variants missing in BLOOMFIELD
+sum(grepl("PSEN|APP", VAR.in.AQUILLA.missing.in.BLOOMFIELD$gene))
+# 894
+
+## IN CHR21
+VAR.in.AQUILLA.missing.in.BLOOMFIELD.chr21 <- VAR.in.AQUILLA.missing.in.BLOOMFIELD[(grepl("^21:", VAR.in.AQUILLA.missing.in.BLOOMFIELD$KEY)),]
+length(unique(VAR.in.AQUILLA.missing.in.BLOOMFIELD.chr21$gene))
+# 271
+
+
+#######################################################################################################
+## Variants in Aquilla that were present in BLOOMFIELD but discarded during differential missingness ##
+#######################################################################################################
+VARIANTS.in.Aquilla.that.were.discarded.in.BLOOMFIELD <- VAR.in.AQUILLA.missing.in.BLOOMFIELD[VAR.in.AQUILLA.missing.in.BLOOMFIELD$KEY %in% BLOOMFIELD.REMOVED.VARS$KEY,]
+
+## APP|PSEN Variants discarded in Bloomfield
+sum(grepl("PSEN|APP", VARIANTS.in.Aquilla.that.were.discarded.in.BLOOMFIELD$gene))
+## 443
+
+
+#########################################################################################################################
+## For problem variants table in https://www.notion.so/2022-01-27-chr21-chr22-missing-51880d946a80481f92c4731c57544562 ##
+#########################################################################################################################
+library(data.table)
+AQUILLA.VARS <- fread("/40/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/Aquilla_7983_WXS_SNPS-INDELS-geno0.05-hwe-mind0.1-WXSmissingCLEAN-sexupdate-annot-snpeff-dbnsfp.vcf.tsv", header = T, sep = "\t" )
+BLOOMFIELD.VARS <- fread("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_VCF-snpeff-dbnsfp-ExAC.0.3.GRCh38-annot.vcf.tsv", header = T, sep = "\t")
+
+AQUILLA.VARS$KEY <- paste(AQUILLA.VARS$`#CHROM`, AQUILLA.VARS$POS, AQUILLA.VARS$REF, AQUILLA.VARS$ALT, sep = ":")
+BLOOMFIELD.VARS$KEY <- paste(BLOOMFIELD.VARS$`#CHROM`, BLOOMFIELD.VARS$POS, BLOOMFIELD.VARS$REF, BLOOMFIELD.VARS$ALT, sep = ":")
+
+
+AQUILLA.VARS$consequence <- sapply(strsplit(AQUILLA.VARS$INFO,"\\|"), `[`, 2)
+AQUILLA.VARS$gene <- sapply(strsplit(AQUILLA.VARS$INFO,"\\|"), `[`, 3)
+AQUILLA.VARS$type <- sapply(strsplit(AQUILLA.VARS$INFO,"\\|"), `[`, 4)
+AQUILLA.VARS$region <- sapply(strsplit(AQUILLA.VARS$INFO,"\\|"), `[`, 5)
+
+
+BLOOMFIELD.VARS$consequence <- sapply(strsplit(BLOOMFIELD.VARS$INFO,"\\|"), `[`, 2)
+BLOOMFIELD.VARS$gene <- sapply(strsplit(BLOOMFIELD.VARS$INFO,"\\|"), `[`, 3)
+BLOOMFIELD.VARS$type <- sapply(strsplit(BLOOMFIELD.VARS$INFO,"\\|"), `[`, 4)
+BLOOMFIELD.VARS$region <- sapply(strsplit(BLOOMFIELD.VARS$INFO,"\\|"), `[`, 5)
+
+
+dim(AQUILLA.VARS)
+# 2143066       11
+
+dim(BLOOMFIELD.VARS)
+# 1916054       11
+
+## Aquilla
+CHR=19:22
+for(i in 1:length(CHR)){
+  CHR[i]  
+  VARs <- AQUILLA.VARS[(grepl(paste0("^",CHR[i], ":"), AQUILLA.VARS$KEY)),]
+  nos.VARs <- nrow(VARs)
+  print(paste0("NOS of Variants in CHR", CHR[i], " : ", nos.VARs))
+  nos.GENES <- length(unique(VARs$gene))
+  print(paste0("NOS of genes in CHR", CHR[i], " : ", nos.GENES))    
+}
+
+# [1] "NOS of Variants in CHR19 : 138429"
+# [1] "NOS of genes in CHR19 : 1783"
+# [1] "NOS of Variants in CHR20 : 57112"
+# [1] "NOS of genes in CHR20 : 711"
+# [1] "NOS of Variants in CHR21 : 14975"
+# [1] "NOS of genes in CHR21 : 271"
+# [1] "NOS of Variants in CHR22 : 32170"
+# [1] "NOS of genes in CHR22 : 556"
+
+## BLOOMFIELD
+CHR=19:22
+for(i in 1:length(CHR)){
+  CHR[i]  
+  VARs <- BLOOMFIELD.VARS[(grepl(paste0("^",CHR[i], ":"), BLOOMFIELD.VARS$KEY)),]
+  nos.VARs <- nrow(VARs)
+  print(paste0("NOS of Variants in CHR", CHR[i], " : ", nos.VARs))
+  nos.GENES <- length(unique(VARs$gene))
+  print(paste0("NOS of genes in CHR", CHR[i], " : ", nos.GENES))    
+}
+# [1] "NOS of Variants in CHR19 : 116327"
+# [1] "NOS of genes in CHR19 : 1848"
+# [1] "NOS of Variants in CHR20 : 52469"
+# [1] "NOS of genes in CHR20 : 702"
+# [1] "NOS of Variants in CHR21 : 288"
+# [1] "NOS of genes in CHR21 : 71"
+# [1] "NOS of Variants in CHR22 : 822"
+# [1] "NOS of genes in CHR22 : 166"
+
+################################################
+## Correlation between Aquilla and Bloomfield ##
+################################################
+
+CHR=20:22
+TYPE=c("DP", "QD", "MQ", "AC", "AN", "FS")
+
+##############
+## WGS SNPs ##
+##############
+for(i in 1:length(CHR)){
+  Bloomfield.table <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Bloomfield_9810_IDs_WGS_4870_", "chr", CHR[i], ".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Bloomfield.table)
+  
+  Bloomfield.table$KEY <- paste(Bloomfield.table$CHROM, Bloomfield.table$POS, Bloomfield.table$REF, Bloomfield.table$ALT, sep = ":")
+  Aquilla.table <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Aquilla_7983_IDs_WGS_3044_chr", CHR[i],".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Aquilla.table)
+  Aquilla.table$KEY <- paste(Aquilla.table$CHROM, Aquilla.table$POS, Aquilla.table$REF, Aquilla.table$ALT, sep = ":")
+  
+  colnames(Aquilla.table) <- paste0("AQ_", colnames(Aquilla.table))
+  
+  MERGED.AQ.BL <- merge(Bloomfield.table, Aquilla.table, by.x="KEY", by.y="AQ_KEY", all = T)
+  
+  for(j in 1:length(TYPE)){
+    BLOOMFIELD <- as.numeric(as.character(MERGED.AQ.BL[,TYPE[j]]))
+    AQUILLA <- as.numeric(as.character(MERGED.AQ.BL[, paste0("AQ_", TYPE[j])]))
+    
+    print(paste0("DOING: CHR", CHR[i], " and VAR: ", TYPE[j]))
+    
+    jpeg(paste0("WGS_SNPs_CHR", CHR[i],"_",TYPE[j],".jpg")) 
+    plot(BLOOMFIELD, AQUILLA, pch = 19, col = "lightblue")
+    # Regression line
+    abline(lm(AQUILLA ~ BLOOMFIELD), col = "red", lwd = 3)
+    # Pearson correlation
+    text(paste("r=", round(cor(BLOOMFIELD, AQUILLA, use = "pairwise.complete.obs"), 2)), x = max(BLOOMFIELD, na.rm = T)/2, y = max(AQUILLA, na.rm = T)/2)
+    dev.off()
+    Sys.sleep(3)
+  }
+}
+
+
+
+################
+## WGS INDELS ##
+################
+for(i in 1:length(CHR)){
+  Bloomfield.table <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Bloomfield_9810_IDs_WGS_4870_chr", CHR[i], ".vcf.gz-norm-ref-annotate.vcf-INDELS.vcf_recalibrated_INDELs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Bloomfield.table)
+  
+  Bloomfield.table$KEY <- paste(Bloomfield.table$CHROM, Bloomfield.table$POS, Bloomfield.table$REF, Bloomfield.table$ALT, sep = ":")
+  Aquilla.table <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Aquilla_7983_IDs_WGS_3044_chr", CHR[i],".vcf.gz-norm-ref-annotate.vcf-INDELS.vcf_recalibrated_INDELs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Aquilla.table)
+  Aquilla.table$KEY <- paste(Aquilla.table$CHROM, Aquilla.table$POS, Aquilla.table$REF, Aquilla.table$ALT, sep = ":")
+  
+  colnames(Aquilla.table) <- paste0("AQ_", colnames(Aquilla.table))
+  
+  MERGED.AQ.BL <- merge(Bloomfield.table, Aquilla.table, by.x="KEY", by.y="AQ_KEY", all = T)
+  
+  for(j in 1:length(TYPE)){
+    BLOOMFIELD <- as.numeric(as.character(MERGED.AQ.BL[,TYPE[j]]))
+    AQUILLA <- as.numeric(as.character(MERGED.AQ.BL[, paste0("AQ_", TYPE[j])]))
+    
+    print(paste0("DOING: CHR", CHR[i], " and VAR: ", TYPE[j]))
+    
+    jpeg(paste0("WGS_INDELs_CHR", CHR[i],"_",TYPE[j],".jpg")) 
+    plot(BLOOMFIELD, AQUILLA, pch = 19, col = "lightblue")
+    # Regression line
+    abline(lm(AQUILLA ~ BLOOMFIELD), col = "red", lwd = 3)
+    # Pearson correlation
+    text(paste("r=", round(cor(BLOOMFIELD, AQUILLA, use = "pairwise.complete.obs"), 2)), x = max(BLOOMFIELD, na.rm = T)/2, y = max(AQUILLA, na.rm = T)/2)
+    dev.off()
+    Sys.sleep(3)
+  }
+}
+
+
+##############
+## WES SNPs ##
+##############
+for(i in 1:length(CHR)){
+  Bloomfield.table <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Bloomfield_9810_IDs_WES_4940_chr", CHR[i], ".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Bloomfield.table)
+  
+  Bloomfield.table$KEY <- paste(Bloomfield.table$CHROM, Bloomfield.table$POS, Bloomfield.table$REF, Bloomfield.table$ALT, sep = ":")
+  Aquilla.table <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Aquilla_7983_IDs_WES_4941_chr", CHR[i],".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Aquilla.table)
+  Aquilla.table$KEY <- paste(Aquilla.table$CHROM, Aquilla.table$POS, Aquilla.table$REF, Aquilla.table$ALT, sep = ":")
+  
+  colnames(Aquilla.table) <- paste0("AQ_", colnames(Aquilla.table))
+  
+  MERGED.AQ.BL <- merge(Bloomfield.table, Aquilla.table, by.x="KEY", by.y="AQ_KEY", all = T)
+  
+  for(j in 1:length(TYPE)){
+    BLOOMFIELD <- as.numeric(as.character(MERGED.AQ.BL[,TYPE[j]]))
+    AQUILLA <- as.numeric(as.character(MERGED.AQ.BL[, paste0("AQ_", TYPE[j])]))
+    
+    print(paste0("DOING: CHR", CHR[i], " and VAR: ", TYPE[j]))
+    
+    jpeg(paste0("WES_SNPs_CHR", CHR[i],"_",TYPE[j],".jpg")) 
+    plot(BLOOMFIELD, AQUILLA, pch = 19, col = "lightblue")
+    # Regression line
+    abline(lm(AQUILLA ~ BLOOMFIELD), col = "red", lwd = 3)
+    # Pearson correlation
+    text(paste("r=", round(cor(BLOOMFIELD, AQUILLA, use = "pairwise.complete.obs"), 2)), x = max(BLOOMFIELD, na.rm = T)/2, y = max(AQUILLA, na.rm = T)/2)
+    dev.off()
+    Sys.sleep(3)
+  }
+}
+
+
+################
+## WES INDELS ##
+################
+for(i in 1:length(CHR)){
+  Bloomfield.table <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Bloomfield_9810_IDs_WES_4940_chr", CHR[i], ".vcf.gz-norm-ref-annotate.vcf-INDELS.vcf_recalibrated_INDELs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Bloomfield.table)
+  
+  Bloomfield.table$KEY <- paste(Bloomfield.table$CHROM, Bloomfield.table$POS, Bloomfield.table$REF, Bloomfield.table$ALT, sep = ":")
+  Aquilla.table <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Aquilla_7983_IDs_WES_4941_chr", CHR[i],".vcf.gz-norm-ref-annotate.vcf-INDELS.vcf_recalibrated_INDELs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Aquilla.table)
+  Aquilla.table$KEY <- paste(Aquilla.table$CHROM, Aquilla.table$POS, Aquilla.table$REF, Aquilla.table$ALT, sep = ":")
+  
+  colnames(Aquilla.table) <- paste0("AQ_", colnames(Aquilla.table))
+  
+  MERGED.AQ.BL <- merge(Bloomfield.table, Aquilla.table, by.x="KEY", by.y="AQ_KEY", all = T)
+  
+  for(j in 1:length(TYPE)){
+    BLOOMFIELD <- as.numeric(as.character(MERGED.AQ.BL[,TYPE[j]]))
+    AQUILLA <- as.numeric(as.character(MERGED.AQ.BL[, paste0("AQ_", TYPE[j])]))
+    
+    print(paste0("DOING: CHR", CHR[i], " and VAR: ", TYPE[j]))
+    
+    jpeg(paste0("WES_INDELs_CHR", CHR[i],"_",TYPE[j],".jpg")) 
+    plot(BLOOMFIELD, AQUILLA, pch = 19, col = "lightblue")
+    # Regression line
+    abline(lm(AQUILLA ~ BLOOMFIELD), col = "red", lwd = 3)
+    # Pearson correlation
+    text(paste("r=", round(cor(BLOOMFIELD, AQUILLA, use = "pairwise.complete.obs"), 2)), x = max(BLOOMFIELD, na.rm = T)/2, y = max(AQUILLA, na.rm = T)/2)
+    dev.off()
+    Sys.sleep(3)
+  }
+}
+
+
+#####################################
+## Correlation between WGS and WES ##
+#####################################
+
+# CHR=c(1:22, "X")
+CHR=1
+TYPE=c("QD", "MQ")
+
+#####################
+## SNPs Bloomfield ##
+#####################
+for(i in 1:length(CHR)){
+  Bloomfield.table.WGS <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Bloomfield_9810_IDs_WGS_4870_", "chr", CHR[i], ".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Bloomfield.table.WGS)
+  
+  Bloomfield.table.WGS$KEY <- paste(Bloomfield.table.WGS$CHROM, Bloomfield.table.WGS$POS, Bloomfield.table.WGS$REF, Bloomfield.table.WGS$ALT, sep = ":")
+  
+  Bloomfield.table.WES <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Bloomfield_9810_IDs_WES_4940_chr", CHR[i], ".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Bloomfield.table.WES)
+  
+  Bloomfield.table.WES$KEY <- paste(Bloomfield.table.WES$CHROM, Bloomfield.table.WES$POS, Bloomfield.table.WES$REF, Bloomfield.table.WES$ALT, sep = ":")
+  colnames(Bloomfield.table.WES) <- paste0("WES_", colnames(Bloomfield.table.WES))
+  
+  MERGED.AQ.BL <- merge(Bloomfield.table.WGS, Bloomfield.table.WES, by.x="KEY", by.y="WES_KEY", all = T)
+  
+  for(j in 1:length(TYPE)){
+    WGS <- as.numeric(as.character(MERGED.AQ.BL[,TYPE[j]]))
+    WES <- as.numeric(as.character(MERGED.AQ.BL[, paste0("WES_", TYPE[j])]))
+    
+    print(paste0("DOING: CHR", CHR[i], " and VAR: ", TYPE[j]))
+    
+    jpeg(paste0("BLOOMFIELD_WGS_Vs_WES_SNPs_CHR", CHR[i],"_",TYPE[j],".jpg")) 
+    plot(WGS, WES, pch = 19, col = "lightblue")
+    # Regression line
+    abline(lm(WES ~ WGS), col = "red", lwd = 3)
+    # Pearson correlation
+    text(paste("r=", round(cor(WGS, WES, use = "pairwise.complete.obs"), 2)), x = max(WGS, na.rm = T)/2, y = max(WES, na.rm = T)/2)
+    dev.off()
+    Sys.sleep(3)
+  }
+}
+
+
+
+#######################
+## INDELs Bloomfield ##
+#######################
+for(i in 1:length(CHR)){
+  Bloomfield.table.WGS <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Bloomfield_9810_IDs_WGS_4870_chr", CHR[i], ".vcf.gz-norm-ref-annotate.vcf-INDELS.vcf_recalibrated_INDELs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Bloomfield.table.WGS)
+  
+  Bloomfield.table.WGS$KEY <- paste(Bloomfield.table.WGS$CHROM, Bloomfield.table.WGS$POS, Bloomfield.table.WGS$REF, Bloomfield.table.WGS$ALT, sep = ":")
+  
+  Bloomfield.table.WES <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Bloomfield_9810_IDs_WES_4940_chr", CHR[i], ".vcf.gz-norm-ref-annotate.vcf-INDELS.vcf_recalibrated_INDELs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Bloomfield.table.WES)
+  
+  Bloomfield.table.WES$KEY <- paste(Bloomfield.table.WES$CHROM, Bloomfield.table.WES$POS, Bloomfield.table.WES$REF, Bloomfield.table.WES$ALT, sep = ":")
+  colnames(Bloomfield.table.WES) <- paste0("WES_", colnames(Bloomfield.table.WES))
+  
+  MERGED.AQ.BL <- merge(Bloomfield.table.WGS, Bloomfield.table.WES, by.x="KEY", by.y="WES_KEY", all = T)
+  
+  for(j in 1:length(TYPE)){
+    WGS <- as.numeric(as.character(MERGED.AQ.BL[,TYPE[j]]))
+    WES <- as.numeric(as.character(MERGED.AQ.BL[, paste0("WES_", TYPE[j])]))
+    
+    print(paste0("DOING: CHR", CHR[i], " and VAR: ", TYPE[j]))
+    
+    jpeg(paste0("BLOOMFIELD_WGS_Vs_WES_INDELs_CHR", CHR[i],"_",TYPE[j],".jpg")) 
+    plot(WGS, WES, pch = 19, col = "lightblue")
+    # Regression line
+    abline(lm(WES ~ WGS), col = "red", lwd = 3)
+    # Pearson correlation
+    text(paste("r=", round(cor(WGS, WES, use = "pairwise.complete.obs"), 2)), x = max(WGS, na.rm = T)/2, y = max(WES, na.rm = T)/2)
+    dev.off()
+    Sys.sleep(3)
+  }
+}
+
+
+##################
+## SNPs Aquilla ##
+##################
+for(i in 1:length(CHR)){
+  Aquilla.table.WGS <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Aquilla_7983_IDs_WGS_3044_chr", CHR[i],".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Aquilla.table.WGS)
+  
+  Aquilla.table.WGS$KEY <- paste(Aquilla.table.WGS$CHROM, Aquilla.table.WGS$POS, Aquilla.table.WGS$REF, Aquilla.table.WGS$ALT, sep = ":")
+  
+  Aquilla.table.WES <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Aquilla_7983_IDs_WES_4941_chr", CHR[i],".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Aquilla.table.WES)
+  
+  Aquilla.table.WES$KEY <- paste(Aquilla.table.WES$CHROM, Aquilla.table.WES$POS, Aquilla.table.WES$REF, Aquilla.table.WES$ALT, sep = ":")
+  colnames(Aquilla.table.WES) <- paste0("WES_", colnames(Aquilla.table.WES))
+  
+  MERGED.AQ.BL <- merge(Aquilla.table.WGS, Aquilla.table.WES, by.x="KEY", by.y="WES_KEY", all = T)
+  
+  for(j in 1:length(TYPE)){
+    WGS <- as.numeric(as.character(MERGED.AQ.BL[,TYPE[j]]))
+    WES <- as.numeric(as.character(MERGED.AQ.BL[, paste0("WES_", TYPE[j])]))
+    
+    print(paste0("DOING: CHR", CHR[i], " and VAR: ", TYPE[j]))
+    
+    jpeg(paste0("AQUILLA_WGS_Vs_WES_SNPs_CHR", CHR[i],"_",TYPE[j],".jpg")) 
+    plot(WGS, WES, pch = 19, col = "lightblue")
+    # Regression line
+    abline(lm(WES ~ WGS), col = "red", lwd = 3)
+    # Pearson correlation
+    text(paste("r=", round(cor(WGS, WES, use = "pairwise.complete.obs"), 2)), x = max(WGS, na.rm = T)/2, y = max(WES, na.rm = T)/2)
+    dev.off()
+    Sys.sleep(3)
+  }
+}
+
+
+####################
+## INDELs Aquilla ##
+####################
+for(i in 1:length(CHR)){
+  Aquilla.table.WGS <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Aquilla_7983_IDs_WGS_3044_chr", CHR[i],".vcf.gz-norm-ref-annotate.vcf-INDELS.vcf_recalibrated_INDELs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Aquilla.table.WGS)
+  
+  Aquilla.table.WGS$KEY <- paste(Aquilla.table.WGS$CHROM, Aquilla.table.WGS$POS, Aquilla.table.WGS$REF, Aquilla.table.WGS$ALT, sep = ":")
+  
+  Aquilla.table.WES <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Aquilla_7983_IDs_WES_4941_chr", CHR[i],".vcf.gz-norm-ref-annotate.vcf-INDELS.vcf_recalibrated_INDELs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  head(Aquilla.table.WES)
+  
+  Aquilla.table.WES$KEY <- paste(Aquilla.table.WES$CHROM, Aquilla.table.WES$POS, Aquilla.table.WES$REF, Aquilla.table.WES$ALT, sep = ":")
+  colnames(Aquilla.table.WES) <- paste0("WES_", colnames(Aquilla.table.WES))
+  
+  MERGED.AQ.BL <- merge(Aquilla.table.WGS, Aquilla.table.WES, by.x="KEY", by.y="WES_KEY", all = T)
+  
+  for(j in 1:length(TYPE)){
+    WGS <- as.numeric(as.character(MERGED.AQ.BL[,TYPE[j]]))
+    WES <- as.numeric(as.character(MERGED.AQ.BL[, paste0("WES_", TYPE[j])]))
+    
+    print(paste0("DOING: CHR", CHR[i], " and VAR: ", TYPE[j]))
+    
+    jpeg(paste0("AQUILLA_WGS_Vs_WES_INDELs_CHR", CHR[i],"_",TYPE[j],".jpg")) 
+    plot(WGS, WES, pch = 19, col = "lightblue")
+    # Regression line
+    abline(lm(WES ~ WGS), col = "red", lwd = 3)
+    # Pearson correlation
+    text(paste("r=", round(cor(WGS, WES, use = "pairwise.complete.obs"), 2)), x = max(WGS, na.rm = T)/2, y = max(WES, na.rm = T)/2)
+    dev.off()
+    Sys.sleep(3)
+  }
+}
+
+
+
+
+# ###################
+# ## Piared t-test ##
+# ###################
+# 
+# before <-c(200.1, 190.9, 192.7, 213, 241.4, 196.9, 172.2, 185.5, 205.2, 193.7)
+# # Weight of the mice after treatment
+# after <-c(392.9, 393.2, 345.1, 393, 434, 427.9, 422, 383.9, 392.3, 352.2)
+# # Create a data frame
+# my_data <- data.frame( 
+#   group = rep(c("before", "after"), each = 10),
+#   weight = c(before,  after)
+# )
+# 
+# 
+# before <- subset(my_data,  group == "before", weight,
+#                  drop = TRUE)
+# # subset weight data after treatment
+# after <- subset(my_data,  group == "after", weight,
+#                 drop = TRUE)
+# # Plot paired data
+# # install.packages("ggplot2")
+# library(ggplot2)
+# library(PairedData)
+# pd <- paired(before, after)
+# plot(pd, type = "profile") + theme_bw()
+# 
+# pd <- paired(MERGED.AQ.BL$QD, MERGED.AQ.BL$WES_QD)
+# colnames(pd) <- c("QD", "WES_QD")
+# 
+# res <- t.test(pd$QD, pd$WES_QD, paired = TRUE)
+# res
+# #####################
+# ## SNPs Bloomfield ##
+# #####################
+# CHR=22
+# # TYPE=c("QD", "MQ")
+# TYPE=QD
+# i=1
+# j=1
+# # for(i in 1:length(CHR)){
+#   Bloomfield.table.WGS <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Bloomfield_9810_IDs_WGS_4870_", "chr", CHR[i], ".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+#   ## Get PASS
+#   Bloomfield.table.WGS.FAILED<- Bloomfield.table.WGS[!grepl("^PASS$", Bloomfield.table.WGS$FILTER),]
+#   Bloomfield.table.WGS<- Bloomfield.table.WGS[grepl("^PASS$", Bloomfield.table.WGS$FILTER),]
+#   head(Bloomfield.table.WGS)
+#   
+#   Bloomfield.table.WGS$KEY <- paste(Bloomfield.table.WGS$CHROM, Bloomfield.table.WGS$POS, Bloomfield.table.WGS$REF, Bloomfield.table.WGS$ALT, sep = ":")
+#   
+#   Bloomfield.table.WES <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Bloomfield_9810_IDs_WES_4940_chr", CHR[i], ".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+#   ## Get PASS
+#   Bloomfield.table.WES.FAILED<- Bloomfield.table.WES[!grepl("^PASS$", Bloomfield.table.WES$FILTER),]
+#   Bloomfield.table.WES<- Bloomfield.table.WES[grepl("^PASS$", Bloomfield.table.WES$FILTER),]
+#   head(Bloomfield.table.WES)
+#   head(Bloomfield.table.WES)
+#   
+#   Bloomfield.table.WES$KEY <- paste(Bloomfield.table.WES$CHROM, Bloomfield.table.WES$POS, Bloomfield.table.WES$REF, Bloomfield.table.WES$ALT, sep = ":")
+#   colnames(Bloomfield.table.WES) <- paste0("WES_", colnames(Bloomfield.table.WES))
+#   
+#   MERGED.AQ.BL <- merge(Bloomfield.table.WGS, Bloomfield.table.WES, by.x="KEY", by.y="WES_KEY", all = T)
+#   
+# 
+#   tt <- cbind.data.frame(MERGED.AQ.BL$KEY, MERGED.AQ.BL$QD, MERGED.AQ.BL$WES_QD)
+#   
+#   colnames(tt) <- c("KEY", "WGS_QD", "WES_QD")
+#   head(tt)
+#   # KEY WGS_QD WES_QD
+#   # 1 chr21:10413594:T:C   6.03     NA
+#   # 2 chr21:10413598:A:G   8.35   8.35
+#   # 3 chr21:10413604:G:C   0.94   0.94
+#   
+#   library(dplyr)
+#   tt <- tt %>% 
+#     filter(if_all(everything(), ~ !is.na(.x)))
+#   tt <- tt[1:100,]
+#   
+#   t.test(tt$WES_QD, tt$WGS_QD, paired = T)
+# 
+#   
+#   my_data <- data.frame( 
+#     TYPE = rep(c("WES_QD", "WGS_QD"), each = nrow(tt)),
+#     QD = c(tt$WGS_QD,  tt$WES_QD)
+#   )
+#   
+#   res <- t.test(QD ~ TYPE, data = my_data, paired = TRUE)
+#   
+#   
+# #   
+# #   
+# #   for(j in 1:length(TYPE)){
+# #     WGS <- as.numeric(as.character(MERGED.AQ.BL[,TYPE[j]]))
+# #     WES <- as.numeric(as.character(MERGED.AQ.BL[, paste0("WES_", TYPE[j])]))
+# #     
+# #     print(paste0("DOING: CHR", CHR[i], " and VAR: ", TYPE[j]))
+# #     
+# #     jpeg(paste0("BLOOMFIELD_WGS_Vs_WES_SNPs_CHR", CHR[i],"_",TYPE[j],".jpg")) 
+# #     plot(WGS, WES, pch = 19, col = "lightblue")
+# #     # Regression line
+# #     abline(lm(WES ~ WGS), col = "red", lwd = 3)
+# #     # Pearson correlation
+# #     text(paste("r=", round(cor(WGS, WES, use = "pairwise.complete.obs"), 2)), x = max(WGS, na.rm = T)/2, y = max(WES, na.rm = T)/2)
+# #     dev.off()
+# #     Sys.sleep(3)
+# #   }
+# # }
+# # 
+  
+#################################  
+## Plot Missingness Bloomfield ##
+#################################
+CHR=19:22
+# TYPE=c("QD", "MQ")
+TYPE="AN"
+# i=1
+# j=1
+for(i in 1:length(CHR)){
+Bloomfield.table.WGS <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Bloomfield_9810_IDs_WGS_4870_", "chr", CHR[i], ".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+## Get PASS
+Bloomfield.table.WGS.FAILED<- Bloomfield.table.WGS[!grepl("^PASS$", Bloomfield.table.WGS$FILTER),]
+Bloomfield.table.WGS<- Bloomfield.table.WGS[grepl("^PASS$", Bloomfield.table.WGS$FILTER),]
+head(Bloomfield.table.WGS)
+
+Bloomfield.table.WGS$KEY <- paste(Bloomfield.table.WGS$CHROM, Bloomfield.table.WGS$POS, Bloomfield.table.WGS$REF, Bloomfield.table.WGS$ALT, sep = ":")
+  
+Bloomfield.table.WES <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Bloomfield_9810_IDs_WES_4940_chr", CHR[i], ".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+## Get PASS
+Bloomfield.table.WES.FAILED<- Bloomfield.table.WES[!grepl("^PASS$", Bloomfield.table.WES$FILTER),]
+Bloomfield.table.WES<- Bloomfield.table.WES[grepl("^PASS$", Bloomfield.table.WES$FILTER),]
+head(Bloomfield.table.WES)
+head(Bloomfield.table.WES)
+  
+Bloomfield.table.WES$KEY <- paste(Bloomfield.table.WES$CHROM, Bloomfield.table.WES$POS, Bloomfield.table.WES$REF, Bloomfield.table.WES$ALT, sep = ":")
+colnames(Bloomfield.table.WES) <- paste0("WES_", colnames(Bloomfield.table.WES))
+  
+MERGED.AQ.BL <- merge(Bloomfield.table.WGS, Bloomfield.table.WES, by.x="KEY", by.y="WES_KEY", all = T)
+  
+## Add missingness    
+header <- read.table("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/Bloomfield_9810_SNPS_INDELS_picard_biallelic.vcf-plink-jan-28-2022-hwe-geno0.05-mind0.1-missing-WXS.missing", header = TRUE, nrow = 1)
+MISSING.dat <- fread("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/Bloomfield_9810_SNPS_INDELS_picard_biallelic.vcf-plink-jan-28-2022-hwe-geno0.05-mind0.1-missing-WXS.missing", header = F, sep = "\t")
+MISSING.dat <- setnames(MISSING.dat, colnames(header))
+head(MISSING.dat)
+
+MISSING.dat$PASS[MISSING.dat$P<=0.05e-8] <- "FAIL"
+MISSING.dat$PASS[MISSING.dat$P>0.05e-8] <- "PASS"
+
+MERGED.AQ.BL$KEY <- as.character(MERGED.AQ.BL$KEY)
+
+sum(MERGED.AQ.BL$KEY %in% MISSING.dat$SNP)
+
+MERGED.AQ.BL$PASS.var <- MISSING.dat$PASS[match(MERGED.AQ.BL$KEY, MISSING.dat$SNP)]
+
+MERGED.AQ.BL$FAIL <- ifelse(grepl("FAIL", MERGED.AQ.BL$PASS.var), "FAIL", "PASS")
+
+for(j in 1:length(TYPE)) {
+
+print (paste0("Doing CHR_",CHR[i], "_QC_", TYPE[j] ))
+MERGED.AQ.BL <- setNames(cbind.data.frame(MERGED.AQ.BL$KEY, MERGED.AQ.BL$POS, MERGED.AQ.BL[TYPE[j]], MERGED.AQ.BL[paste0("WES_", TYPE[j])], MERGED.AQ.BL$FAIL), c("KEY", "POS", paste0("WGS_", TYPE[j]), paste0("WES_",TYPE[j]), "FAIL"))
+
+library(reshape)
+tt <- reshape::melt(data = MERGED.AQ.BL, id = c("KEY", "POS", "FAIL"))
+tt <- tt[order(tt$POS),]
+tt$variable <- as.character(tt$variable)
+
+# tt <- tt[1:30000,]
+tt <- tt[!is.na(tt$value),]
+tt$value <- as.numeric(tt$value)
+
+
+P <- ggplot(tt, aes(x=POS, y=value, color = FAIL, shape = variable)) +
+  geom_point(position=position_jitter(h=0.1, w=0.1), alpha = 0.5, size = 2) +
+  scale_color_manual(values = c('blue', 'red')) +
+  scale_shape_manual(values= c(23, 24)) +
+  # facet_grid(cols = vars(variable)) +
+  theme_bw()
+  
+ggsave(paste0("BLOOMFIELD_AN_PLOT_", CHR[i], "_", TYPE[j], ".jpg"), plot = P, device = NULL, scale = 1, width = 16, height = 9, dpi = 300, limitsize = TRUE)
+}
+}
+  
+##############################
+## Plot Missingness Aquilla ##
+##############################
+
+CHR=19:22
+# TYPE=c("QD", "MQ")
+TYPE="AN"
+i=1
+j=1
+
+for(i in 1:length(CHR)){
+  Aquilla.table.WGS <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Aquilla_7983_IDs_WGS_3044_chr", CHR[i],".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  ## Get PASS
+  Aquilla.table.WGS.FAILED<- Aquilla.table.WGS[!grepl("^PASS$", Aquilla.table.WGS$FILTER),]
+  Aquilla.table.WGS<- Aquilla.table.WGS[grepl("^PASS$", Aquilla.table.WGS$FILTER),]
+  head(Aquilla.table.WGS)
+  
+  Aquilla.table.WGS$KEY <- paste(Aquilla.table.WGS$CHROM, Aquilla.table.WGS$POS, Aquilla.table.WGS$REF, Aquilla.table.WGS$ALT, sep = ":")
+  
+  Aquilla.table.WES <- read.table(paste0("/40/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/01-VQSR-ExAC-tsSNP99.6-tsINDEL95/QC_plots/Aquilla_7983_IDs_WES_4941_chr", CHR[i],".vcf.gz-norm-ref-annotate.vcf-SNPs.vcf_recalibrated_SNPs.vcf.table"), header = TRUE, stringsAsFactors = F)
+  ## Get PASS
+  Aquilla.table.WES.FAILED<- Aquilla.table.WES[!grepl("^PASS$", Aquilla.table.WES$FILTER),]
+  Aquilla.table.WES<- Aquilla.table.WES[grepl("^PASS$", Aquilla.table.WES$FILTER),]
+  head(Aquilla.table.WES)
+  head(Aquilla.table.WES)
+  
+  Aquilla.table.WES$KEY <- paste(Aquilla.table.WES$CHROM, Aquilla.table.WES$POS, Aquilla.table.WES$REF, Aquilla.table.WES$ALT, sep = ":")
+  colnames(Aquilla.table.WES) <- paste0("WES_", colnames(Aquilla.table.WES))
+  
+  MERGED.AQ.BL <- merge(Aquilla.table.WGS, Aquilla.table.WES, by.x="KEY", by.y="WES_KEY", all = T)
+  
+  ## Add missingness    
+  header <- read.table("/100/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/03-PLINK-QC-files_all_Aquilla/Aquilla_7983_WXS_SNPS-INDELS-geno0.05-hwe-mind0.1-WXSmissing.missing", header = TRUE, nrow = 1)
+  MISSING.dat <- fread("/100/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/03-PLINK-QC-files_all_Aquilla/Aquilla_7983_WXS_SNPS-INDELS-geno0.05-hwe-mind0.1-WXSmissing.missing", header = F, sep = "\t")
+  MISSING.dat <- setnames(MISSING.dat, colnames(header))
+  head(MISSING.dat)
+  
+  MISSING.dat$PASS[MISSING.dat$P<=0.05e-8] <- "FAIL"
+  MISSING.dat$PASS[MISSING.dat$P>0.05e-8] <- "PASS"
+  
+  MERGED.AQ.BL$KEY <- as.character(MERGED.AQ.BL$KEY)
+  
+  sum(MERGED.AQ.BL$KEY %in% MISSING.dat$SNP)
+  
+  MERGED.AQ.BL$PASS.var <- MISSING.dat$PASS[match(MERGED.AQ.BL$KEY, MISSING.dat$SNP)]
+  
+  MERGED.AQ.BL$FAIL <- ifelse(grepl("FAIL", MERGED.AQ.BL$PASS.var), "FAIL", "PASS")
+  
+  for(j in 1:length(TYPE)) {
+    
+    print (paste0("Doing CHR_",CHR[i], "_QC_", TYPE[j] ))
+    MERGED.AQ.BL <- setNames(cbind.data.frame(MERGED.AQ.BL$KEY, MERGED.AQ.BL$POS, MERGED.AQ.BL[TYPE[j]], MERGED.AQ.BL[paste0("WES_", TYPE[j])], MERGED.AQ.BL$FAIL), c("KEY", "POS", paste0("WGS_", TYPE[j]), paste0("WES_",TYPE[j]), "FAIL"))
+    
+    library(reshape)
+    tt <- reshape::melt(data = MERGED.AQ.BL, id = c("KEY", "POS", "FAIL"))
+    tt <- tt[order(tt$POS),]
+    tt$variable <- as.character(tt$variable)
+    
+    # tt <- tt[1:30000,]
+    tt <- tt[!is.na(tt$value),]
+    tt$value <- as.numeric(tt$value)
+    
+    
+    P <- ggplot(tt, aes(x=POS, y=value, color = FAIL, shape = variable)) +
+      geom_point(position=position_jitter(h=0.1, w=0.1), alpha = 0.5, size = 2) +
+      scale_color_manual(values = c('blue', 'red')) +
+      scale_shape_manual(values= c(23, 24)) +
+      # facet_grid(cols = vars(variable)) +
+      theme_bw()
+    
+    ggsave(paste0("AQUILLA_AN_PLOT_", CHR[i], "_", TYPE[j], ".jpg"), plot = P, device = NULL, scale = 1, width = 16, height = 9, dpi = 300, limitsize = TRUE)
+  }
+}
+  
+  

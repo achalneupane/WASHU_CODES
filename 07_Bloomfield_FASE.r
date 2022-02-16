@@ -1262,7 +1262,9 @@ FINAL.Covars.PID.MID <- FINAL.Covars.PID.MID[!FINAL.Covars.PID.MID$IID %in% MEND
 # write.table(FINAL.Covars.PID.MID[36:37], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/recode_PID_and_MID_2807.txt", col.names = T, row.names = F, quote = F, sep = "\t")
 write.table(FINAL.Covars.PID.MID[1:2], "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/subset_2804.txt", col.names = T, row.names = F, quote = F, sep = "\t")
 
+sum(FINAL.Covars.PID.MID$IID %in% PHENO$Bloomfield.gvcf.id..SM...9810.)
 
+table(PHENO$WXS[PHENO$Bloomfield.gvcf.id..SM...9810. %in% FINAL.Covars.PID.MID$IID])
 
 # Re- PLot PCA
 PCAs<- read.table("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FBAT/Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE_UPDATED_FID_V2_post_QC2_V2_post_QC3-No-MCI-no-mendelian-PCAS.eigenvec", header=T)
