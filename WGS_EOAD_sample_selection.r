@@ -334,12 +334,23 @@ table(ageGroup.controls)
 AGE.Groups <- setNames(cbind.data.frame(table(ageGroup.cases), table(ageGroup.controls))[c(1,2,4)], c("Age", "CA", "CO"))
 AGE.Groups
 
-
-
-
 # write.table(covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/GWAS_MAP_samples.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
+## CO
+CO <- covars[covars$STATUS == 1,]
+CO <- CO[CO$AGE_LAST_VISIT > 80,]
+CO <- CO[!is.na(CO$AGE_LAST_VISIT),]
+dim(CO)
 
+## CA
+CA <- covars[covars$STATUS == 2,]
+CA <- CA[CA$AGE_AT_ONSET <= 65 & CA$AGE_AT_ONSET > 0 ,]
+CA <- CA[!is.na(CA$AGE_AT_ONSET),]
+dim(CA)
+
+GWAS.EOAD.covars <- rbind.data.frame(CO,CA)
+
+write.table(GWAS.EOAD.covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/GWAS_EOAD_samples_CA_65_CO_80_V2.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
 ####################################
 ## Extract samples from GWAS data ##
@@ -357,32 +368,18 @@ CA <- CA[!is.na(CA$AGE_AT_ONSET),]
 dim(CA)
 
 GWAS.EOAD.covars <- rbind.data.frame(CO,CA)
-#####################################################################
-## Adding samples that are mismatch in Vicky's and Fengxian's list ##
-#####################################################################
+##########################################################################
+## Also adding samples that are mismatch in Vicky's and Fengxian's list ##
+##########################################################################
+MISMATCHES <- read.delim("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/EOAD_ADSP-VF=pheno-updated.csv", header = T, sep = ",", stringsAsFactors = F)
+dim(MISMATCHES)
+MISMATCHES <- MISMATCHES[MISMATCHES$MATCH. == "mismatch",]
+sum(MISMATCHES$MAPID %in% covars$ID)
+## 113 of the mismatched are in GWAS, so including these as well.
 
-write.table(GWAS.EOAD.covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/GWAS_EOAD_samples_CA_70_CO_70_V2.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+MISMATCHES <- covars[covars$ID %in% MISMATCHES$MAPID,]
+GWAS.EOAD.covars <- rbind.data.frame(MISMATCHES, GWAS.EOAD.covars)
 
+write.table(GWAS.EOAD.covars, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/GWAS_EOAD_samples_CA_70_CO_70_V2_plus_mismatches.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
-
-
-
-
-
-
-## CO
-CO <- covars[covars$STATUS == 1,]
-CO <- CO[CO$AGE_LAST_VISIT > 80,]
-CO <- CO[!is.na(CO$AGE_LAST_VISIT),]
-dim(CO)
-
-## CA
-CA <- covars[covars$STATUS == 2,]
-CA <- CA[CA$AGE_AT_ONSET <= 65 & CA$AGE_AT_ONSET > 0 ,]
-CA <- CA[!is.na(CA$AGE_AT_ONSET),]
-dim(CA)
-
-GWAS.EOAD.covars <- rbind.data.frame(CO,CA)
-
-write.table(GWAS.EOAD.covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/GWAS_EOAD_samples_CA_65_CO_80_V2.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
