@@ -267,7 +267,122 @@ GWAS.MAP.4843$ID <- as.character(GWAS.MAP.4843$ID)
 # Check with the GWAs ID matrix
 GWAS.fam <- read.delim("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/ID_matrix_hg38_Nov2021.csv", sep = ",")
 dim(GWAS.fam)
+GWAS.MAP.fam <- GWAS.fam[!is.na(GWAS.fam$MAP),]
+GWAS.MAP.fam$MAP_ID <- paste0("MAP_", GWAS.MAP.fam$MAP)
+
+sum(GWAS.MAP.4843$ID %in% GWAS.MAP.fam$MAP_ID)
+# 4843
+
+###########################
+## Recode STATUS ##
+###########################
+covars <- GWAS.MAP.4843
+colnames(covars) <- c("ID", "MAP_ID", "AGE_LAST_VISIT", "AGE_AT_ONSET", "STATUS", "APOE", "SEX", "cdr_final")
+# Recoding CA/CO status
+covars$STATUS <- as.character(covars$STATUS)
+covars$STATUS[grepl("^CO$|^Neuro_CO$|OT\\(CO\\)", covars$STATUS)] <- 1
+#### final_CC_Status categories to include for CA: AD, Neuro_AD, Neuro_AD_DLB. Neuro_AD_FTD, Neuro_AD_PD, Neuro_PreSymptomatic_AD
+covars$STATUS[grepl("^AD$|^Neuro_AD_FTD$|^Neuro_AD_PD$|Clin_AD|^CA$|^Neuro_AD$|^Neuro_AD_DLB$|^Neuro_PreSymptomatic_AD$", covars$STATUS)] <- 2
+covars$STATUS[!grepl("^1$|^2$", covars$STATUS)] <- -9
+
+##################
+## Recode APOE4 ##
+##################
+## Let's recode APOE4
+covars$APOE4ANY <- covars$APOE
+sum(grepl("22|23|33", covars$APOE4ANY))
+# 2576
+covars$APOE4ANY[grepl("22|23|33|32", covars$APOE4ANY)] <- 0
+covars$APOE4ANY[grepl("24|34|44|42|43", covars$APOE4ANY)] <- 1
+
+################
+## Recode SEX ##
+################
+covars$SEX <- as.character(covars$SEX)
+covars$SEX [covars$SEX == "Female"] <- 2
+covars$SEX [covars$SEX == "Male"] <- 1
+
+
+#######################
+## GWAS demographics ##
+#######################
+demographics <- t(Get_STATs(covars))
+View(demographics)
+
+
+## Find cases and controls of age groups
+library(data.table)
+covars_controls <- as.data.table(covars[covars$STATUS == 1,])
+covars_cases <- as.data.table(covars[covars$STATUS == 2,])
+
+ageGroup.cases <- cut(covars_cases$AGE_AT_ONSET,
+                      breaks=c(0, 40, 50, 60, 65, 70, 75, 80, 85, 90, Inf),
+                      include.lowest=TRUE,
+                      labels=c("<=40", ">40-50", ">50-60", ">60-65", ">65-70",
+                               ">70-75", ">75-80", ">80-85", ">85-90", ">90"))
+
+table(ageGroup.cases)
+
+ageGroup.controls <- cut(covars_controls$AGE_LAST_VISIT,
+                         breaks=c(0, 40, 50, 60, 65, 70, 75, 80, 85, 90, Inf),
+                         include.lowest=TRUE,
+                         labels=c("<=40", ">40-50", ">50-60", ">60-65", ">65-70",
+                                  ">70-75", ">75-80", ">80-85", ">85-90", ">90"))
+
+table(ageGroup.controls)
+
+AGE.Groups <- setNames(cbind.data.frame(table(ageGroup.cases), table(ageGroup.controls))[c(1,2,4)], c("Age", "CA", "CO"))
+AGE.Groups
 
 
 
+
+# write.table(covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/GWAS_MAP_samples.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+
+
+####################################
+## Extract samples from GWAS data ##
+####################################
+## CO
+CO <- covars[covars$STATUS == 1,]
+CO <- CO[CO$AGE_LAST_VISIT > 70,]
+CO <- CO[!is.na(CO$AGE_LAST_VISIT),]
+dim(CO)
+
+## CA
+CA <- covars[covars$STATUS == 2,]
+CA <- CA[CA$AGE_AT_ONSET <= 70 & CA$AGE_AT_ONSET > 0 ,]
+CA <- CA[!is.na(CA$AGE_AT_ONSET),]
+dim(CA)
+
+GWAS.EOAD.covars <- rbind.data.frame(CO,CA)
+#####################################################################
+## Adding samples that are mismatch in Vicky's and Fengxian's list ##
+#####################################################################
+
+write.table(GWAS.EOAD.covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/GWAS_EOAD_samples_CA_70_CO_70_V2.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+
+
+
+
+
+
+
+## CO
+CO <- covars[covars$STATUS == 1,]
+CO <- CO[CO$AGE_LAST_VISIT > 80,]
+CO <- CO[!is.na(CO$AGE_LAST_VISIT),]
+dim(CO)
+
+## CA
+CA <- covars[covars$STATUS == 2,]
+CA <- CA[CA$AGE_AT_ONSET <= 65 & CA$AGE_AT_ONSET > 0 ,]
+CA <- CA[!is.na(CA$AGE_AT_ONSET),]
+dim(CA)
+
+GWAS.EOAD.covars <- rbind.data.frame(CO,CA)
+
+write.table(GWAS.EOAD.covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/GWAS_EOAD_samples_CA_65_CO_80_V2.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 

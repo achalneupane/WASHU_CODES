@@ -1596,6 +1596,46 @@ sum(tt$KEY %in%  FINAL.COVAR$KEY1)
 
 tt$COHORT <- FINAL.COVAR$COHORT[match(tt$KEY, FINAL.COVAR$KEY1)]
 
+## DUBER ADGC study information ##
+NACC.duber <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/WASHU-GWAS/extract_dubers_NACC.list", header = F)
+dim(NACC.duber)
+NACC.duber$V1 <- as.character(NACC.duber$V1)
+NACC.duber$V2 <- as.character(NACC.duber$V2)
+NACC.duber$KEY <- paste(NACC.duber$V1, NACC.duber$V2, sep = ":")
+
+
+
+fileName <- "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_study.list"
+
+library(tidyverse)
+## Loop over a file connection
+conn <- file(fileName,open="r")
+linn <-readLines(conn)
+df1 <- {}
+for (i in 1:length(linn)){
+  linn[i] <- paste0((linn[i]), ".fam")
+  print(linn[i])
+  COHORT <- str_match(linn[i], "ADGC_(.*)-\\s*(.*?)\\s*_geno") [,2] 
+  df.tmp <- read.table(linn[i], header = F, colClasses = 'character')  
+  COHORT <- sapply(strsplit(COHORT, split="\\/"), "[", 3)
+  # COHORT <- gsub("_Hispanic$|_Asian$|_AA$", "", sapply(strsplit(COHORT, split="\\/"), "[", 3))
+  df.tmp$COHORT <- COHORT
+  df1 <- rbind(df1,df.tmp)
+  # Sys.sleep(2)
+}
+
+close(conn)
+
+
+df1$KEY <- paste(df1$V1, df1$V2, sep = ":")
+
+sum(NACC.duber$KEY %in% df1$KEY)
+# 830
+
+NACC.duber$STUDY <- df1$COHORT[match(NACC.duber$KEY, df1$KEY)]
+colnames(NACC.duber) <- c("FID", "IID", "FID_IID_KEY", "STUDY")
+write.table(NACC.duber, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/NACC_samples/CSF_NACC_4_DUBER/NACC_ADGC_study_for_Duber_830_samples.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
 
 # #############
 # ## NIALOAD ##
