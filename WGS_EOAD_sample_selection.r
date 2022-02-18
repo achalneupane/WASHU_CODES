@@ -379,7 +379,14 @@ sum(MISMATCHES$MAPID %in% covars$ID)
 
 MISMATCHES <- covars[covars$ID %in% MISMATCHES$MAPID,]
 GWAS.EOAD.covars <- rbind.data.frame(MISMATCHES, GWAS.EOAD.covars)
+write.table(GWAS.EOAD.covars, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/PHENOTYPE_GWAS_EOAD_samples_CA_70_CO_70_V2_plus_mismatches.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+######################################################
+## Match with the ID matrix and get the IID and FID ##
+######################################################
+sum(GWAS.MAP.fam$MAP_ID %in% GWAS.EOAD.covars$ID)
+## 2953
 
+GWAS.EOAD.covars <- GWAS.MAP.fam[GWAS.MAP.fam$MAP_ID %in% GWAS.EOAD.covars$ID, c(1:2)]
 write.table(GWAS.EOAD.covars, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/GWAS_EOAD_samples_CA_70_CO_70_V2_plus_mismatches.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
 
