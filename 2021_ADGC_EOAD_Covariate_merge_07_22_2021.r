@@ -2651,7 +2651,7 @@ for (i in 1:length(SD.cutoff.all)){
   PC2min <- (mean(AA_SAMPLES_YRI$PC2) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
   PC2max <- (mean(AA_SAMPLES_YRI$PC2) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
   
-  SDSelection <- NHW_SAMPLES[PCA$PC1 > PC1min & 
+  SDSelection <- PCA[PCA$PC1 > PC1min & 
                                PCA$PC1 < PC1max &
                                PCA$PC2 > PC2min &
                                PCA$PC2 < PC2max,]
@@ -2675,7 +2675,7 @@ for (i in 1:length(SD.cutoff.all)){
   PC2min <- (mean(ASIAN_SAMPLES_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
   PC2max <- (mean(ASIAN_SAMPLES_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
   
-  SDSelection <- NHW_SAMPLES[PCA$PC1 > PC1min & 
+  SDSelection <- PCA[PCA$PC1 > PC1min & 
                                PCA$PC1 < PC1max &
                                PCA$PC2 > PC2min &
                                PCA$PC2 < PC2max,]

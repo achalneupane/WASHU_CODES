@@ -360,12 +360,14 @@ CO <- covars[covars$STATUS == 1,]
 CO <- CO[CO$AGE_LAST_VISIT > 70,]
 CO <- CO[!is.na(CO$AGE_LAST_VISIT),]
 dim(CO)
+# 1192  9
 
 ## CA
 CA <- covars[covars$STATUS == 2,]
 CA <- CA[CA$AGE_AT_ONSET <= 70 & CA$AGE_AT_ONSET > 0 ,]
 CA <- CA[!is.na(CA$AGE_AT_ONSET),]
 dim(CA)
+# 699 9
 
 GWAS.EOAD.covars <- rbind.data.frame(CO,CA)
 ##########################################################################
@@ -388,5 +390,141 @@ sum(GWAS.MAP.fam$MAP_ID %in% GWAS.EOAD.covars$ID)
 
 GWAS.EOAD.covars <- GWAS.MAP.fam[GWAS.MAP.fam$MAP_ID %in% GWAS.EOAD.covars$ID, c(1:2)]
 write.table(GWAS.EOAD.covars, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/GWAS_EOAD_samples_CA_70_CO_70_V2_plus_mismatches.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+
+####################
+## Stroke samples ##
+####################
+STROKE <- GWAS.EOAD.covars[grepl("stroke", GWAS.EOAD.covars$IID, ignore.case = T),]
+sum(GWAS.fam$IID %in% STROKE$IID )
+STROKE <- GWAS.fam[GWAS.fam$IID %in% STROKE$IID,]
+
+STROKE$MAP <- as.character(STROKE$MAP)
+STROKE <- GWAS.fam[GWAS.fam$MAP %in% STROKE$MAP,]
+STROKE <- STROKE[order(STROKE$MAP),]
+
+##################
+## HapMap Plots ##
+##################
+####################################################################################################
+###################################### HapMap All Ethnicities ######################################
+####################################################################################################
+setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples")
+PCA <- read.table("All_cohorts_merged_Nov_2021_no_CHR_WASHU_GWAS-HAPMAP-MERGED3-for_PCA.eigenvec", header =T, stringsAsFactors=FALSE)
+dim(PCA)
+HAPMAP.ethnicty <- read.table("relationships_w_pops_121708.txt", header = T )
+head(HAPMAP.ethnicty)
+
+
+PCA$COHORT <- "WASHU_GWAS"
+PCA$COHORT <- HAPMAP.ethnicty$population[match(PCA$IID, HAPMAP.ethnicty$IID)]
+PCA <- PCA[c("FID", "IID", c(paste0("PC", 1:10), "COHORT"))]
+PCA$COHORT <- as.character(PCA$COHORT)
+PCA$COHORT[is.na(PCA$COHORT)] <- "WASHU_GWAS"
+# write.table(PCA, "Bloomfield_Amyloid_Imaging_1989-round1.txt", sep ="\t", col.names = T, quote = F)
+
+target <- c("JPT", "YRI", "CEU", "WASHU_GWAS")
+PCA$COHORT <- factor(PCA$COHORT, levels = target)
+PCA <- PCA[order(-as.numeric(factor(PCA$COHORT))),]
+
+
+## Generate a new file that has IID, PC1,PC2, and a new column COHORT 
+p <- ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("EOAD_WASHU_GWAS") +
+  scale_color_manual(values = c('green', 'blue', 'red', "black")) +
+  annotate("text", x=0.003, y=0.008, label="NHW", size=4, color = "red") +
+  annotate("text", x=-0.04, y=0.005, label="AA", size=4, color = "blue") +
+  annotate("text", x=0, y=0.1, label="Asian", size=4, color = "green")
+p
+
+
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/EOAD-WASHU-GWAS-COHORT.jpg", plot = p, device = NULL, scale = 1, width = 8, height = 6, dpi = 200, limitsize = TRUE)
+
+
+## SD FILTER for NHW
+# Samples within SD cutoff in reference to CEU HAPMAP samples
+NHW_SAMPLES_CEU <- PCA[PCA$COHORT == "CEU",]
+AA_SAMPLES_YRI <- PCA[PCA$COHORT == "YRI",]
+ASIAN_SAMPLES_JPT <- PCA[PCA$COHORT == "JPT",]
+
+p.sd <- p
+
+## (HAPMAP)
+## Select NHW samples only
+library(tidyverse)
+
+## NHW
+SDSelection.Table.NHW <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC1min <- (mean(NHW_SAMPLES_CEU$PC1) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+  PC1max <- (mean(NHW_SAMPLES_CEU$PC1) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
+  PC2min <- (mean(NHW_SAMPLES_CEU$PC2) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+  PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+  
+  SDSelection <- PCA[PCA$PC1 > PC1min &
+                       PCA$PC1 < PC1max &
+                       PCA$PC2 > PC2min &
+                       PCA$PC2 < PC2max, ]
+  
+  SDSelection.Table.NHW[[i]] <- as.vector(SDSelection$IID)
+  
+  p.sd <- p.sd + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+                          fill=NA, colour="red") +
+    annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+
+
+## AA
+SDSelection.Table.AA <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC1min <- (mean(AA_SAMPLES_YRI$PC1) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC1)))
+  PC1max <- (mean(AA_SAMPLES_YRI$PC1) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC1)))
+  PC2min <- (mean(AA_SAMPLES_YRI$PC2) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+  PC2max <- (mean(AA_SAMPLES_YRI$PC2) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+  
+  SDSelection <- PCA[PCA$PC1 > PC1min & 
+                               PCA$PC1 < PC1max &
+                               PCA$PC2 > PC2min &
+                               PCA$PC2 < PC2max,]
+  
+  SDSelection.Table.AA[[i]] <- as.vector(SDSelection$IID)
+  
+  p.sd <- p.sd + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+                          fill=NA, colour="blue") +
+    annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+
+
+## Asian
+SDSelection.Table.Asian <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC1min <- (mean(ASIAN_SAMPLES_JPT$PC1) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC1)))
+  PC1max <- (mean(ASIAN_SAMPLES_JPT$PC1) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC1)))
+  PC2min <- (mean(ASIAN_SAMPLES_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
+  PC2max <- (mean(ASIAN_SAMPLES_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
+  
+  SDSelection <- PCA[PCA$PC1 > PC1min & 
+                               PCA$PC1 < PC1max &
+                               PCA$PC2 > PC2min &
+                               PCA$PC2 < PC2max,]
+  
+  SDSelection.Table.Asian[[i]] <- as.vector(SDSelection$IID)
+  
+  p.sd <- p.sd + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
+                          fill=NA, colour="green") +
+    annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+p.sd
+
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/EOAD-WASHU-GWAS-SD-cutoff.jpg", plot = p.sd, device = NULL, scale = 1, width = 8, height = 6, dpi = 200, limitsize = TRUE)
+
 
 
