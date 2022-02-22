@@ -1276,7 +1276,7 @@ as.data.frame(table(MAP_Core$race))
 
 #### ############
 ## Samira and Carlos suggested to read from IDMatrix instead of FAM file
-GWAS.fam <- read.delim("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/ID_matrix_hg38_Nov2021.csv", sep = ",")
+GWAS.fam <- read.delim("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/ID_matrix_hg38_Nov202_v2.csv", sep = ",")
 dim(GWAS.fam)
 
 
@@ -2605,6 +2605,7 @@ p
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-ALL-COHORT.jpg", plot = p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 
+
 ## SD FILTER for NHW
 # Samples within SD cutoff in reference to CEU HAPMAP samples
 NHW_SAMPLES_CEU <- PCA[PCA$COHORT == "CEU",]
@@ -2879,6 +2880,301 @@ p.sd.reportedAFRICAN
 
 
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-FROM-4ETHNIC-COHORT-ALL-COHORT-SD-cutoff2.jpg", plot = p.sd.reportedAFRICAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+
+###############################
+## PCA plot with PC2 and PC3 ##
+###############################
+## Generate a new file that has IID, PC2,PC3, and a new column COHORT 
+p <- ggplot(PCA, aes(x=PC2, y=PC3, color=COHORT)) + geom_point() + xlab("PC2") + ylab("PC3") + ggtitle("ADGC_65777") +
+  scale_color_manual(values = c('green', 'blue', 'red', "black")) +
+  annotate("text", x=0, y=0.008, label="NHW", size=4, color = "red") +
+  annotate("text", x=-0.009, y=0, label="AA", size=4, color = "blue") +
+  annotate("text", x=0.015, y=-0.003, label="Asian", size=4, color = "green")
+p
+
+
+# ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-ALL-COHORT.jpg", plot = p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+
+
+## SD FILTER for NHW
+# Samples within SD cutoff in reference to CEU HAPMAP samples
+NHW_SAMPLES_CEU <- PCA[PCA$COHORT == "CEU",]
+AA_SAMPLES_YRI <- PCA[PCA$COHORT == "YRI",]
+ASIAN_SAMPLES_JPT <- PCA[PCA$COHORT == "JPT",]
+
+p.sd <- p
+
+## (HAPMAP)
+## Select NHW samples only
+library(tidyverse)
+
+## NHW
+SDSelection.Table.NHW <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC2min <- (mean(NHW_SAMPLES_CEU$PC2) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+  PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+  PC3min <- (mean(NHW_SAMPLES_CEU$PC3) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC3)))
+  PC3max <- (mean(NHW_SAMPLES_CEU$PC3) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC3)))
+  
+  SDSelection <- PCA[PCA$PC2 > PC2min &
+                       PCA$PC2 < PC2max &
+                       PCA$PC3 > PC3min &
+                       PCA$PC3 < PC3max, ]
+  
+  SDSelection.Table.NHW[[i]] <- as.vector(SDSelection$IID)
+  
+  p.sd <- p.sd + annotate("rect", xmin=PC2min, xmax=PC2max, ymin=PC3min, ymax=PC3max, 
+                          fill=NA, colour="red") +
+    annotate("text", x=PC2max, y=PC3max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+
+
+## AA
+SDSelection.Table.AA <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC2min <- (mean(AA_SAMPLES_YRI$PC2) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+  PC2max <- (mean(AA_SAMPLES_YRI$PC2) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+  PC3min <- (mean(AA_SAMPLES_YRI$PC3) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC3)))
+  PC3max <- (mean(AA_SAMPLES_YRI$PC3) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC3)))
+  
+  SDSelection <- PCA[PCA$PC2 > PC2min & 
+                       PCA$PC2 < PC2max &
+                       PCA$PC3 > PC3min &
+                       PCA$PC3 < PC3max,]
+  
+  SDSelection.Table.AA[[i]] <- as.vector(SDSelection$IID)
+  
+  p.sd <- p.sd + annotate("rect", xmin=PC2min, xmax=PC2max, ymin=PC3min, ymax=PC3max, 
+                          fill=NA, colour="blue") +
+    annotate("text", x=PC2max, y=PC3max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+
+
+## Asian
+SDSelection.Table.Asian <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC2min <- (mean(ASIAN_SAMPLES_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
+  PC2max <- (mean(ASIAN_SAMPLES_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
+  PC3min <- (mean(ASIAN_SAMPLES_JPT$PC3) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC3)))
+  PC3max <- (mean(ASIAN_SAMPLES_JPT$PC3) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC3)))
+  
+  SDSelection <- PCA[PCA$PC2 > PC2min & 
+                       PCA$PC2 < PC2max &
+                       PCA$PC3 > PC3min &
+                       PCA$PC3 < PC3max,]
+  
+  SDSelection.Table.Asian[[i]] <- as.vector(SDSelection$IID)
+  
+  p.sd <- p.sd + annotate("rect", xmin=PC2min, xmax=PC2max, ymin=PC3min, ymax=PC3max, 
+                          fill=NA, colour="green") +
+    annotate("text", x=PC2max, y=PC3max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+
+p.sd
+
+## Now add presumed ethnicity
+
+FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ALL_ETHNICITIES_65183.txt", header = T, sep = "\t")
+dim(FINAL.COVAR)
+# [1] 65183    45
+FINAL.COVAR$KEY1 <- paste(FINAL.COVAR$FID, FINAL.COVAR$IID, sep = ":")
+PCA$KEY <- paste(PCA$FID, PCA$IID, sep = ":")
+
+PCA$ADGC_COHORT <- as.character(FINAL.COVAR$ETHNICITY [match(PCA$KEY, FINAL.COVAR$KEY1)])
+
+PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- PCA$COHORT[is.na(PCA$ADGC_COHORT)] 
+
+
+p.sd.reportedNHW.ALL <- p.sd + geom_point(data = PCA[PCA$ADGC_COHORT == "NHW", c("PC2","PC3")], aes(col="Reported_NHW")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue")) 
+p.sd.reportedNHW.ALL
+
+p.sd.reportedHISPANIC <- p.sd.reportedNHW.ALL + geom_point(data = PCA[PCA$ADGC_COHORT == "HISPANIC", c("PC2","PC3")], aes(col="Reported_Hispanic")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', YRI = "blue")) 
+p.sd.reportedHISPANIC
+
+p.sd.reportedASIAN <- p.sd.reportedHISPANIC + geom_point(data = PCA[PCA$ADGC_COHORT == "ASIAN", c("PC2","PC3")], aes(col="Reported_Asian")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', YRI = "blue")) 
+p.sd.reportedASIAN
+
+p.sd.reportedAFRICAN <- p.sd.reportedASIAN + geom_point(data = PCA[PCA$ADGC_COHORT == "AFRICAN", c("PC2","PC3")], aes(col="Reported_African")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN
+
+## Reordering HapMap colors on top
+p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "CEU", c("PC2","PC3")], aes(col="CEU")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "JPT", c("PC2","PC3")], aes(col="JPT")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "JPT", c("PC2","PC3")], aes(col="JPT")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "YRI", c("PC2","PC3")], aes(col="YRI")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+
+p.sd.reportedAFRICAN
+
+
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-FROM-4ETHNIC-COHORT-ALL-COHORT-SD-cutoff-PC2-PC3.jpg", plot = p.sd.reportedAFRICAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+###############################
+## PCA plot with PC2 and PC4 ##
+###############################
+## Generate a new file that has IID, PC2,PC4, and a new column COHORT 
+p <- ggplot(PCA, aes(x=PC2, y=PC4, color=COHORT)) + geom_point() + xlab("PC2") + ylab("PC4") + ggtitle("ADGC_65777") +
+  scale_color_manual(values = c('green', 'blue', 'red', "black")) +
+  annotate("text", x=0, y=0.008, label="NHW", size=4, color = "red") +
+  annotate("text", x=-0.009, y=0, label="AA", size=4, color = "blue") +
+  annotate("text", x=0.015, y=-0.003, label="Asian", size=4, color = "green")
+p
+
+
+# ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-ALL-COHORT.jpg", plot = p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+
+
+## SD FILTER for NHW
+# Samples within SD cutoff in reference to CEU HAPMAP samples
+NHW_SAMPLES_CEU <- PCA[PCA$COHORT == "CEU",]
+AA_SAMPLES_YRI <- PCA[PCA$COHORT == "YRI",]
+ASIAN_SAMPLES_JPT <- PCA[PCA$COHORT == "JPT",]
+
+p.sd <- p
+
+## (HAPMAP)
+## Select NHW samples only
+library(tidyverse)
+
+## NHW
+SDSelection.Table.NHW <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC2min <- (mean(NHW_SAMPLES_CEU$PC2) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+  PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
+  PC4min <- (mean(NHW_SAMPLES_CEU$PC4) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC4)))
+  PC4max <- (mean(NHW_SAMPLES_CEU$PC4) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC4)))
+  
+  SDSelection <- PCA[PCA$PC2 > PC2min &
+                       PCA$PC2 < PC2max &
+                       PCA$PC4 > PC4min &
+                       PCA$PC4 < PC4max, ]
+  
+  SDSelection.Table.NHW[[i]] <- as.vector(SDSelection$IID)
+  
+  p.sd <- p.sd + annotate("rect", xmin=PC2min, xmax=PC2max, ymin=PC4min, ymax=PC4max, 
+                          fill=NA, colour="red") +
+    annotate("text", x=PC2max, y=PC4max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+
+
+## AA
+SDSelection.Table.AA <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC2min <- (mean(AA_SAMPLES_YRI$PC2) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+  PC2max <- (mean(AA_SAMPLES_YRI$PC2) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+  PC4min <- (mean(AA_SAMPLES_YRI$PC4) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC4)))
+  PC4max <- (mean(AA_SAMPLES_YRI$PC4) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC4)))
+  
+  SDSelection <- PCA[PCA$PC2 > PC2min & 
+                       PCA$PC2 < PC2max &
+                       PCA$PC4 > PC4min &
+                       PCA$PC4 < PC4max,]
+  
+  SDSelection.Table.AA[[i]] <- as.vector(SDSelection$IID)
+  
+  p.sd <- p.sd + annotate("rect", xmin=PC2min, xmax=PC2max, ymin=PC4min, ymax=PC4max, 
+                          fill=NA, colour="blue") +
+    annotate("text", x=PC2max, y=PC4max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+
+
+## Asian
+SDSelection.Table.Asian <- list()
+SD.cutoff.all <- 3:5
+for (i in 1:length(SD.cutoff.all)){
+  SD.cutoff <- SD.cutoff.all[i]  
+  PC2min <- (mean(ASIAN_SAMPLES_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
+  PC2max <- (mean(ASIAN_SAMPLES_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
+  PC4min <- (mean(ASIAN_SAMPLES_JPT$PC4) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC4)))
+  PC4max <- (mean(ASIAN_SAMPLES_JPT$PC4) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC4)))
+  
+  SDSelection <- PCA[PCA$PC2 > PC2min & 
+                       PCA$PC2 < PC2max &
+                       PCA$PC4 > PC4min &
+                       PCA$PC4 < PC4max,]
+  
+  SDSelection.Table.Asian[[i]] <- as.vector(SDSelection$IID)
+  
+  p.sd <- p.sd + annotate("rect", xmin=PC2min, xmax=PC2max, ymin=PC4min, ymax=PC4max, 
+                          fill=NA, colour="green") +
+    annotate("text", x=PC2max, y=PC4max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
+}
+
+
+p.sd
+
+## Now add presumed ethnicity
+FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ALL_ETHNICITIES_65183.txt", header = T, sep = "\t")
+dim(FINAL.COVAR)
+# [1] 65183    45
+FINAL.COVAR$KEY1 <- paste(FINAL.COVAR$FID, FINAL.COVAR$IID, sep = ":")
+PCA$KEY <- paste(PCA$FID, PCA$IID, sep = ":")
+
+PCA$ADGC_COHORT <- as.character(FINAL.COVAR$ETHNICITY [match(PCA$KEY, FINAL.COVAR$KEY1)])
+
+PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- PCA$COHORT[is.na(PCA$ADGC_COHORT)] 
+
+
+p.sd.reportedNHW.ALL <- p.sd + geom_point(data = PCA[PCA$ADGC_COHORT == "NHW", c("PC2","PC4")], aes(col="Reported_NHW")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue")) 
+p.sd.reportedNHW.ALL
+
+p.sd.reportedHISPANIC <- p.sd.reportedNHW.ALL + geom_point(data = PCA[PCA$ADGC_COHORT == "HISPANIC", c("PC2","PC4")], aes(col="Reported_Hispanic")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', YRI = "blue")) 
+p.sd.reportedHISPANIC
+
+p.sd.reportedASIAN <- p.sd.reportedHISPANIC + geom_point(data = PCA[PCA$ADGC_COHORT == "ASIAN", c("PC2","PC4")], aes(col="Reported_Asian")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', YRI = "blue")) 
+p.sd.reportedASIAN
+
+p.sd.reportedAFRICAN <- p.sd.reportedASIAN + geom_point(data = PCA[PCA$ADGC_COHORT == "AFRICAN", c("PC2","PC4")], aes(col="Reported_African")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN
+
+## Reordering HapMap colors on top
+p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "CEU", c("PC2","PC4")], aes(col="CEU")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "JPT", c("PC2","PC4")], aes(col="JPT")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "JPT", c("PC2","PC4")], aes(col="JPT")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "YRI", c("PC2","PC4")], aes(col="YRI")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+
+p.sd.reportedAFRICAN
+
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-FROM-4ETHNIC-COHORT-ALL-COHORT-SD-cutoff-PC2-PC4.jpg", plot = p.sd.reportedAFRICAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+###########################################################################################
+## Now checking if yellow and orange dots are within the same clouds in PC1 and PC2 plot ##
+###########################################################################################
+
+
 #########################################
 ## PCA anchored to 1000 genome project ##
 #########################################
