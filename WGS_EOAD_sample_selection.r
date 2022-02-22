@@ -265,13 +265,17 @@ head(GWAS.MAP.4843)
 GWAS.MAP.4843$ID <- as.character(GWAS.MAP.4843$ID)
 
 # Check with the GWAs ID matrix
-GWAS.fam <- read.delim("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/ID_matrix_hg38_Nov2021.csv", sep = ",")
+GWAS.fam <- read.delim("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/ID_matrix_hg38_Nov2021_v2.csv", sep = ",")
 dim(GWAS.fam)
-GWAS.MAP.fam <- GWAS.fam[!is.na(GWAS.fam$MAP),]
-GWAS.MAP.fam$MAP_ID <- paste0("MAP_", GWAS.MAP.fam$MAP)
+# GWAS.MAP.fam <- GWAS.fam[!is.na(GWAS.fam$MAP),]
+# GWAS.MAP.fam$MAP_ID <- paste0("MAP_", GWAS.MAP.fam$MAP)
+# 
+sum(GWAS.MAP.4843$ID %in% GWAS.fam$unique_pheno_ID)
+# # 4843
+sum(GWAS.fam$unique_pheno_ID %in% GWAS.MAP.4843$ID)
+# # 6687
 
-sum(GWAS.MAP.4843$ID %in% GWAS.MAP.fam$MAP_ID)
-# 4843
+# GWAS.fam$unique_pheno_ID
 
 ###########################
 ## Recode STATUS ##
@@ -335,7 +339,6 @@ AGE.Groups <- setNames(cbind.data.frame(table(ageGroup.cases), table(ageGroup.co
 AGE.Groups
 
 # write.table(covars, "/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/GWAS_MAP_samples.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-
 ## CO
 CO <- covars[covars$STATUS == 1,]
 CO <- CO[CO$AGE_LAST_VISIT > 80,]
@@ -385,23 +388,38 @@ write.table(GWAS.EOAD.covars, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/Wash
 ######################################################
 ## Match with the ID matrix and get the IID and FID ##
 ######################################################
-sum(GWAS.MAP.fam$MAP_ID %in% GWAS.EOAD.covars$ID)
-## 2953
+sum(GWAS.fam$unique_pheno_ID %in% GWAS.EOAD.covars$ID)
+## 2871
 
-GWAS.EOAD.covars <- GWAS.MAP.fam[GWAS.MAP.fam$MAP_ID %in% GWAS.EOAD.covars$ID, c(1:2)]
-write.table(GWAS.EOAD.covars, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/GWAS_EOAD_samples_CA_70_CO_70_V2_plus_mismatches.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+GWAS.EOAD.covars.Samira <- GWAS.fam[GWAS.fam$unique_pheno_ID %in% GWAS.EOAD.covars$ID, c(1:2)]
+write.table(GWAS.EOAD.covars.Samira, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/GWAS_EOAD_samples_CA_70_CO_70_V2_plus_mismatches.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
+######################################################## 
+## Now extract these samples from Samira's plink file ## 
+######################################################## 
+#Note: I initially selected samples from MAP column of the ID matrix instead of 
+#the 'unique_pheno_ID' and asked Samira to extract the Plink file. So, I need to
+#extract the samples in 'unique_pheno_ID' from the Plink subset I received from 
+#Samira.
 
-####################
-## Stroke samples ##
-####################
-STROKE <- GWAS.EOAD.covars[grepl("stroke", GWAS.EOAD.covars$IID, ignore.case = T),]
-sum(GWAS.fam$IID %in% STROKE$IID )
-STROKE <- GWAS.fam[GWAS.fam$IID %in% STROKE$IID,]
+GWAS.EOAD.covars.Samira$IID <- as.character(GWAS.EOAD.covars.Samira$IID) 
+# Read plink file I got from Samira
+SAMIRA.Plink <- read.table("/40/AD/GWAS_data/Combined_Plink/Full_Imputation/2021_Nov/requests/2022_02_for_Achal_EOAD_WashU_MAP_for_ADGC/EOAD_WashU_MAP_for_ADGC_array_prioritized_sample_reprentatives_final.fam")
+sum(SAMIRA.Plink$V2 %in% GWAS.EOAD.covars.Samira$IID)
+# 1997
+SAMIRA.Plink <- SAMIRA.Plink[SAMIRA.Plink$V2 %in% GWAS.EOAD.covars.Samira$IID,]
+write.table(SAMIRA.Plink[1:2], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/WashU_samples/subset_Samira_plink.csv", sep ="\t", col.names = F, quote = F, row.names = FALSE)
 
-STROKE$MAP <- as.character(STROKE$MAP)
-STROKE <- GWAS.fam[GWAS.fam$MAP %in% STROKE$MAP,]
-STROKE <- STROKE[order(STROKE$MAP),]
+# ####################
+# ## Stroke samples ##
+# ####################
+# STROKE <- GWAS.EOAD.covars[grepl("stroke", GWAS.EOAD.covars$IID, ignore.case = T),]
+# sum(GWAS.fam$IID %in% STROKE$IID )
+# STROKE <- GWAS.fam[GWAS.fam$IID %in% STROKE$IID,]
+# 
+# STROKE$MAP <- as.character(STROKE$MAP)
+# STROKE <- GWAS.fam[GWAS.fam$MAP %in% STROKE$MAP,]
+# STROKE <- STROKE[order(STROKE$MAP),]
 
 ##################
 ## HapMap Plots ##
