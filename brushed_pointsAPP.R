@@ -11,12 +11,12 @@
   
   server <- function(input, output) {
     output$plot1 <- renderPlot({
-      p.sd.reportedAFRICAN + geom_point(data = HISPANIC.SUBSET[c("PC2","PC3")], aes(col="NEW_Hispanic")) +
+      p.sd.reportedAFRICAN + geom_point(data = HISPANIC.SUBSET[c("PC1","PC2")], aes(col="NEW_Hispanic")) +
         scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", NEW_Hispanic = "gold"))
     })
     
     data <- reactive({
-      brushedPoints(HISPANIC.SUBSET, input$plot_brush, xvar = "PC2", yvar = "PC3")
+      brushedPoints(HISPANIC.SUBSET, input$plot_brush, xvar = "PC1", yvar = "PC2")
     })
     
     output$info <- renderPrint({data()})
