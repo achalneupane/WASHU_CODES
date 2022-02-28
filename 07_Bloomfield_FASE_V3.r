@@ -1,10 +1,11 @@
 setwd("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal")
 load("FASe_Pheno_data.RData")
 ## FASe PHenotype from Aquilla
-FASE <- read.table("/100/AD/AD_Seq_Data/05.-Analyses/06-Aquilla_202101/01-Aquilla-preQC/06-Aquilla_202101-a/01-Aquilla-preQC/03-PLINK-QC-files2/Final_Pheno_FASe_3894.pheno", header = T, stringsAsFactors = F)
-dim(FASE)
-View(FASE)
-as.data.frame(table(FASE$Project))
+FASE_PHENO.Aquilla <- read.table("FASe_3894_Phenoscope.txt", header = T, stringsAsFactors = F)
+dim(FASE_PHENO.Aquilla)
+# 3892
+View(FASE_PHENO.Aquilla)
+as.data.frame(table(FASE_PHENO.Aquilla$PR))
 # Var1 Freq
 # 1  201907_USUHS_gDNA_SHERMAN   43
 # 2                  Broad_WGS  142
@@ -22,171 +23,167 @@ as.data.frame(table(FASE$Project))
 # 14                   TGI_WES  298
 
 
-BLOOMFIELD <- read.table("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield-WES-WGS-project.csv", header = T, sep = ",", stringsAsFactors = T)
-dim(BLOOMFIELD)
-# 9810
-
-## Check what other projects fall under FASe
-ADSPFAM <- read.delim("/40/AD/AD_Seq_Data/03.-phenotype/202105-ADSP_Umbrella_NG00067.v5/ADSPFamilyBasedPhenotypes_DS_2021.02.19_ALL.txt", header = T, sep = "\t", stringsAsFactors = F)
-dim(ADSPFAM)
-ADSPCACO <- read.delim("/40/AD/AD_Seq_Data/03.-phenotype/202105-ADSP_Umbrella_NG00067.v5/ADSPCaseControlPhenotypes_DS_2021.02.19_ALL.txt", header = T, sep = "\t", stringsAsFactors = F)
-dim(ADSPCACO)
-# 27547
-BLOOMFIELD$FASE <- BLOOMFIELD$Bloomfield.gvcf.id..SM...9810. %in% c(ADSPFAM$SUBJID, ADSPCACO$SUBJID)
-as.data.frame(table(BLOOMFIELD$Seq_project[BLOOMFIELD$FASE == TRUE])[table(BLOOMFIELD$Seq_project[BLOOMFIELD$FASE == TRUE]) > 0])
+# BLOOMFIELD <- read.table("/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield-WES-WGS-project.csv", header = T, sep = ",", stringsAsFactors = T)
+# dim(BLOOMFIELD)
+# # 9810
+# 
+# ## Check what other projects fall under FASe
+# ADSPFAM <- read.delim("/40/AD/AD_Seq_Data/03.-phenotype/202105-ADSP_Umbrella_NG00067.v5/ADSPFamilyBasedPhenotypes_DS_2021.02.19_ALL.txt", header = T, sep = "\t", stringsAsFactors = F)
+# dim(ADSPFAM)
+# ADSPCACO <- read.delim("/40/AD/AD_Seq_Data/03.-phenotype/202105-ADSP_Umbrella_NG00067.v5/ADSPCaseControlPhenotypes_DS_2021.02.19_ALL.txt", header = T, sep = "\t", stringsAsFactors = F)
+# dim(ADSPCACO)
+# # 27547
+# BLOOMFIELD$FASE <- BLOOMFIELD$Bloomfield.gvcf.id..SM...9810. %in% c(ADSPFAM$SUBJID, ADSPCACO$SUBJID)
+# as.data.frame(table(BLOOMFIELD$Seq_project[BLOOMFIELD$FASE == TRUE])[table(BLOOMFIELD$Seq_project[BLOOMFIELD$FASE == TRUE]) > 0])
 
 ## Get project list for FASe and then extract samples from those projects
-FASE_PR <- c(unique(FASE$Project),"202103_ADSP_FUS-familial_WGS_UNNAMED", "202104_ADSP_site27-sync-n303_WGS_UNNAMED")
-PHENO <- read.delim("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/Bloomfield_8751_metadata_20211203.csv", header = T, sep = ",", stringsAsFactors = T)
-dim(PHENO)
+FASE_PR <- c(unique(FASE_PHENO.Aquilla$PR),"202103_ADSP_FUS-familial_WGS_UNNAMED", "202104_ADSP_site27-sync-n303_WGS_UNNAMED")
+PHENO.Bloomfield <- read.delim("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/Bloomfield_8751_metadata_20211203.csv", header = T, sep = ",", stringsAsFactors = T)
+dim(PHENO.Bloomfield)
 # # 8751
-# head(PHENO)
+# head(PHENO.Bloomfield)
 
-sum(PHENO$Seq_project %in% FASE_PR)
+sum(PHENO.Bloomfield$Seq_project %in% FASE_PR)
 # 3931
-FASE_PHENO <- PHENO[PHENO$Seq_project %in% FASE_PR,]
+FASE_PHENO.BLOOMFIELD <- PHENO.Bloomfield[PHENO.Bloomfield$Seq_project %in% FASE_PR,]
 
 ## GET FID and IID from FAM
 FASE_FAM <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE.fam", header = F)
 FASE_FAM$V2 <- as.character(FASE_FAM$V2)
-dim(FASE_PHENO)
+dim(FASE_PHENO.BLOOMFIELD)
 # [1] 3931   26
-sum(FASE_PHENO$Bloomfield.gvcf.id..SM...9810. %in% FASE_FAM$V2)
+sum(FASE_PHENO.BLOOMFIELD$Bloomfield.gvcf.id..SM...9810. %in% FASE_FAM$V2)
 # 3931
-FASE_PHENO <- cbind.data.frame(setNames(FASE_FAM[match(FASE_PHENO$Bloomfield.gvcf.id..SM...9810., FASE_FAM$V2),1:2], c("FID", "IID")), FASE_PHENO)
-sum(FASE_PHENO$IID == FASE_PHENO$Bloomfield.gvcf.id..SM...9810.)
+FASE_PHENO.BLOOMFIELD <- cbind.data.frame(setNames(FASE_FAM[match(FASE_PHENO.BLOOMFIELD$Bloomfield.gvcf.id..SM...9810., FASE_FAM$V2),1:2], c("FID", "IID")), FASE_PHENO.BLOOMFIELD)
+sum(FASE_PHENO.BLOOMFIELD$IID == FASE_PHENO.BLOOMFIELD$Bloomfield.gvcf.id..SM...9810.)
 # 3931
 
 ## FIX # N/A characters
-FASE_PHENO[FASE_PHENO=="#N/A"] <- NA
-FASE_PHENO <- FASE_PHENO[-grep("^X$|X.", colnames(FASE_PHENO))]
+FASE_PHENO.BLOOMFIELD[FASE_PHENO.BLOOMFIELD=="#N/A"] <- NA
+FASE_PHENO.BLOOMFIELD <- FASE_PHENO.BLOOMFIELD[-grep("^X$|X.", colnames(FASE_PHENO.BLOOMFIELD))]
 
-write.table(FASE_PHENO[1:2], "/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FASE_sample_list.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(FASE_PHENO.BLOOMFIELD[1:2], "/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/FASE_sample_list.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
-#########
-## IBD ##
-#########
-## IBD
-library(data.table)
-IBD <- fread("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE-IBD.genome")
-
-# ## Subset IBD
-# smallIBD <- IBD[IBD$Z0 < 0.5,]
+# #########
+# ## IBD ##
+# #########
+# ## IBD
+# library(data.table)
+# IBD <- fread("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE-IBD.genome")
 # 
-# ## Select samples of interest
-# if (exists("SELECTED_IBD")) {
-# rm(SELECT_IBD)
-# }
-# if (file.exists("selected_points.csv")) {
-#   file.remove(selected_points.csv)
-# }
-# ## Select interactively
-# source("https://raw.githubusercontent.com/achalneupane/rcodes/master/IBD_selection.r")
-# SELECT_IBD(smallIBD)
+# # ## Subset IBD
+# # smallIBD <- IBD[IBD$Z0 < 0.5,]
+# # 
+# # ## Select samples of interest
+# # if (exists("SELECTED_IBD")) {
+# # rm(SELECT_IBD)
+# # }
+# # if (file.exists("selected_points.csv")) {
+# #   file.remove(selected_points.csv)
+# # }
+# # ## Select interactively
+# # source("https://raw.githubusercontent.com/achalneupane/rcodes/master/IBD_selection.r")
+# # SELECT_IBD(smallIBD)
+# # 
+# # SELECTED_SAMPLES <- read.table("selected_points.csv", header = F)
+# # IBD$color <- ifelse(IBD$key %in% SELECTED_SAMPLES$V1, "red", "black")
+# # 
+# # library(ggplot2)
+# # ggplot(IBD, aes(x=Z0, y=Z1, color = as.factor(color)))+ geom_point() + ggtitle("Bloomfield-FASe - 3931") +
+# #   scale_color_identity()
+# # ggsave("Bloomfield-FASE_3931_IBD_selected.jpg", plot = last_plot(), device = NULL, scale = 1, width = 16, height = 9, dpi = 300, limitsize = TRUE)
 # 
-# SELECTED_SAMPLES <- read.table("selected_points.csv", header = F)
-# IBD$color <- ifelse(IBD$key %in% SELECTED_SAMPLES$V1, "red", "black")
 # 
 # library(ggplot2)
 # ggplot(IBD, aes(x=Z0, y=Z1, color = as.factor(color)))+ geom_point() + ggtitle("Bloomfield-FASe - 3931") +
 #   scale_color_identity()
-# ggsave("Bloomfield-FASE_3931_IBD_selected.jpg", plot = last_plot(), device = NULL, scale = 1, width = 16, height = 9, dpi = 300, limitsize = TRUE)
-
-
-library(ggplot2)
-ggplot(IBD, aes(x=Z0, y=Z1, color = as.factor(color)))+ geom_point() + ggtitle("Bloomfield-FASe - 3931") +
-  scale_color_identity()
-ggsave("Bloomfield-FASE_3931_IBD.jpg", plot = last_plot(), device = NULL, scale = 1, width = 16, height = 9, dpi = 300, limitsize = TRUE)
-
-
-parent_offsping <- IBD[(IBD$Z0 < 0.25 & IBD$Z1 > 0.75), ]
-
-parent_offsping$Relationship <- "parent-offspring"
-dim(parent_offsping)
-# 132
-
-sibPairs <- IBD[(IBD$Z0 < 0.5 &
-                   IBD$Z0 > 0.10 &
-                   IBD$Z1 < 0.75 &
-                   IBD$Z1 > 0.25),] 
-sibPairs$Relationship <- "sib-pairs"
-dim(sibPairs)
-# 2191
-duplicates <- IBD[(IBD$Z0 < 0.25 &
-                     IBD$Z1 < 0.25), ]
-duplicates$Relationship <- "duplicates"
-dim(duplicates)
-# 0
-relatives.ALL <- rbind(parent_offsping, sibPairs, duplicates)
-# check how many times each sample is related
-relatives.ALL$nIID1 <- with(transform(relatives.ALL, n = 1),  ave(n, IID1, FUN = length))
-relatives.ALL$nIID2 <- with(transform(relatives.ALL, n = 1),  ave(n, IID2, FUN = length))
-write.table(relatives.ALL, "relatives_ALL.csv", sep ="\t", col.names = T, quote = F)
-
-
-
-## PCA
-# Merge HAPMAP ethnicity
-PCA <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE-HAPMAP-MERGED3-for_PCA.eigenvec", header =T, stringsAsFactors=FALSE)
-dim(PCA)
-HAPMAP.ethnicty <- read.table("relationships_w_pops_121708.txt", header = T )
-head(HAPMAP.ethnicty)
-
-
-PCA$COHORT <- "FASe"
-PCA$COHORT <- HAPMAP.ethnicty$population[match(PCA$IID, HAPMAP.ethnicty$IID)]
-PCA <- PCA[c("FID", "IID", c(paste0("PC", 1:10), "COHORT"))]
-PCA$COHORT <- as.character(PCA$COHORT)
-PCA$COHORT[is.na(PCA$COHORT)] <- "FASe"
-write.table(PCA, "Bloomfield_FASe_3931-round1.txt", sep ="\t", col.names = T, quote = F)
-
-
-
-## Generate a new file that has IID, PC1,PC2, and a new column COHORT 
-library(ggplot2)
-p <- ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield-FASe-3931") +
-  scale_color_manual(values = c('green', 'black', 'red', "blue"))
-
-
-## Select NHW samples only
-p <- p + annotate("rect", xmin=-0.006, xmax=0.02, ymin=-0.02, ymax= 0.03, 
-             fill=NA, colour="red") +
-  annotate("text", x=0.012, y=0.025, label="NHW", size=4, color = "red")
-p 
-ggsave("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield-FASe-3931-PCs-COHORT.jpg", plot = p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+# ggsave("Bloomfield-FASE_3931_IBD.jpg", plot = last_plot(), device = NULL, scale = 1, width = 16, height = 9, dpi = 300, limitsize = TRUE)
+# 
+# 
+# parent_offsping <- IBD[(IBD$Z0 < 0.25 & IBD$Z1 > 0.75), ]
+# 
+# parent_offsping$Relationship <- "parent-offspring"
+# dim(parent_offsping)
+# # 132
+# 
+# sibPairs <- IBD[(IBD$Z0 < 0.5 &
+#                    IBD$Z0 > 0.10 &
+#                    IBD$Z1 < 0.75 &
+#                    IBD$Z1 > 0.25),] 
+# sibPairs$Relationship <- "sib-pairs"
+# dim(sibPairs)
+# # 2191
+# duplicates <- IBD[(IBD$Z0 < 0.25 &
+#                      IBD$Z1 < 0.25), ]
+# duplicates$Relationship <- "duplicates"
+# dim(duplicates)
+# # 0
+# relatives.ALL <- rbind(parent_offsping, sibPairs, duplicates)
+# # check how many times each sample is related
+# relatives.ALL$nIID1 <- with(transform(relatives.ALL, n = 1),  ave(n, IID1, FUN = length))
+# relatives.ALL$nIID2 <- with(transform(relatives.ALL, n = 1),  ave(n, IID2, FUN = length))
+# write.table(relatives.ALL, "relatives_ALL.csv", sep ="\t", col.names = T, quote = F)
+# 
+# 
+# 
+# ## PCA
+# # Merge HAPMAP ethnicity
+# PCA <- read.table("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-IDS-V2_no_chr_FASE-HAPMAP-MERGED3-for_PCA.eigenvec", header =T, stringsAsFactors=FALSE)
+# dim(PCA)
+# HAPMAP.ethnicty <- read.table("relationships_w_pops_121708.txt", header = T )
+# head(HAPMAP.ethnicty)
+# 
+# 
+# PCA$COHORT <- "FASe"
+# PCA$COHORT <- HAPMAP.ethnicty$population[match(PCA$IID, HAPMAP.ethnicty$IID)]
+# PCA <- PCA[c("FID", "IID", c(paste0("PC", 1:10), "COHORT"))]
+# PCA$COHORT <- as.character(PCA$COHORT)
+# PCA$COHORT[is.na(PCA$COHORT)] <- "FASe"
+# write.table(PCA, "Bloomfield_FASe_3931-round1.txt", sep ="\t", col.names = T, quote = F)
+# 
+# 
+# 
+# ## Generate a new file that has IID, PC1,PC2, and a new column COHORT 
+# library(ggplot2)
+# p <- ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("Bloomfield-FASe-3931") +
+#   scale_color_manual(values = c('green', 'black', 'red', "blue"))
+# 
+# 
+# ## Select NHW samples only
+# p <- p + annotate("rect", xmin=-0.006, xmax=0.02, ymin=-0.02, ymax= 0.03, 
+#              fill=NA, colour="red") +
+#   annotate("text", x=0.012, y=0.025, label="NHW", size=4, color = "red")
+# p 
+# ggsave("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Bloomfield-FASe-3931-PCs-COHORT.jpg", plot = p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 
 # After running this PCA, I noticed that FID and IIDs are the same, so fixing that
-# read previous PHENO
-PHENO3894 <- read.table("FASe_3894_Phenoscope.txt", header =T)
-PHENO3894$IID <- as.character(PHENO3894$IID)
 # FIX MAP
-PHENO3894$IID[(grepl("^MAP_", PHENO3894$FID))] <- paste0("MAP_", gsub("MAP_", "", as.character(PHENO3894$IID[(grepl("^MAP_", PHENO3894$FID))])))
-
+FASE_PHENO.Aquilla$IID[(grepl("^MAP_", FASE_PHENO.Aquilla$FID))] <- paste0("MAP_", gsub("MAP_", "", as.character(FASE_PHENO.Aquilla$IID[(grepl("^MAP_", FASE_PHENO.Aquilla$FID))])))
 
 ## CLEAN .WGS and .WES strings in Bloomfield phenotype
-FASE_PHENO$CLEANED_ID <- as.character(FASE_PHENO$Bloomfield.gvcf.id..SM...9810.)
-FASE_PHENO$CLEANED_ID[(grepl(".WGS|.WES", FASE_PHENO$CLEANED_ID))] <- gsub("\\..*","",FASE_PHENO$CLEANED_ID[(grepl(".WGS|.WES", FASE_PHENO$CLEANED_ID))])
+FASE_PHENO.BLOOMFIELD$CLEANED_ID <- as.character(FASE_PHENO.BLOOMFIELD$Bloomfield.gvcf.id..SM...9810.)
+FASE_PHENO.BLOOMFIELD$CLEANED_ID[(grepl(".WGS|.WES", FASE_PHENO.BLOOMFIELD$CLEANED_ID))] <- gsub("\\..*","",FASE_PHENO.BLOOMFIELD$CLEANED_ID[(grepl(".WGS|.WES", FASE_PHENO.BLOOMFIELD$CLEANED_ID))])
 
-FASE_PHENO$CLEANED_ID[grepl ("SHERMAN", FASE_PHENO$Seq_project)] <- sapply(strsplit(as.character(FASE_PHENO$FullSample.FSM)[grepl ("SHERMAN", FASE_PHENO$Seq_project)], "\\^"), `[`, 1)
+FASE_PHENO.BLOOMFIELD$CLEANED_ID[grepl ("SHERMAN", FASE_PHENO.BLOOMFIELD$Seq_project)] <- sapply(strsplit(as.character(FASE_PHENO.BLOOMFIELD$FullSample.FSM)[grepl ("SHERMAN", FASE_PHENO.BLOOMFIELD$Seq_project)], "\\^"), `[`, 1)
 
 
 
 ## MERGE Aquilla Phenotype with Bloomfield Phenotype
-colnames(PHENO3894) <- paste0("AQ_", colnames(PHENO3894))
-sum(FASE_PHENO$CLEANED_ID %in% PHENO3894$AQ_IID)
+colnames(FASE_PHENO.Aquilla) <- paste0("AQ_", colnames(FASE_PHENO.Aquilla))
+sum(FASE_PHENO.BLOOMFIELD$CLEANED_ID %in% FASE_PHENO.Aquilla$AQ_IID)
 # 3648
 
-FASE_PHENO <- cbind(FASE_PHENO, PHENO3894[match(FASE_PHENO$CLEANED_ID, PHENO3894$AQ_IID),])
+FASE_PHENO.BLOOMFIELD <- cbind(FASE_PHENO.BLOOMFIELD, FASE_PHENO.Aquilla[match(FASE_PHENO.BLOOMFIELD$CLEANED_ID, FASE_PHENO.Aquilla$AQ_IID),])
 
 
 
-FASE_PHENO$FOUND  <- ifelse(FASE_PHENO$CLEANED_ID %in% FASE_PHENO$AQ_IID, "YES", "NO")
-table(FASE_PHENO$FOUND )
+FASE_PHENO.BLOOMFIELD$FOUND  <- ifelse(FASE_PHENO.BLOOMFIELD$CLEANED_ID %in% FASE_PHENO.BLOOMFIELD$AQ_IID, "YES", "NO")
+table(FASE_PHENO.BLOOMFIELD$FOUND )
 # NO  YES 
 # 283 3648 
 
-FASE_PHENO_NOT_FOUND <- FASE_PHENO[grepl("NO", FASE_PHENO$FOUND),]
+FASE_PHENO_NOT_FOUND <- FASE_PHENO.BLOOMFIELD[grepl("NO", FASE_PHENO.BLOOMFIELD$FOUND),]
 ## These are the samples not found in older release Aquilla
 table(as.character(FASE_PHENO_NOT_FOUND$Seq_project))
 # 201907_USUHS_gDNA_SHERMAN     202103_ADSP_FUS-familial_WGS_UNNAMED 202104_ADSP_site27-sync-n303_WGS_UNNAMED                                Broad_WGS 
@@ -200,44 +197,46 @@ table(as.character(FASE_PHENO_NOT_FOUND$Seq_project))
 
 
 # For any samples that were in previous release, I will update the FID from that release
-FASE_PHENO$NEW_FID <- as.character(FASE_PHENO$AQ_FID)
-FASE_PHENO$FID <- as.character(FASE_PHENO$FID)
+FASE_PHENO.BLOOMFIELD$NEW_FID <- as.character(FASE_PHENO.BLOOMFIELD$AQ_FID)
+FASE_PHENO.BLOOMFIELD$FID <- as.character(FASE_PHENO.BLOOMFIELD$FID)
 
 # If NEW_FID is not empty, update FID from older release
-FASE_PHENO$FID[!is.na(FASE_PHENO$NEW_FID)] <-  FASE_PHENO$NEW_FID[!is.na(FASE_PHENO$NEW_FID)]
+FASE_PHENO.BLOOMFIELD$FID[!is.na(FASE_PHENO.BLOOMFIELD$NEW_FID)] <-  FASE_PHENO.BLOOMFIELD$NEW_FID[!is.na(FASE_PHENO.BLOOMFIELD$NEW_FID)]
 
 
-# Check FID for BROAD_WGS;  BROAD FID Looks ok!
+# Check FID for BROAD_WGS
 AURORA <- read.table("/40/AD/AD_Seq_Data/05.-Analyses/05-Aurora_201904/03b-Aurora-FASeME/201904-Aurora-phenotye.ped", header = T, stringsAsFactors = FALSE)
 head(AURORA)
 sum(FASE_PHENO_NOT_FOUND$FID [(FASE_PHENO_NOT_FOUND$CLEANED_ID %in% AURORA$IID)] %in% AURORA$FID)
 # 31
+# BROAD FID Looks ok!
+
 FASE_PHENO_NOT_FOUND <- FASE_PHENO_NOT_FOUND[!grepl("Broad_WGS", FASE_PHENO_NOT_FOUND$Seq_project),]
 
 ## ??
 ## Get the missing phenotype from Aquilla
 ## STATUS
-FASE_PHENO$STATUS_ADDED[is.na(FASE_PHENO$STATUS..CC.) & !is.na(FASE_PHENO$AQ_STATUS)] <- "YES"
-FASE_PHENO$STATUS..CC.[is.na(FASE_PHENO$STATUS..CC.) & !is.na(FASE_PHENO$AQ_STATUS)] <- FASE_PHENO$AQ_STATUS[is.na(FASE_PHENO$STATUS..CC.) & !is.na(FASE_PHENO$AQ_STATUS)]
+FASE_PHENO.BLOOMFIELD$STATUS_ADDED_FROM_AQUILLA[is.na(FASE_PHENO.BLOOMFIELD$STATUS..CC.) & !is.na(FASE_PHENO.BLOOMFIELD$AQ_STATUS)] <- "YES"
+FASE_PHENO.BLOOMFIELD$STATUS..CC.[is.na(FASE_PHENO.BLOOMFIELD$STATUS..CC.) & !is.na(FASE_PHENO.BLOOMFIELD$AQ_STATUS)] <- FASE_PHENO.BLOOMFIELD$AQ_STATUS[is.na(FASE_PHENO.BLOOMFIELD$STATUS..CC.) & !is.na(FASE_PHENO.BLOOMFIELD$AQ_STATUS)]
 
 ## APOE
-FASE_PHENO$APOE_ADDED[is.na(FASE_PHENO$APOE) & !is.na(FASE_PHENO$AQ_APOE)] <- "YES"
-FASE_PHENO$APOE[is.na(FASE_PHENO$APOE) & !is.na(FASE_PHENO$AQ_APOE)]  <- FASE_PHENO$AQ_APOE[is.na(FASE_PHENO$APOE) & !is.na(FASE_PHENO$AQ_APOE)] 
+FASE_PHENO.BLOOMFIELD$APOE_ADDED_FROM_AQUILLA[is.na(FASE_PHENO.BLOOMFIELD$APOE) & !is.na(FASE_PHENO.BLOOMFIELD$AQ_APOE)] <- "YES"
+FASE_PHENO.BLOOMFIELD$APOE[is.na(FASE_PHENO.BLOOMFIELD$APOE) & !is.na(FASE_PHENO.BLOOMFIELD$AQ_APOE)]  <- FASE_PHENO.BLOOMFIELD$AQ_APOE[is.na(FASE_PHENO.BLOOMFIELD$APOE) & !is.na(FASE_PHENO.BLOOMFIELD$AQ_APOE)] 
 
 ## AAO
-FASE_PHENO$AAO <- as.numeric(as.character(FASE_PHENO$AAO))
-FASE_PHENO$AAO_ADDED[is.na(FASE_PHENO$AAO) & !is.na(FASE_PHENO$AQ_AAO)] <- "YES"
-FASE_PHENO$AAO[is.na(FASE_PHENO$AAO) & !is.na(FASE_PHENO$AQ_AAO)]  <- FASE_PHENO$AQ_AAO[is.na(FASE_PHENO$AAO) & !is.na(FASE_PHENO$AQ_AAO)]
+FASE_PHENO.BLOOMFIELD$AAO <- as.numeric(as.character(FASE_PHENO.BLOOMFIELD$AAO))
+FASE_PHENO.BLOOMFIELD$AAO_ADDED_FROM_AQUILLA[is.na(FASE_PHENO.BLOOMFIELD$AAO) & !is.na(FASE_PHENO.BLOOMFIELD$AQ_AAO)] <- "YES"
+FASE_PHENO.BLOOMFIELD$AAO[is.na(FASE_PHENO.BLOOMFIELD$AAO) & !is.na(FASE_PHENO.BLOOMFIELD$AQ_AAO)]  <- FASE_PHENO.BLOOMFIELD$AQ_AAO[is.na(FASE_PHENO.BLOOMFIELD$AAO) & !is.na(FASE_PHENO.BLOOMFIELD$AQ_AAO)]
 
 ## ALA
-FASE_PHENO$ALA <- as.numeric(as.character(FASE_PHENO$ALA))
-FASE_PHENO$ALA_ADDED[is.na(FASE_PHENO$ALA) & !is.na(FASE_PHENO$AQ_ALA)] <- "YES"
-FASE_PHENO$ALA[is.na(FASE_PHENO$ALA) & !is.na(FASE_PHENO$AQ_ALA)] <- FASE_PHENO$AQ_ALA[is.na(FASE_PHENO$ALA) & !is.na(FASE_PHENO$AQ_ALA)]
+FASE_PHENO.BLOOMFIELD$ALA <- as.numeric(as.character(FASE_PHENO.BLOOMFIELD$ALA))
+FASE_PHENO.BLOOMFIELD$ALA_ADDED_FROM_AQUILLA[is.na(FASE_PHENO.BLOOMFIELD$ALA) & !is.na(FASE_PHENO.BLOOMFIELD$AQ_ALA)] <- "YES"
+FASE_PHENO.BLOOMFIELD$ALA[is.na(FASE_PHENO.BLOOMFIELD$ALA) & !is.na(FASE_PHENO.BLOOMFIELD$AQ_ALA)] <- FASE_PHENO.BLOOMFIELD$AQ_ALA[is.na(FASE_PHENO.BLOOMFIELD$ALA) & !is.na(FASE_PHENO.BLOOMFIELD$AQ_ALA)]
 
 
-FASE_PHENO$FOUND  <- ifelse(FASE_PHENO$CLEANED_ID %in% FASE_PHENO$AQ_IID, "YES", "NO")
-FASE_PHENO$FOUND [grepl("Broad_WGS", FASE_PHENO$Seq_project)] <- "YES"
-table(FASE_PHENO$FOUND)
+FASE_PHENO.BLOOMFIELD$FOUND  <- ifelse(FASE_PHENO.BLOOMFIELD$CLEANED_ID %in% FASE_PHENO.BLOOMFIELD$AQ_IID, "YES", "NO")
+FASE_PHENO.BLOOMFIELD$FOUND [grepl("Broad_WGS", FASE_PHENO.BLOOMFIELD$Seq_project)] <- "YES"
+table(FASE_PHENO.BLOOMFIELD$FOUND)
 # NO  YES 
 # 252 3679 
 
@@ -252,30 +251,32 @@ ADSPFambased$ADSPFAM_STATUS <- ADSPFambased$ADSPFAM_AD
 ADSPFambased$ADSPFAM_STATUS[grepl("1|2|3|4", ADSPFambased$ADSPFAM_STATUS)] <- 2
 ADSPFambased$ADSPFAM_STATUS[grepl("0", ADSPFambased$ADSPFAM_STATUS)] <- 1
 ADSPFambased$ADSPFAM_STATUS[grepl("9|5", ADSPFambased$ADSPFAM_STATUS)] <- -9
-sum(FASE_PHENO$CLEANED_ID %in% ADSPFambased$ADSPFAM_SUBJID)
+sum(FASE_PHENO.BLOOMFIELD$CLEANED_ID %in% ADSPFambased$ADSPFAM_SUBJID)
 # 250
 
-FASE_PHENO <- cbind(FASE_PHENO, ADSPFambased[match(FASE_PHENO$CLEANED_ID, ADSPFambased$ADSPFAM_SUBJID),])
+FASE_PHENO.BLOOMFIELD <- cbind(FASE_PHENO.BLOOMFIELD, ADSPFambased[match(FASE_PHENO.BLOOMFIELD$CLEANED_ID, ADSPFambased$ADSPFAM_SUBJID),])
 
 ## First, fix FID from ADSPFAM
-FASE_PHENO$FID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)] <- FASE_PHENO$ADSPFAM_FamID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)]
+FASE_PHENO.BLOOMFIELD$FID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & !is.na(FASE_PHENO.BLOOMFIELD$ADSPFAM_FamID)] <- FASE_PHENO.BLOOMFIELD$ADSPFAM_FamID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & !is.na(FASE_PHENO.BLOOMFIELD$ADSPFAM_FamID)]
 
 ## AGE
-FASE_PHENO$AGE <- as.numeric(gsub("\\+", "",as.character(FASE_PHENO$AGE)))
-FASE_PHENO$AGE_ADDED_FROM_ADSPFAM[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)] <- "YES"
-FASE_PHENO$AGE[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)] <- FASE_PHENO$ADSPFAM_Age[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)]
+FASE_PHENO.BLOOMFIELD$AGE <- as.numeric(gsub("\\+", "",as.character(FASE_PHENO.BLOOMFIELD$AGE)))
+FASE_PHENO.BLOOMFIELD$AGE_ADDED_FROM_ADSPFAM[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & !is.na(FASE_PHENO.BLOOMFIELD$ADSPFAM_FamID)] <- "YES"
+FASE_PHENO.BLOOMFIELD$AGE[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & !is.na(FASE_PHENO.BLOOMFIELD$ADSPFAM_FamID)] <- FASE_PHENO.BLOOMFIELD$ADSPFAM_Age[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & !is.na(FASE_PHENO.BLOOMFIELD$ADSPFAM_FamID)]
 # 
-FASE_PHENO$STATUS..CC. <- as.numeric(as.character(FASE_PHENO$STATUS..CC.))
-FASE_PHENO$STATUS..CC.[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)] <- FASE_PHENO$ADSPFAM_STATUS[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & !is.na(FASE_PHENO$ADSPFAM_FamID)]
+FASE_PHENO.BLOOMFIELD$STATUS..CC. <- as.numeric(as.character(FASE_PHENO.BLOOMFIELD$STATUS..CC.))
+FASE_PHENO.BLOOMFIELD$STATUS_ADDED_FROM_ADSPFAM[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & !is.na(FASE_PHENO.BLOOMFIELD$ADSPFAM_FamID)] <- "YES"
+FASE_PHENO.BLOOMFIELD$STATUS..CC.[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & !is.na(FASE_PHENO.BLOOMFIELD$ADSPFAM_FamID)] <- FASE_PHENO.BLOOMFIELD$ADSPFAM_STATUS[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & !is.na(FASE_PHENO.BLOOMFIELD$ADSPFAM_FamID)]
 
 
 # APOE
-FASE_PHENO$APOE <- as.character(FASE_PHENO$APOE)
-FASE_PHENO$APOE[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)] <- ADSPFambased$APOE[match(FASE_PHENO$IID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)], ADSPFambased$SUBJID)]
+FASE_PHENO.BLOOMFIELD$APOE <- as.character(FASE_PHENO.BLOOMFIELD$APOE)
+FASE_PHENO.BLOOMFIELD$APOE_ADDED_FROM_ADSPFAM[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project)] <- "YES"
+FASE_PHENO.BLOOMFIELD$APOE[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project)] <- ADSPFambased$ADSPFAM_APOE[match(FASE_PHENO.BLOOMFIELD$IID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project)], ADSPFambased$ADSPFAM_SUBJID)]
 
 
 
-table(FASE_PHENO$STATUS..CC.)
+table(FASE_PHENO.BLOOMFIELD$STATUS..CC.)
 # -9    1    2     
 # 271 1146 2194   
 
@@ -284,20 +285,20 @@ table(FASE_PHENO$STATUS..CC.)
 # STATUS
 library(stringr)
 ## FIDs that needs to be updated
-FID_MISSING <- as.data.frame(FASE_PHENO$IID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)][is.na(FASE_PHENO$FID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project)])])
+FID_MISSING <- as.data.frame(FASE_PHENO.BLOOMFIELD$IID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project)][is.na(FASE_PHENO.BLOOMFIELD$FID[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project)])])
 FID_MISSING$PR <- "202103_ADSP_FUS-familial_WGS_UNNAMED"
 colnames(FID_MISSING) <- c("IID", "PR")
 
 ## NO IIDs match, so there is nothing to merge from ADSP FAM file (ADSPFamilyBasedPhenotypes_DS_2021.02.19_ALL.txt). ALL FIDs from 202104_ADSP_site27-sync-n303_WGS_UNNAMED needs to be updated
-ADSPFambased$IID[match(FASE_PHENO$IID[grepl ("202104_ADSP_site27-sync-n303_WGS_UNNAMED", FASE_PHENO$Seq_project)], ADSPFambased$SUBJID)]
+ADSPFambased$IID[match(FASE_PHENO.BLOOMFIELD$IID[grepl ("202104_ADSP_site27-sync-n303_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project)], ADSPFambased$SUBJID)]
 
-table(FASE_PHENO$STATUS..CC.)
+table(FASE_PHENO.BLOOMFIELD$STATUS..CC.)
 # -9    1    2     
 # 271 1146 2194   
 
-## Remove FID_MISSING from the NHW list
+## Remove FID_MISSING from the NHW list; Also remove 202104_ADSP_site27-sync-n303_WGS_UNNAMED samples because none of them are in ADSPFambased
 FID_MISSING
-FID_MISSING2 <- as.data.frame(FASE_PHENO$FID[grepl ("202104_ADSP_site27-sync-n303_WGS_UNNAMED", FASE_PHENO$Seq_project)]) 
+FID_MISSING2 <- as.data.frame(FASE_PHENO.BLOOMFIELD$FID[grepl ("202104_ADSP_site27-sync-n303_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project)]) 
 FID_MISSING2$PR <- "202104_ADSP_site27-sync-n303_WGS_UNNAMED"
 colnames(FID_MISSING2) <- c("IID", "PR")
 
@@ -306,38 +307,43 @@ FID_MISSING$FID <- FID_MISSING$IID
 
 write.table(FID_MISSING, "Samples_with_FID_problem.txt", sep ="\t", col.names = T, quote = F)
 
+FASE_PHENO.BLOOMFIELD <- FASE_PHENO.BLOOMFIELD [!FASE_PHENO.BLOOMFIELD$IID %in% FID_MISSING$IID,]
 
-
-
-FASE_PHENO <- FASE_PHENO [!FASE_PHENO$IID %in% FID_MISSING$IID,]
-
-table(FASE_PHENO$STATUS..CC.)
+table(FASE_PHENO.BLOOMFIELD$STATUS..CC.)
 # -9    1    2 
-# 271 1146 2194 
+# 283 1174 2335
 
 # Fix the age for 202103_ADSP_FUS-familial_WGS_UNNAMED and 202104_ADSP_site27-sync-n303_WGS_UNNAMED, 
 # 1=CO, 2=CA
-FASE_PHENO$AAO[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & FASE_PHENO$STATUS..CC. == 2 & !is.na(FASE_PHENO$AGE)] <- as.numeric(as.character(FASE_PHENO$AGE[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & FASE_PHENO$STATUS..CC. == 2 & !is.na(FASE_PHENO$AGE)]))
-FASE_PHENO$ALA[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & FASE_PHENO$STATUS..CC. == 1 & !is.na(FASE_PHENO$AGE)] <- as.numeric(as.character(FASE_PHENO$AGE[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO$Seq_project) & FASE_PHENO$STATUS..CC. == 1 & !is.na(FASE_PHENO$AGE)]))
+FASE_PHENO.BLOOMFIELD$ADDED_AAO_FROM_ADSPFAM[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & FASE_PHENO.BLOOMFIELD$STATUS..CC. == 2 & !is.na(FASE_PHENO.BLOOMFIELD$AGE)] <- "YES"
+FASE_PHENO.BLOOMFIELD$AAO[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & FASE_PHENO.BLOOMFIELD$STATUS..CC. == 2 & !is.na(FASE_PHENO.BLOOMFIELD$AGE)] <- as.numeric(as.character(FASE_PHENO.BLOOMFIELD$AGE[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & FASE_PHENO.BLOOMFIELD$STATUS..CC. == 2 & !is.na(FASE_PHENO.BLOOMFIELD$AGE)]))
+
+FASE_PHENO.BLOOMFIELD$ADDED_ALA_FROM_ADSPFAM[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & FASE_PHENO.BLOOMFIELD$STATUS..CC. == 1 & !is.na(FASE_PHENO.BLOOMFIELD$AGE)] <- "YES"
+FASE_PHENO.BLOOMFIELD$ALA[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & FASE_PHENO.BLOOMFIELD$STATUS..CC. == 1 & !is.na(FASE_PHENO.BLOOMFIELD$AGE)] <- as.numeric(as.character(FASE_PHENO.BLOOMFIELD$AGE[grepl ("202103_ADSP_FUS-familial_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & FASE_PHENO.BLOOMFIELD$STATUS..CC. == 1 & !is.na(FASE_PHENO.BLOOMFIELD$AGE)]))
 
 # # Also fix for 202104_ADSP_site27-sync-n303_WGS_UNNAMED
-# FASE_PHENO$AAO[grepl ("202104_ADSP_site27-sync-n303_WGS_UNNAMED", FASE_PHENO$Seq_project) & FASE_PHENO$STATUS..CC. == 2 & !is.na(FASE_PHENO$AGE)] <- as.numeric(as.character(FASE_PHENO$AGE[grepl ("202104_ADSP_site27-sync-n303_WGS_UNNAMED", FASE_PHENO$Seq_project) & FASE_PHENO$STATUS..CC. == 2 & !is.na(FASE_PHENO$AGE)]))
-# FASE_PHENO$ALA[grepl ("202104_ADSP_site27-sync-n303_WGS_UNNAMED", FASE_PHENO$Seq_project) & FASE_PHENO$STATUS..CC. == 1 & !is.na(FASE_PHENO$AGE)] <- as.numeric(as.character(FASE_PHENO$AGE[grepl ("202104_ADSP_site27-sync-n303_WGS_UNNAMED", FASE_PHENO$Seq_project) & FASE_PHENO$STATUS..CC. == 1 & !is.na(FASE_PHENO$AGE)]))
+# FASE_PHENO.BLOOMFIELD$AAO[grepl ("202104_ADSP_site27-sync-n303_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & FASE_PHENO.BLOOMFIELD$STATUS..CC. == 2 & !is.na(FASE_PHENO.BLOOMFIELD$AGE)] <- as.numeric(as.character(FASE_PHENO.BLOOMFIELD$AGE[grepl ("202104_ADSP_site27-sync-n303_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & FASE_PHENO.BLOOMFIELD$STATUS..CC. == 2 & !is.na(FASE_PHENO.BLOOMFIELD$AGE)]))
+# FASE_PHENO.BLOOMFIELD$ALA[grepl ("202104_ADSP_site27-sync-n303_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & FASE_PHENO.BLOOMFIELD$STATUS..CC. == 1 & !is.na(FASE_PHENO.BLOOMFIELD$AGE)] <- as.numeric(as.character(FASE_PHENO.BLOOMFIELD$AGE[grepl ("202104_ADSP_site27-sync-n303_WGS_UNNAMED", FASE_PHENO.BLOOMFIELD$Seq_project) & FASE_PHENO.BLOOMFIELD$STATUS..CC. == 1 & !is.na(FASE_PHENO.BLOOMFIELD$AGE)]))
 
 
 # Recode APOE4ANY
-FASE_PHENO$APOE4ANY <- FASE_PHENO$APOE
-FASE_PHENO$APOE4ANY[is.na(FASE_PHENO$APOE)] <- -9
-FASE_PHENO$APOE4ANY[grepl("22", FASE_PHENO$APOE)] <- 0
-FASE_PHENO$APOE4ANY[grepl("23|32", FASE_PHENO$APOE)] <- 0
-FASE_PHENO$APOE4ANY[grepl("33", FASE_PHENO$APOE)] <- 0
-FASE_PHENO$APOE4ANY[grepl("24|42", FASE_PHENO$APOE)] <- 1
-FASE_PHENO$APOE4ANY[grepl("34|43", FASE_PHENO$APOE)] <- 1
-FASE_PHENO$APOE4ANY[grepl("44", FASE_PHENO$APOE)] <- 1
+FASE_PHENO.BLOOMFIELD$APOE4ANY <- FASE_PHENO.BLOOMFIELD$APOE
+FASE_PHENO.BLOOMFIELD$APOE4ANY[is.na(FASE_PHENO.BLOOMFIELD$APOE)] <- -9
+FASE_PHENO.BLOOMFIELD$APOE4ANY[grepl("22", FASE_PHENO.BLOOMFIELD$APOE)] <- 0
+FASE_PHENO.BLOOMFIELD$APOE4ANY[grepl("23|32", FASE_PHENO.BLOOMFIELD$APOE)] <- 0
+FASE_PHENO.BLOOMFIELD$APOE4ANY[grepl("33", FASE_PHENO.BLOOMFIELD$APOE)] <- 0
+FASE_PHENO.BLOOMFIELD$APOE4ANY[grepl("24|42", FASE_PHENO.BLOOMFIELD$APOE)] <- 1
+FASE_PHENO.BLOOMFIELD$APOE4ANY[grepl("34|43", FASE_PHENO.BLOOMFIELD$APOE)] <- 1
+FASE_PHENO.BLOOMFIELD$APOE4ANY[grepl("44", FASE_PHENO.BLOOMFIELD$APOE)] <- 1
 
-table(FASE_PHENO$APOE4ANY)
+table(FASE_PHENO.BLOOMFIELD$APOE4ANY)
 # -9    0    1 
-# 241 1615 1938 
+# 114 1688 2043 
+
+
+
+
+
 
 # Select NHW and FASe samples, which we call NHW_SAMPLES here
 # NHW_SAMPLES <- PCA[PCA$PC1 < 0.02 & PCA$PC1 > -0.006 & PCA$PC2 < 0.03 & PCA$PC2 > -0.02,]
@@ -455,9 +461,9 @@ SD3_SD4_SD5.merged <- SD3_SD4_SD5.merged[, c("sd.3", "sd.4", "sd.5")]
 
 
 # Exclude HapMap
-sum(SD3_SD4_SD5.merged$sd.5 %in% FASE_PHENO$IID)
+sum(SD3_SD4_SD5.merged$sd.5 %in% FASE_PHENO.BLOOMFIELD$IID)
 # 3690
-SD3_SD4_SD5.merged <- SD3_SD4_SD5.merged[SD3_SD4_SD5.merged$sd.5 %in% FASE_PHENO$IID,]
+SD3_SD4_SD5.merged <- SD3_SD4_SD5.merged[SD3_SD4_SD5.merged$sd.5 %in% FASE_PHENO.BLOOMFIELD$IID,]
 
 
 # SD3_SD4_SD5.merged is the table of samples at sd 3-5; I will use this below; see heading "Finding samples within different SD and the related samples outside the SD margin"
@@ -492,7 +498,7 @@ FASE_NHW_ALL_MEM_SD <- list()
 
 for (i in 1:length(SD.cutoff.all)){
 ## Get phenot for NHW samples
-FASE_PHENO_NHW <- FASE_PHENO[FASE_PHENO$IID %in% SD3_SD4_SD5.merged[,paste0("sd.", SD.cutoff.all[i])],]
+FASE_PHENO_NHW <- FASE_PHENO.BLOOMFIELD[FASE_PHENO.BLOOMFIELD$IID %in% SD3_SD4_SD5.merged[,paste0("sd.", SD.cutoff.all[i])],]
 dim(FASE_PHENO_NHW)
 # [1] 3690   32
 
@@ -506,7 +512,7 @@ length(FIDUNIQUE)
 # 2438
 for (j in 1:length(FIDUNIQUE)){
 print(paste0("Doing_SM_", j, "_from_SD:", SD.cutoff.all[i])) 
-FASE_NHW_ALL_MEM.tmp <- FASE_PHENO [grepl(paste0("^", FIDUNIQUE[j], "$"), FASE_PHENO$FID),]
+FASE_NHW_ALL_MEM.tmp <- FASE_PHENO.BLOOMFIELD [grepl(paste0("^", FIDUNIQUE[j], "$"), FASE_PHENO.BLOOMFIELD$FID),]
 FASE_NHW_ALL_MEM <- rbind.data.frame(FASE_NHW_ALL_MEM, FASE_NHW_ALL_MEM.tmp)
 print(nrow(FASE_NHW_ALL_MEM))
 }
@@ -531,7 +537,7 @@ Relatives_found_outside_each_SD <- data.frame(extra.sd.3[sq], extra.sd.4[sq], ex
 
 
 # Add FID
-SD3_SD4_SD5.merged$FID <- FASE_PHENO$FID[match(SD3_SD4_SD5.merged$sd.5, FASE_PHENO$IID)]
+SD3_SD4_SD5.merged$FID <- FASE_PHENO.BLOOMFIELD$FID[match(SD3_SD4_SD5.merged$sd.5, FASE_PHENO.BLOOMFIELD$IID)]
 
 # Samples within each SD
 write.table(SD3_SD4_SD5.merged, "/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Samples_witihin_each_SD_Category.csv", sep =",", col.names = T, quote = F, row.names = FALSE)
@@ -701,9 +707,9 @@ SD3_SD4_SD5.merged.1000G <- SD3_SD4_SD5.merged.1000G[, c("sd.3", "sd.4", "sd.5")
 
 
 # Exclude HapMap
-sum(SD3_SD4_SD5.merged.1000G$sd.5 %in% FASE_PHENO$IID)
+sum(SD3_SD4_SD5.merged.1000G$sd.5 %in% FASE_PHENO.BLOOMFIELD$IID)
 # 3692
-SD3_SD4_SD5.merged.1000G <- SD3_SD4_SD5.merged.1000G[SD3_SD4_SD5.merged.1000G$sd.5 %in% FASE_PHENO$IID,]
+SD3_SD4_SD5.merged.1000G <- SD3_SD4_SD5.merged.1000G[SD3_SD4_SD5.merged.1000G$sd.5 %in% FASE_PHENO.BLOOMFIELD$IID,]
 # Two related samples excluded with HAPMAP analysis at 5 SD are included in this analysis
 
 ## (1000 genome)
@@ -736,7 +742,7 @@ FASE_NHW_ALL_MEM_SD.1000G <- list()
 
 for (i in 1:length(SD.cutoff.all)){
   ## Get phenot for NHW samples
-  FASE_PHENO_NHW <- FASE_PHENO[FASE_PHENO$IID %in% SD3_SD4_SD5.merged.1000G[,paste0("sd.", SD.cutoff.all[i])],]
+  FASE_PHENO_NHW <- FASE_PHENO.BLOOMFIELD[FASE_PHENO.BLOOMFIELD$IID %in% SD3_SD4_SD5.merged.1000G[,paste0("sd.", SD.cutoff.all[i])],]
   dim(FASE_PHENO_NHW)
   # [1] 3690   32
   
@@ -750,7 +756,7 @@ for (i in 1:length(SD.cutoff.all)){
   # 2438
   for (j in 1:length(FIDUNIQUE)){
     print(paste0("Doing_SM_", j, "_from_SD:", SD.cutoff.all[i])) 
-    FASE_NHW_ALL_MEM.tmp <- FASE_PHENO [grepl(paste0("^", FIDUNIQUE[j], "$"), FASE_PHENO$FID),]
+    FASE_NHW_ALL_MEM.tmp <- FASE_PHENO.BLOOMFIELD [grepl(paste0("^", FIDUNIQUE[j], "$"), FASE_PHENO.BLOOMFIELD$FID),]
     FASE_NHW_ALL_MEM <- rbind.data.frame(FASE_NHW_ALL_MEM, FASE_NHW_ALL_MEM.tmp)
     print(nrow(FASE_NHW_ALL_MEM))
   }
@@ -780,7 +786,7 @@ Relatives_found_outside_each_SD <- data.frame(extra.sd.3[sq], extra.sd.4[sq], ex
 
 
 # Add FID
-SD3_SD4_SD5.merged.1000G$FID <- FASE_PHENO$FID[match(SD3_SD4_SD5.merged.1000G$sd.5, FASE_PHENO$IID)]
+SD3_SD4_SD5.merged.1000G$FID <- FASE_PHENO.BLOOMFIELD$FID[match(SD3_SD4_SD5.merged.1000G$sd.5, FASE_PHENO.BLOOMFIELD$IID)]
 
 # Samples within each SD
 write.table(SD3_SD4_SD5.merged.1000G, "/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/Samples_witihin_each_SD_Category_1000G.csv", sep =",", col.names = T, quote = F, row.names = FALSE)
@@ -931,7 +937,7 @@ ggsave("Bloomfield_9810-hwe-geno0.05-mind0.1-WXSm-missing-projects-include-good-
 covars <- FASE_NHW_ALL_MEM_SD$sd.5
 
 ## Start demographic table
-# FASE_PHENO$IID <- as.character(FASE_PHENO$IID)
+# FASE_PHENO.BLOOMFIELD$IID <- as.character(FASE_PHENO.BLOOMFIELD$IID)
 table(table(covars$FID))
 # 1    2    3    4    5    6    7    8    9   10   12   14   24 
 # 2061   20  101  128   64   37   14    5    4    1    1    1    1 
@@ -1226,13 +1232,13 @@ table(table(FINAL.Covars$FID))
 
 
 
-sum(FINAL.Covars$IID %in% PHENO3894$IID)
+sum(FINAL.Covars$IID %in% FASE_PHENO.Aquilla$IID)
 # 2588
 
 
 
 ## ADD PID and MID
-FINAL.Covars.PID.MID <- cbind.data.frame(FINAL.Covars, PHENO3894[match(FINAL.Covars$CLEANED_ID, PHENO3894$IID), c("PID", "MID")])
+FINAL.Covars.PID.MID <- cbind.data.frame(FINAL.Covars, FASE_PHENO.Aquilla[match(FINAL.Covars$CLEANED_ID, FASE_PHENO.Aquilla$IID), c("PID", "MID")])
 FINAL.Covars.PID.MID <- FINAL.Covars.PID.MID[-c(3:4)]
 FINAL.Covars.PID.MID$PID[grepl("^\\.$", FINAL.Covars.PID.MID$PID)] <- NA
 FINAL.Covars.PID.MID$MID[grepl("^\\.$", FINAL.Covars.PID.MID$MID)] <- NA
@@ -1379,19 +1385,19 @@ dim(PHENO)
 
 sum(PHENO$Seq_project %in% FASE_PR)
 # 3931
-FASE_PHENO <- PHENO[PHENO$Seq_project %in% FASE_PR,]
+FASE_PHENO.BLOOMFIELD <- PHENO[PHENO$Seq_project %in% FASE_PR,]
 
-table(FASE_PHENO$STATUS..CC.)
-sum(FASE_PHENO$Bloomfield.gvcf.id..SM...9810. %in% PHENO3894$IID)
+table(FASE_PHENO.BLOOMFIELD$STATUS..CC.)
+sum(FASE_PHENO.BLOOMFIELD$Bloomfield.gvcf.id..SM...9810. %in% FASE_PHENO.Aquilla$IID)
 # 3452
-colnames(PHENO3894) <- paste0("Aquilla_", colnames(PHENO3894))
+colnames(FASE_PHENO.Aquilla) <- paste0("Aquilla_", colnames(FASE_PHENO.Aquilla))
 
-sum(FINAL.Covars.PID.MID.SELECTED.COLS$id %in% FASE_PHENO$Bloomfield.gvcf.id..SM...9810.)
+sum(FINAL.Covars.PID.MID.SELECTED.COLS$id %in% FASE_PHENO.BLOOMFIELD$Bloomfield.gvcf.id..SM...9810.)
 
 tt <- FINAL.Covars.PID.MID.SELECTED.COLS
 colnames(tt) <- paste0("NEW_", colnames(tt))
 
-tt <- cbind.data.frame(tt, FASE_PHENO[match(tt$NEW_id, FASE_PHENO$Bloomfield.gvcf.id..SM...9810.),])
+tt <- cbind.data.frame(tt, FASE_PHENO.BLOOMFIELD[match(tt$NEW_id, FASE_PHENO.BLOOMFIELD$Bloomfield.gvcf.id..SM...9810.),])
 sum(tt$NEW_STATUS == tt$STATUS..CC.)
 # 2295
 sum(tt$NEW_SEX == tt$Pheno_SEX)
