@@ -4181,7 +4181,7 @@ FINAL.COVAR$KEY1 <- paste(FINAL.COVAR$FID, FINAL.COVAR$IID, sep = ":")
 
 PCA$ADGC_COHORT <- FINAL.COVAR$ETHNICITY [match(PCA$KEY, FINAL.COVAR$KEY1)]
 PCA$ADGC_COHORT <- as.character(PCA$ADGC_COHORT)
-PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- PCA$COHORT[is.na(PCA$ADGC_COHORT)] 
+PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- as.character(PCA$COHORT[is.na(PCA$ADGC_COHORT)])
 
 
 p.sd.reportedNHW.ALL <- p.sd + geom_point(data = PCA[PCA$ADGC_COHORT == "NHW", c(3:4)], aes(col="Reported_NHW")) +
@@ -4200,22 +4200,24 @@ p.sd.reportedAFRICAN <- p.sd.reportedASIAN + geom_point(data = PCA[PCA$ADGC_COHO
   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", WashU = "pink")) 
 p.sd.reportedAFRICAN
 
-p.sd.ADGC.WASHU <- p.sd.reportedASIAN + geom_point(data = PCA[PCA$ADGC_COHORT == "AFRICAN", c(3:4)], aes(col="WashU")) +
+p.sd.ADGC.WASHU <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$ADGC_COHORT == "WashU", c(3:4)], aes(col="WashU")) +
   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", WashU = "pink")) 
 p.sd.ADGC.WASHU
 
 
 ## Reordering HapMap colors on top
-p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "CEU", c(3:4)], aes(col="CEU")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
-p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "JPT", c(3:4)], aes(col="JPT")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
-p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "JPT", c(3:4)], aes(col="JPT")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
-p.sd.reportedAFRICAN <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$COHORT == "YRI", c(3:4)], aes(col="YRI")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+p.sd.ADGC.WASHU <- p.sd.ADGC.WASHU + geom_point(data = PCA[PCA$COHORT == "CEU", c(3:4)], aes(col="CEU")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", WashU = "pink")) 
+p.sd.ADGC.WASHU <- p.sd.ADGC.WASHU + geom_point(data = PCA[PCA$COHORT == "JPT", c(3:4)], aes(col="JPT")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", WashU = "pink")) 
+p.sd.ADGC.WASHU <- p.sd.ADGC.WASHU + geom_point(data = PCA[PCA$COHORT == "YRI", c(3:4)], aes(col="YRI")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", WashU = "pink")) 
 
-p.sd.reportedAFRICAN
+p.sd.ADGC.WASHU <- p.sd.ADGC.WASHU + geom_point(data = PCA[PCA$COHORT == "WashU", c(3:4)], aes(col="WashU")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", WashU = "pink")) 
+
+
+p.sd.ADGC.WASHU
 
 
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-FROM-4ETHNIC-COHORT-ALL-COHORT-SD-cutoff2.jpg", plot = p.sd.reportedAFRICAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
