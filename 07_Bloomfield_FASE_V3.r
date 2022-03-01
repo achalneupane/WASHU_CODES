@@ -341,8 +341,11 @@ table(FASE_PHENO.BLOOMFIELD$APOE4ANY)
 # 114 1688 2043 
 
 
+BLOOMFIELD.AQUILLA.ADSPFAMbased <- FASE_PHENO.BLOOMFIELD
 
+colnames(BLOOMFIELD.AQUILLA.ADSPFAMbased)[grepl("AQ_", colnames(BLOOMFIELD.AQUILLA.ADSPFAMbased))] <- paste0("AQUILLA_", gsub("AQ_", "", colnames(BLOOMFIELD.AQUILLA.ADSPFAMbased)[grepl("AQ_", colnames(BLOOMFIELD.AQUILLA.ADSPFAMbased))]))
 
+write.table(BLOOMFIELD.AQUILLA.ADSPFAMbased, "/40/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/02-FASe-Achal/BLOOMFIELD.AQUILLA.ADSPFAMbased_phenotype_with_added_status.csv", sep =",", col.names = T, quote = F, row.names = FALSE)
 
 
 # Select NHW and FASe samples, which we call NHW_SAMPLES here
