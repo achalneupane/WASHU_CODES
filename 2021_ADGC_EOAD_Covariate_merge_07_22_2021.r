@@ -2580,6 +2580,7 @@ dim(PCA)
 HAPMAP.ethnicty <- read.table("relationships_w_pops_121708.txt", header = T )
 head(HAPMAP.ethnicty)
 
+PCA$KEY <- paste(PCA$FID, PCA$IID, sep =":")
 
 PCA$COHORT <- "ADGC"
 PCA$COHORT <- HAPMAP.ethnicty$population[match(PCA$IID, HAPMAP.ethnicty$IID)]
@@ -2694,150 +2695,150 @@ p.sd
 
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
-####################################################################
-## Add presumed ethnicity from NACC phenotype I got from Fengxian ##
-####################################################################
-# Since some NACC samples in ADGC have same IID but different FID, I will get the presumed ethcity/race of Unique IDs only
-NACC.non.duplicated.pca.IID <- PCA$IID[!(duplicated(PCA$IID) | duplicated(PCA$IID, fromLast = TRUE))][grepl("NACC", PCA$IID[!(duplicated(PCA$IID) | duplicated(PCA$IID, fromLast = TRUE))])]
-sum(NACC.AD$NACC_ID %in% NACC.non.duplicated.pca.IID)
-# 14555
-PCA$Reported_Ethnicity <- NACC.AD[match(PCA$IID, NACC.AD$NACC_ID), "ETHNICITY"]
-PCA$Reported_race <- NACC.AD[match(PCA$IID, NACC.AD$NACC_ID), "race"]
-PCA$Reported_Race.Ethnicity <- paste(PCA$Reported_Ethnicity, PCA$Reported_race, sep = ":")
-as.data.frame(table(PCA$Reported_Race.Ethnicity))
-# 1              Hispanic/Latino:American Indian or Alaska Native    28
-# 2                     Hispanic/Latino:Black or African American    38
-# 3      Hispanic/Latino:Native Hawaiian or Other PacificIslander     1
-# 4                                         Hispanic/Latino:Other   183
-# 5                                       Hispanic/Latino:Unknown    47
-# 6                                         Hispanic/Latino:White   630
-# 7                     Missing/Unknown:Black or African American     1
-# 8                                       Missing/Unknown:Unknown     6
-# 9                                         Missing/Unknown:White    38
-# 10                                                        NA:NA 51484
-# 11         Non Hispanic/Latino:American Indian or Alaska Native     2
-# 12                                    Non Hispanic/Latino:Asian   318
-# 13                Non Hispanic/Latino:Black or African American  1629
-# 14 Non Hispanic/Latino:Native Hawaiian or Other PacificIslander     1
-# 15                                    Non Hispanic/Latino:Other     4
-# 16                                  Non Hispanic/Latino:Unknown     9
-# 17                                    Non Hispanic/Latino:White 11776
-
-
-
-## Add ethnicity from NACC
-## Non Hispanic/Latino:White
-df.ethnicity <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:White", 3:4]
-p.sd.reportedNHW <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_NHW")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue")) 
-p.sd.reportedNHW
-
-ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-NHW-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedNHW, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
-
-
-## Hispanic Latino: White
-df.ethnicity <- PCA[PCA$Reported_Race.Ethnicity == "Hispanic/Latino:White", 3:4]
-p.sd.reportedHISPANIC <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_Hispanic_Latino_white")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_Hispanic_Latino_white = 'yellow', YRI = "blue")) 
-p.sd.reportedHISPANIC
-
-ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-Hispanic-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedHISPANIC, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
-
-
-## Non Hispanic/Latino:Asian
-df.ethnicity <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:Asian", 3:4]
-p.sd.reportedASIAN <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_Asian")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_Asian = 'yellow', YRI = "blue")) 
-p.sd.reportedASIAN
-
-ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ASIAN-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedASIAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
-
-## Non Hispanic/Latino:Black or African American
-df.ethnicity <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:Black or African American", 3:4]
-p.sd.reportedBLACK <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_NH_Black")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NH_Black = 'yellow', YRI = "blue")) 
-p.sd.reportedBLACK
-
-ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-AA-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedBLACK, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
-
-## All presumed in one plot
-df.ethnicity.NHW <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:White", 3:4]
-df.ethnicity.HISPANIC <- PCA[PCA$Reported_Race.Ethnicity == "Hispanic/Latino:White", 3:4]
-df.ethnicity.ASIAN <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:Asian", 3:4]
-df.ethnicity.AFRICAN <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:Black or African American", 3:4]
-
-p.sd.reportedNHW.ALL <- p.sd + geom_point(data = df.ethnicity.NHW, aes(col="Reported_NHW")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue")) 
-p.sd.reportedNHW
-
-p.sd.reportedHISPANIC <- p.sd.reportedNHW + geom_point(data = df.ethnicity.HISPANIC, aes(col="Reported_Hispanic_Latino_white")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', YRI = "blue")) 
-p.sd.reportedHISPANIC
-
-p.sd.reportedASIAN <- p.sd.reportedHISPANIC + geom_point(data = df.ethnicity.ASIAN, aes(col="Reported_Asian")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', Reported_Asian = 'violet', YRI = "blue")) 
-p.sd.reportedASIAN
-
-p.sd.reportedAFRICAN <- p.sd.reportedASIAN + geom_point(data = df.ethnicity.AFRICAN, aes(col="Reported_African")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
-p.sd.reportedAFRICAN
-
-ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-NACC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedAFRICAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
-
-############################################
-## ADD presumed Ethnicity from ADGC covar ##
-############################################
-# exclude duplicated IDs
-non.duplicated.pca.IID <- PCA$IID[!(duplicated(PCA$IID) | duplicated(PCA$IID, fromLast = TRUE))]
-sum(FINAL.COVAR$IID %in% non.duplicated.pca.IID)
-# 63785
-PCA$Reported_Ethnicity <- FINAL.COVAR[match(PCA$IID, FINAL.COVAR$IID), "PRESUMED_ETHNICITY"]
-PCA$Reported_race <- FINAL.COVAR[match(PCA$IID, FINAL.COVAR$IID), "PRESUMED_RACE"]
-PCA$Reported_Race.Ethnicity <- paste(PCA$Reported_Ethnicity, PCA$Reported_race, sep = ":")
-as.data.frame(table(PCA$Reported_Race.Ethnicity))
-# Var1  Freq
-# 1                                             9:Caucasian     8
-# 2                                                9:Uknown     4
-# 3                               Hispanic:African American    22
-# 4              Hispanic:American Indian or Alaskan Native    15
-# 5                                      Hispanic:Caucasian  1379
-# 6      Hispanic:Native Hawaiian or Other Pacific Islander    54
-# 7                                         Hispanic:Uknown   172
-# 8                                     NA:African American   795
-# 9                                                   NA:NA 55765
-# 10                          Not Hispanic:African American   790
-# 11         Not Hispanic:American Indian or Alaskan Native    24
-# 12                                 Not Hispanic:Caucasian  6842
-# 13 Not Hispanic:Native Hawaiian or Other Pacific Islander   304
-# 14                                    Not Hispanic:Uknown     3
-# 15                                Uknown:African American     1
-# 16                                       Uknown:Caucasian     1
-# 17                                          Uknown:Uknown    16
-
-
-
-
-
-## All presumed in one plot
-
-p.sd.reportedNHW.ALL <- p.sd + geom_point(data = PCA$COHORT == "NHW", aes(col="Reported_NHW")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue")) 
-p.sd.reportedNHW
-
-p.sd.reportedHISPANIC <- p.sd.reportedNHW + geom_point(data = df.ethnicity.HISPANIC, aes(col="Reported_Hispanic_Latino_white")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', YRI = "blue")) 
-p.sd.reportedHISPANIC
-
-p.sd.reportedASIAN <- p.sd.reportedHISPANIC + geom_point(data = df.ethnicity.ASIAN, aes(col="Reported_Asian")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', Reported_Asian = 'violet', YRI = "blue")) 
-p.sd.reportedASIAN
-
-p.sd.reportedAFRICAN <- p.sd.reportedASIAN + geom_point(data = df.ethnicity.AFRICAN, aes(col="Reported_African")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
-p.sd.reportedAFRICAN
-
-ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedAFRICAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
-
+# ####################################################################
+# ## Add presumed ethnicity from NACC phenotype I got from Fengxian ##
+# ####################################################################
+# # Since some NACC samples in ADGC have same IID but different FID, I will get the presumed ethcity/race of Unique IDs only
+# NACC.non.duplicated.pca.IID <- PCA$IID[!(duplicated(PCA$IID) | duplicated(PCA$IID, fromLast = TRUE))][grepl("NACC", PCA$IID[!(duplicated(PCA$IID) | duplicated(PCA$IID, fromLast = TRUE))])]
+# sum(NACC.AD$NACC_ID %in% NACC.non.duplicated.pca.IID)
+# # 14555
+# PCA$Reported_Ethnicity <- NACC.AD[match(PCA$IID, NACC.AD$NACC_ID), "ETHNICITY"]
+# PCA$Reported_race <- NACC.AD[match(PCA$IID, NACC.AD$NACC_ID), "race"]
+# PCA$Reported_Race.Ethnicity <- paste(PCA$Reported_Ethnicity, PCA$Reported_race, sep = ":")
+# as.data.frame(table(PCA$Reported_Race.Ethnicity))
+# # 1              Hispanic/Latino:American Indian or Alaska Native    28
+# # 2                     Hispanic/Latino:Black or African American    38
+# # 3      Hispanic/Latino:Native Hawaiian or Other PacificIslander     1
+# # 4                                         Hispanic/Latino:Other   183
+# # 5                                       Hispanic/Latino:Unknown    47
+# # 6                                         Hispanic/Latino:White   630
+# # 7                     Missing/Unknown:Black or African American     1
+# # 8                                       Missing/Unknown:Unknown     6
+# # 9                                         Missing/Unknown:White    38
+# # 10                                                        NA:NA 51484
+# # 11         Non Hispanic/Latino:American Indian or Alaska Native     2
+# # 12                                    Non Hispanic/Latino:Asian   318
+# # 13                Non Hispanic/Latino:Black or African American  1629
+# # 14 Non Hispanic/Latino:Native Hawaiian or Other PacificIslander     1
+# # 15                                    Non Hispanic/Latino:Other     4
+# # 16                                  Non Hispanic/Latino:Unknown     9
+# # 17                                    Non Hispanic/Latino:White 11776
+# 
+# 
+# 
+# ## Add ethnicity from NACC
+# ## Non Hispanic/Latino:White
+# df.ethnicity <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:White", 3:4]
+# p.sd.reportedNHW <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_NHW")) +
+#   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue")) 
+# p.sd.reportedNHW
+# 
+# ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-NHW-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedNHW, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+# 
+# 
+# ## Hispanic Latino: White
+# df.ethnicity <- PCA[PCA$Reported_Race.Ethnicity == "Hispanic/Latino:White", 3:4]
+# p.sd.reportedHISPANIC <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_Hispanic_Latino_white")) +
+#   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_Hispanic_Latino_white = 'yellow', YRI = "blue")) 
+# p.sd.reportedHISPANIC
+# 
+# ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-Hispanic-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedHISPANIC, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+# 
+# 
+# ## Non Hispanic/Latino:Asian
+# df.ethnicity <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:Asian", 3:4]
+# p.sd.reportedASIAN <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_Asian")) +
+#   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_Asian = 'yellow', YRI = "blue")) 
+# p.sd.reportedASIAN
+# 
+# ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ASIAN-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedASIAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+# 
+# ## Non Hispanic/Latino:Black or African American
+# df.ethnicity <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:Black or African American", 3:4]
+# p.sd.reportedBLACK <- p.sd + geom_point(data = df.ethnicity, aes(col="Reported_NH_Black")) +
+#   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NH_Black = 'yellow', YRI = "blue")) 
+# p.sd.reportedBLACK
+# 
+# ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-AA-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedBLACK, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+# 
+# ## All presumed in one plot
+# df.ethnicity.NHW <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:White", 3:4]
+# df.ethnicity.HISPANIC <- PCA[PCA$Reported_Race.Ethnicity == "Hispanic/Latino:White", 3:4]
+# df.ethnicity.ASIAN <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:Asian", 3:4]
+# df.ethnicity.AFRICAN <- PCA[PCA$Reported_Race.Ethnicity == "Non Hispanic/Latino:Black or African American", 3:4]
+# 
+# p.sd.reportedNHW.ALL <- p.sd + geom_point(data = df.ethnicity.NHW, aes(col="Reported_NHW")) +
+#   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue")) 
+# p.sd.reportedNHW
+# 
+# p.sd.reportedHISPANIC <- p.sd.reportedNHW + geom_point(data = df.ethnicity.HISPANIC, aes(col="Reported_Hispanic_Latino_white")) +
+#   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', YRI = "blue")) 
+# p.sd.reportedHISPANIC
+# 
+# p.sd.reportedASIAN <- p.sd.reportedHISPANIC + geom_point(data = df.ethnicity.ASIAN, aes(col="Reported_Asian")) +
+#   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', Reported_Asian = 'violet', YRI = "blue")) 
+# p.sd.reportedASIAN
+# 
+# p.sd.reportedAFRICAN <- p.sd.reportedASIAN + geom_point(data = df.ethnicity.AFRICAN, aes(col="Reported_African")) +
+#   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+# p.sd.reportedAFRICAN
+# 
+# ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-NACC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedAFRICAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+# 
+# ############################################
+# ## ADD presumed Ethnicity from ADGC covar ##
+# ############################################
+# # exclude duplicated IDs
+# non.duplicated.pca.IID <- PCA$IID[!(duplicated(PCA$IID) | duplicated(PCA$IID, fromLast = TRUE))]
+# sum(FINAL.COVAR$IID %in% non.duplicated.pca.IID)
+# # 63785
+# PCA$Reported_Ethnicity <- FINAL.COVAR[match(PCA$IID, FINAL.COVAR$IID), "PRESUMED_ETHNICITY"]
+# PCA$Reported_race <- FINAL.COVAR[match(PCA$IID, FINAL.COVAR$IID), "PRESUMED_RACE"]
+# PCA$Reported_Race.Ethnicity <- paste(PCA$Reported_Ethnicity, PCA$Reported_race, sep = ":")
+# as.data.frame(table(PCA$Reported_Race.Ethnicity))
+# # Var1  Freq
+# # 1                                             9:Caucasian     8
+# # 2                                                9:Uknown     4
+# # 3                               Hispanic:African American    22
+# # 4              Hispanic:American Indian or Alaskan Native    15
+# # 5                                      Hispanic:Caucasian  1379
+# # 6      Hispanic:Native Hawaiian or Other Pacific Islander    54
+# # 7                                         Hispanic:Uknown   172
+# # 8                                     NA:African American   795
+# # 9                                                   NA:NA 55765
+# # 10                          Not Hispanic:African American   790
+# # 11         Not Hispanic:American Indian or Alaskan Native    24
+# # 12                                 Not Hispanic:Caucasian  6842
+# # 13 Not Hispanic:Native Hawaiian or Other Pacific Islander   304
+# # 14                                    Not Hispanic:Uknown     3
+# # 15                                Uknown:African American     1
+# # 16                                       Uknown:Caucasian     1
+# # 17                                          Uknown:Uknown    16
+# 
+# 
+# 
+# 
+# 
+# ## All presumed in one plot
+# 
+# p.sd.reportedNHW.ALL <- p.sd + geom_point(data = PCA$COHORT == "NHW", aes(col="Reported_NHW")) +
+#   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue")) 
+# p.sd.reportedNHW
+# 
+# p.sd.reportedHISPANIC <- p.sd.reportedNHW + geom_point(data = df.ethnicity.HISPANIC, aes(col="Reported_Hispanic_Latino_white")) +
+#   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', YRI = "blue")) 
+# p.sd.reportedHISPANIC
+# 
+# p.sd.reportedASIAN <- p.sd.reportedHISPANIC + geom_point(data = df.ethnicity.ASIAN, aes(col="Reported_Asian")) +
+#   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', Reported_Asian = 'violet', YRI = "blue")) 
+# p.sd.reportedASIAN
+# 
+# p.sd.reportedAFRICAN <- p.sd.reportedASIAN + geom_point(data = df.ethnicity.AFRICAN, aes(col="Reported_African")) +
+#   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic_Latino_white = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue")) 
+# p.sd.reportedAFRICAN
+# 
+# ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd.reportedAFRICAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+# 
 ##################################
 ## With Presumed Ethnic cohorts ##
 ##################################
@@ -2898,12 +2899,12 @@ PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
 
 HISPANIC.SUBSET <- PCA[PCA$PC2 > PC2max & PCA$PC2 < 0.01 & PCA$PC1 < PC1max,]
 
-## Use shiny app to get brushed points
-# https://raw.githubusercontent.com/achalneupane/WASHU_CODES/master/brushed_pointsAPP.R
-source("https://raw.githubusercontent.com/achalneupane/WASHU_CODES/master/brushed_pointsAPP.R", print.eval=TRUE)
-
-brushed.dat <- read.table("brushed_data.csv", row.names = NULL)
-HISPANIC.SUBSET <- HISPANIC.SUBSET[!HISPANIC.SUBSET$IID %in% brushed.dat$IID,]
+# ## Use shiny app to get brushed points
+# # https://raw.githubusercontent.com/achalneupane/WASHU_CODES/master/brushed_pointsAPP.R
+# source("https://raw.githubusercontent.com/achalneupane/WASHU_CODES/master/brushed_pointsAPP.R", print.eval=TRUE)
+# 
+# brushed.dat <- read.table("brushed_data.csv", row.names = NULL)
+# HISPANIC.SUBSET <- HISPANIC.SUBSET[!HISPANIC.SUBSET$IID %in% brushed.dat$IID,]
 
 PC1_PC2_Hispanic <- p.sd.reportedAFRICAN + geom_point(data = HISPANIC.SUBSET[c("PC1","PC2")], aes(col="NEW_Hispanic")) +
   scale_color_manual(values = c(ADGC = 'gold', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", NEW_Hispanic = "black")) 
@@ -3079,11 +3080,11 @@ ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/A
 HISPANIC.SUBSET2 <- HISPANIC.SUBSET2[!is.na(HISPANIC.SUBSET2$IID),]
 
 
-PC1_PC2_Hispanic2.with.Hispanic.subset <- p.sd.reportedAFRICAN + geom_point(data = HISPANIC.SUBSET2[c("PC2","PC3")], aes(col="NEW_Hispanic")) +
+PC2_PC3_Hispanic2.with.Hispanic.subset <- p.sd.reportedAFRICAN + geom_point(data = HISPANIC.SUBSET2[c("PC2","PC3")], aes(col="NEW_Hispanic")) +
   scale_color_manual(values = c(ADGC = 'gold', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", NEW_Hispanic = "black")) 
-PC1_PC2_Hispanic2.with.Hispanic.subset
+PC2_PC3_Hispanic2.with.Hispanic.subset
 
-ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-Hispanic-from-selected-area-of-PC1-and-PC2-laid-onto-PC2-and-PC3.jpg", plot = PC1_PC2_Hispanic2.with.Hispanic.subset, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-Hispanic-from-selected-area-of-PC1-and-PC2-laid-onto-PC2-and-PC3.jpg", plot = PC2_PC3_Hispanic2.with.Hispanic.subset, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 
 ###############################
@@ -3230,12 +3231,24 @@ p.sd.reportedAFRICAN
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-FROM-4ETHNIC-COHORT-ALL-COHORT-SD-cutoff-PC2-PC4.jpg", plot = p.sd.reportedAFRICAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 # Now plotting black points from PC1_PC2_Hispanic2 in the PCA with PC2 and PC4
-PC2_PC4_Hispanic <- p.sd.reportedAFRICAN + geom_point(data = HISPANIC.SUBSET2[c("PC2","PC4")], aes(col="NEW_Hispanic")) +
+PC2_PC4_Hispanic <- p.sd.reportedAFRICAN + geom_point(data = HISPANIC.SUBSET2[,c("PC2","PC4")], aes(col="NEW_Hispanic")) +
   scale_color_manual(values = c(ADGC = 'gold', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", NEW_Hispanic = "black")) 
 
 PC2_PC4_Hispanic
 
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-Hispanic-from-selected-area-of-PC1-and-PC2-laid-onto-PC2-and-PC4.jpg", plot = PC2_PC4_Hispanic, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+
+## Select samples outside SD 5 of the lower plane of NHW; ie., samples below PC4 min
+  SD.cutoff <- 5  
+  PC2min <- (mean(ASIAN_SAMPLES_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
+  PC2max <- (mean(ASIAN_SAMPLES_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
+  PC4min <- (mean(ASIAN_SAMPLES_JPT$PC4) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC4)))
+  PC4max <- (mean(ASIAN_SAMPLES_JPT$PC4) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC4)))
+  
+sum(PCA$PC4 < PC4min & PCA$ADGC_COHORT == "HISPANIC")
+
+SELECTED.HISPANIC <- PCA[(PCA$PC4 < PC4min & PCA$ADGC_COHORT == "HISPANIC"),]
 
 
 ###########################################################################################
@@ -4173,7 +4186,6 @@ for (i in 1:length(SD.cutoff.all)){
 
 p.sd
 
-
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-WashU-ALL-COHORT-SD-cutoff.jpg", plot = p.sd, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 ##################################
@@ -4235,7 +4247,7 @@ PC2min <- (mean(AA_SAMPLES_YRI$PC2) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
 PC2max <- (mean(AA_SAMPLES_YRI$PC2) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
 
 # For African American, we will keep the subset in the shaded region within the blue rectangle
-SELECTED.p <- p.sd.reportedAFRICAN + annotate("rect", xmin=-0.0140, xmax=-0.0029, ymin=PC2min, ymax=0.0012, 
+SELECTED.p <- p.sd.ADGC.WASHU + annotate("rect", xmin=-0.0140, xmax=-0.0029, ymin=PC2min, ymax=0.0012, 
                                               colour="blue", alpha = .3) 
 
 SD.cutoff <- 4
@@ -4291,14 +4303,14 @@ PCA.NHW <- PCA.ADGC[PCA.ADGC$PC1 > PC1min &
 dim(PCA.NHW)
 # [1] 51966    15
 
-df <- read.table("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/EOAD_samples_CA_65_CO_80_V2.csv", header = T)
 
-# Keep those in NHW only
-combined_NHW$KEY1 <- paste(combined_NHW$FID, combined_NHW$IID, sep = ":")
-sum(combined_NHW$KEY1 %in% PCA.NHW$KEY)
-# 49174
 
-PCA.NHW.PHENO <- combined_NHW[combined_NHW$KEY1 %in% PCA.NHW$KEY,]
+# ## Remove Hispanics from this
+# sum(!PCA.NHW$KEY %in% HISPANIC.SUBSET2$KEY)
+# PCA.NHW <- PCA.NHW[!PCA.NHW$KEY %in% HISPANIC.SUBSET2$KEY,]
+# 
+# HISPANIC.SUBSET2
+
 
 ########
 ## AA ##
@@ -4319,17 +4331,6 @@ PCA.AA <- PCA.ADGC[PCA.ADGC$PC1 > -0.0140 &
 
 dim(PCA.AA)
 # 8884   18
-
-
-dim(ADGC_AA_covar)
-# 8563   51
-
-# Keep those in AA only
-ADGC_AA_covar$KEY1 <- paste(ADGC_AA_covar$FID, ADGC_AA_covar$IID, sep = ":")
-sum(ADGC_AA_covar$KEY1 %in% PCA.AA$KEY)
-# 8471
-
-PCA.AA.PHENO <- ADGC_AA_covar[ADGC_AA_covar$KEY2 %in% PCA.AA$KEY,]
 
 ###########
 ## ASIAN ##
@@ -4352,186 +4353,28 @@ PCA.ASIAN <- PCA.ADGC[PCA.ADGC$PC1 > PC1min &
 dim(PCA.ASIAN)
 # 4755   18
 
-
-dim(ADGC_Asian_covar)
-# 4742   52
-
-ADGC_Asian_covar$KEY1 <- paste(ADGC_Asian_covar$FID, ADGC_Asian_covar$IID, sep = ":")
-sum(ADGC_Asian_covar$KEY1 %in% PCA.ASIAN$KEY)
-# 4714
-
-PCA.ASIAN.PHENO <- ADGC_Asian_covar[ADGC_Asian_covar$KEY1 %in% PCA.ASIAN$KEY,]
-
-
 ###############################
 ## PLOT the selected samples ##
 ###############################
 
-SELECTED.POST.HAPMAP <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$KEY %in% PCA.NHW.PHENO$KEY1, c(3:4)], aes(col="SELECTED_NHW")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", SELECTED_NHW = "purple")) 
+SELECTED.POST.HAPMAP <- p.sd.ADGC.WASHU + geom_point(data = PCA[PCA$KEY %in% PCA.NHW$KEY, c("PC1", "PC2")], aes(col="SELECTED_NHW")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", WashU = "pink", SELECTED_NHW = "purple")) 
 
-SELECTED.POST.HAPMAP <- SELECTED.POST.HAPMAP + geom_point(data = PCA[PCA$KEY %in% PCA.AA.PHENO$KEY1, c(3:4)], aes(col="SELECTED_AA")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", SELECTED_NHW = "purple", SELECTED_AA = "skyblue")) 
-
-
-SELECTED.POST.HAPMAP <- SELECTED.POST.HAPMAP + geom_point(data = PCA[PCA$KEY %in% PCA.ASIAN.PHENO$KEY1, c(3:4)], aes(col="SELECTED_ASIAN")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", SELECTED_NHW = "purple", SELECTED_AA = "skyblue", SELECTED_ASIAN = "chocolate"))
+SELECTED.POST.HAPMAP <- SELECTED.POST.HAPMAP + geom_point(data = PCA[PCA$KEY %in% PCA.AA$KEY, c("PC1", "PC2")], aes(col="SELECTED_AA")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", SELECTED_NHW = "purple", WashU = "pink", SELECTED_AA = "skyblue")) 
 
 
+SELECTED.POST.HAPMAP <- SELECTED.POST.HAPMAP + geom_point(data = PCA[PCA$KEY %in% PCA.ASIAN$KEY, c("PC1", "PC2")], aes(col="SELECTED_ASIAN")) +
+  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", SELECTED_NHW = "purple", SELECTED_AA = "skyblue", WashU = "pink", SELECTED_ASIAN = "chocolate"))
+
+SELECTED.POST.HAPMAP
 
 
-
-
-#######################################
-## Get Hispanic outside 5 SD PC2-PC4 ##
-#######################################
-# I can select Hispanics from PC2 and PC4 clusters outside 5 SD. I am taking reference of this plot here: https://www.notion.so/HapMap-PCA-plot-with-PC2-and-PC3-PC2-and-PC4-0947fb630683446ba21915524a64ff42#62daaacefee44b87b6d8905df552238c
-## Generate a new file that has IID, PC1,PC2, and a new column COHORT 
-p <- ggplot(PCA, aes(x=PC2, y=PC4, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("ADGC_65777") +
-  scale_color_manual(values = c('pink', 'green', 'blue', "red", "black")) +
-  annotate("text", x=0.003, y=0.003, label="NHW", size=4, color = "red") +
-  annotate("text", x=-0.01, y=0, label="AA", size=4, color = "blue") +
-  annotate("text", x=0, y=0.015, label="Asian", size=4, color = "green") 
-p
-
-ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-WashU-ALL-COHORT.jpg", plot = p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
-
-## SD FILTER for NHW
-# Samples within SD cutoff in reference to CEU HAPMAP samples
-NHW_SAMPLES_CEU <- PCA[PCA$COHORT == "CEU",]
-AA_SAMPLES_YRI <- PCA[PCA$COHORT == "YRI",]
-ASIAN_SAMPLES_JPT <- PCA[PCA$COHORT == "JPT",]
-
-p.sd <- p
-
-## (HAPMAP)
-## Select NHW samples only
-library(tidyverse)
-
-## NHW
-SDSelection.Table.NHW <- list()
-SD.cutoff.all <- 3:5
-for (i in 1:length(SD.cutoff.all)){
-  SD.cutoff <- SD.cutoff.all[i]  
-  PC1min <- (mean(NHW_SAMPLES_CEU$PC1) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
-  PC1max <- (mean(NHW_SAMPLES_CEU$PC1) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
-  PC2min <- (mean(NHW_SAMPLES_CEU$PC2) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
-  PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
-  
-  SDSelection <- PCA[PCA$PC1 > PC1min &
-                       PCA$PC1 < PC1max &
-                       PCA$PC2 > PC2min &
-                       PCA$PC2 < PC2max, ]
-  
-  SDSelection.Table.NHW[[i]] <- as.vector(SDSelection$IID)
-  
-  p.sd <- p.sd + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
-                          fill=NA, colour="red") +
-    annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
-}
-
-
-
-## AA
-SDSelection.Table.AA <- list()
-SD.cutoff.all <- 3:5
-for (i in 1:length(SD.cutoff.all)){
-  SD.cutoff <- SD.cutoff.all[i]  
-  PC1min <- (mean(AA_SAMPLES_YRI$PC1) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC1)))
-  PC1max <- (mean(AA_SAMPLES_YRI$PC1) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC1)))
-  PC2min <- (mean(AA_SAMPLES_YRI$PC2) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
-  PC2max <- (mean(AA_SAMPLES_YRI$PC2) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
-  
-  SDSelection <- PCA[PCA$PC1 > PC1min & 
-                       PCA$PC1 < PC1max &
-                       PCA$PC2 > PC2min &
-                       PCA$PC2 < PC2max,]
-  
-  SDSelection.Table.AA[[i]] <- as.vector(SDSelection$IID)
-  
-  p.sd <- p.sd + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
-                          fill=NA, colour="blue") +
-    annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
-}
-
-
-
-## Asian
-SDSelection.Table.Asian <- list()
-SD.cutoff.all <- 3:5
-for (i in 1:length(SD.cutoff.all)){
-  SD.cutoff <- SD.cutoff.all[i]  
-  PC1min <- (mean(ASIAN_SAMPLES_JPT$PC1) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC1)))
-  PC1max <- (mean(ASIAN_SAMPLES_JPT$PC1) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC1)))
-  PC2min <- (mean(ASIAN_SAMPLES_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
-  PC2max <- (mean(ASIAN_SAMPLES_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
-  
-  SDSelection <- PCA[PCA$PC1 > PC1min & 
-                       PCA$PC1 < PC1max &
-                       PCA$PC2 > PC2min &
-                       PCA$PC2 < PC2max,]
-  
-  SDSelection.Table.Asian[[i]] <- as.vector(SDSelection$IID)
-  
-  p.sd <- p.sd + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
-                          fill=NA, colour="green") +
-    annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
-}
-
-
-p.sd
-
-
-ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-WashU-ALL-COHORT-SD-cutoff.jpg", plot = p.sd, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
-
-##################################
-## With Presumed Ethnic cohorts ##
-##################################
-dim(FINAL.COVAR)
-# [1] 65183    45
-
-FINAL.COVAR$KEY1 <- paste(FINAL.COVAR$FID, FINAL.COVAR$IID, sep = ":")
-
-PCA$ADGC_COHORT <- FINAL.COVAR$ETHNICITY [match(PCA$KEY, FINAL.COVAR$KEY1)]
-PCA$ADGC_COHORT <- as.character(PCA$ADGC_COHORT)
-PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- as.character(PCA$COHORT[is.na(PCA$ADGC_COHORT)])
-
-
-p.sd.reportedNHW.ALL <- p.sd + geom_point(data = PCA[PCA$ADGC_COHORT == "NHW", c(3:4)], aes(col="Reported_NHW")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue", WashU = "pink")) 
-p.sd.reportedNHW.ALL
-
-p.sd.reportedHISPANIC <- p.sd.reportedNHW.ALL + geom_point(data = PCA[PCA$ADGC_COHORT == "HISPANIC", c(3:4)], aes(col="Reported_Hispanic")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', YRI = "blue", WashU = "pink")) 
-p.sd.reportedHISPANIC
-
-p.sd.reportedASIAN <- p.sd.reportedHISPANIC + geom_point(data = PCA[PCA$ADGC_COHORT == "ASIAN", c(3:4)], aes(col="Reported_Asian")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', YRI = "blue", WashU = "pink")) 
-p.sd.reportedASIAN
-
-p.sd.reportedAFRICAN <- p.sd.reportedASIAN + geom_point(data = PCA[PCA$ADGC_COHORT == "AFRICAN", c(3:4)], aes(col="Reported_African")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", WashU = "pink")) 
-p.sd.reportedAFRICAN
-
-p.sd.ADGC.WASHU <- p.sd.reportedAFRICAN + geom_point(data = PCA[PCA$ADGC_COHORT == "WashU", c(3:4)], aes(col="WashU")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", WashU = "pink")) 
-p.sd.ADGC.WASHU
-
-
-## Reordering HapMap colors on top
-p.sd.ADGC.WASHU <- p.sd.ADGC.WASHU + geom_point(data = PCA[PCA$COHORT == "JPT", c(3:4)], aes(col="JPT")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", WashU = "pink")) 
-p.sd.ADGC.WASHU <- p.sd.ADGC.WASHU + geom_point(data = PCA[PCA$COHORT == "YRI", c(3:4)], aes(col="YRI")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", WashU = "pink")) 
-p.sd.ADGC.WASHU <- p.sd.ADGC.WASHU + geom_point(data = PCA[PCA$COHORT == "WashU", c(3:4)], aes(col="WashU")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", WashU = "pink")) 
-p.sd.ADGC.WASHU <- p.sd.ADGC.WASHU + geom_point(data = PCA[PCA$COHORT == "CEU", c(3:4)], aes(col="CEU")) +
-  scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", WashU = "pink")) 
-
-
-p.sd.ADGC.WASHU
 
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-WashU-FROM-4ETHNIC-COHORT-SD-cutoff2.jpg", plot = p.sd.ADGC.WASHU, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
+
+
+## Now, based on this plot here https://www.notion.so/HapMap-PCA-plot-with-PC2-and-PC3-PC2-and-PC4-0947fb630683446ba21915524a64ff42#62daaacefee44b87b6d8905df552238c, we know that Hispanics are well-separated in PC2 and PC4 plot. 
 
 
 
