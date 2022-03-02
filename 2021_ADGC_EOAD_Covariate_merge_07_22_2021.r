@@ -4235,18 +4235,18 @@ PC2min <- (mean(AA_SAMPLES_YRI$PC2) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
 PC2max <- (mean(AA_SAMPLES_YRI$PC2) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
 
 # For African American, we will keep the subset in the shaded region within the blue rectangle
-SELECTED.p <- p.sd.reportedAFRICAN + annotate("rect", xmin=-0.0145, xmax=-0.0029, ymin=PC2min, ymax=0.0012, 
+SELECTED.p <- p.sd.reportedAFRICAN + annotate("rect", xmin=-0.0140, xmax=-0.0029, ymin=PC2min, ymax=0.0012, 
                                               colour="blue", alpha = .3) 
 
 SD.cutoff <- 4
 ## ASIAN
-PC1min <- (mean(ASIAN_SAMPLES_CEU_JPT$PC1) - (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC1)))
-PC1max <- (mean(ASIAN_SAMPLES_CEU_JPT$PC1) + (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC1)))
-PC2min <- (mean(ASIAN_SAMPLES_CEU_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC2)))
-PC2max <- (mean(ASIAN_SAMPLES_CEU_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_CEU_JPT$PC2)))
+PC1min <- (mean(ASIAN_SAMPLES_JPT$PC1) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC1)))
+PC1max <- (mean(ASIAN_SAMPLES_JPT$PC1) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC1)))
+PC2min <- (mean(ASIAN_SAMPLES_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
+PC2max <- (mean(ASIAN_SAMPLES_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
 
 # For Asian, we will keep the subset in the shaded green square because the center of SD is a little bit displaced from our center
-SELECTED.p <- SELECTED.p + annotate("rect", xmin=PC1min, xmax=-0.001, ymin=0.0096, ymax=PC2max, 
+SELECTED.p <- SELECTED.p + annotate("rect", xmin=PC1min, xmax=0, ymin=0.0105, ymax=PC2max, 
                                     colour="green", alpha = .3)
 
 SD.cutoff <- 5  
@@ -4270,14 +4270,12 @@ table(PCA$COHORT)
 # JPT   YRI   CEU  ADGC 
 # 86   167   165 65777
 
-PCA.ADGC <- PCA[PCA$COHORT == "ADGC",]
+PCA.ADGC <- PCA[PCA$COHORT == "ADGC" | PCA$COHORT == "WashU",]
 
 
 #########
 ## NHW ##
 #########
-
-
 SD.cutoff <- 5  
 ## NHW
 PC1min <- (mean(NHW_SAMPLES_CEU$PC1) - (SD.cutoff*sd(NHW_SAMPLES_CEU$PC1)))
@@ -4291,7 +4289,9 @@ PCA.NHW <- PCA.ADGC[PCA.ADGC$PC1 > PC1min &
                       PCA.ADGC$PC2 < PC2max,]
 
 dim(PCA.NHW)
-# [1] 50416    18
+# [1] 51966    15
+
+df <- read.table("/100/AD/AD_Seq_Data/05.-Analyses/07-Bloomfield_202109/01-Bloomfield-preQC/03-PLINK-QC-files/EOAD_samples_CA_65_CO_80_V2.csv", header = T)
 
 # Keep those in NHW only
 combined_NHW$KEY1 <- paste(combined_NHW$FID, combined_NHW$IID, sep = ":")
@@ -4303,7 +4303,6 @@ PCA.NHW.PHENO <- combined_NHW[combined_NHW$KEY1 %in% PCA.NHW$KEY,]
 ########
 ## AA ##
 ########
-
 SD.cutoff <- 5  
 ## AFRICAN
 PC1min <- (mean(AA_SAMPLES_YRI$PC1) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC1)))
@@ -4311,7 +4310,7 @@ PC1max <- (mean(AA_SAMPLES_YRI$PC1) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC1)))
 PC2min <- (mean(AA_SAMPLES_YRI$PC2) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
 PC2max <- (mean(AA_SAMPLES_YRI$PC2) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
 
-PCA.AA <- PCA.ADGC[PCA.ADGC$PC1 > -0.0129 &
+PCA.AA <- PCA.ADGC[PCA.ADGC$PC1 > -0.0140 &
                      PCA.ADGC$PC1 < -0.0029 &
                      PCA.ADGC$PC2 > PC2min &
                      PCA.ADGC$PC2 < 0.0012,]
@@ -4343,8 +4342,8 @@ PC2min <- (mean(ASIAN_SAMPLES_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
 PC2max <- (mean(ASIAN_SAMPLES_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
 
 PCA.ASIAN <- PCA.ADGC[PCA.ADGC$PC1 > PC1min &
-                        PCA.ADGC$PC1 < -0.001 &
-                        PCA.ADGC$PC2 > 0.0096 &
+                        PCA.ADGC$PC1 < 0 &
+                        PCA.ADGC$PC2 > 0.0105 &
                         PCA.ADGC$PC2 < PC2max,]
 
 

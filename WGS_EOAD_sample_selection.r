@@ -187,7 +187,6 @@ covars$APOE4ANY[grepl("24|34|44|42|43", covars$APOE)] <- 1
 demographics <- t(Get_STATs(covars))
 demographics
 
-
 ## Find cases and controls of age groups
 library(data.table)
 covars_controls <- as.data.table(covars[covars$STATUS == 1,])
