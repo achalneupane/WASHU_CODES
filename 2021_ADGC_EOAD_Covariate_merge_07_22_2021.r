@@ -2580,11 +2580,10 @@ dim(PCA)
 HAPMAP.ethnicty <- read.table("relationships_w_pops_121708.txt", header = T )
 head(HAPMAP.ethnicty)
 
-PCA$KEY <- paste(PCA$FID, PCA$IID, sep =":")
-
 PCA$COHORT <- "ADGC"
 PCA$COHORT <- HAPMAP.ethnicty$population[match(PCA$IID, HAPMAP.ethnicty$IID)]
 PCA <- PCA[c("FID", "IID", c(paste0("PC", 1:10), "COHORT"))]
+PCA$KEY <- paste(PCA$FID, PCA$IID, sep =":")
 PCA$COHORT <- as.character(PCA$COHORT)
 PCA$COHORT[is.na(PCA$COHORT)] <- "ADGC"
 # write.table(PCA, "Bloomfield_Amyloid_Imaging_1989-round1.txt", sep ="\t", col.names = T, quote = F)
@@ -2689,9 +2688,7 @@ for (i in 1:length(SD.cutoff.all)){
     annotate("text", x=PC1max, y=PC2max, label=paste0("sd: ",SD.cutoff.all[i]), size=4, color = "black")
 }
 
-
 p.sd
-
 
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-ALL-COHORT-SD-cutoff.jpg", plot = p.sd, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
@@ -2930,8 +2927,6 @@ PC1_PC2_Hispanic2
 
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-Hispanic_subset_from-PC1-PC2_for_identifying_samples.jpg", plot = PC1_PC2_Hispanic2, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
-
-
 ###############################
 ## PCA plot with PC2 and PC3 ##
 ###############################
@@ -3036,7 +3031,7 @@ p.sd
 
 ## Now add presumed ethnicity
 
-FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ALL_ETHNICITIES_65183.txt", header = T, sep = "\t")
+FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ALL_ETHNICITIES_65183.txt", header = T, sep = "\t", stringsAsFactors = F)
 dim(FINAL.COVAR)
 # [1] 65183    45
 FINAL.COVAR$KEY1 <- paste(FINAL.COVAR$FID, FINAL.COVAR$IID, sep = ":")
@@ -3239,24 +3234,33 @@ PC2_PC4_Hispanic
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-Hispanic-from-selected-area-of-PC1-and-PC2-laid-onto-PC2-and-PC4.jpg", plot = PC2_PC4_Hispanic, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 
-## Select samples outside SD 5 of the lower plane of NHW; ie., samples below PC4 min
+## Select samples outside SD 5 of the lower plane of AA rectangle; ie., samples below PC4 min
   SD.cutoff <- 5  
-  PC2min <- (mean(ASIAN_SAMPLES_JPT$PC2) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
-  PC2max <- (mean(ASIAN_SAMPLES_JPT$PC2) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC2)))
-  PC4min <- (mean(ASIAN_SAMPLES_JPT$PC4) - (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC4)))
-  PC4max <- (mean(ASIAN_SAMPLES_JPT$PC4) + (SD.cutoff*sd(ASIAN_SAMPLES_JPT$PC4)))
+  PC2min <- (mean(AA_SAMPLES_YRI$PC2) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+  PC2max <- (mean(AA_SAMPLES_YRI$PC2) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC2)))
+  PC4min <- (mean(AA_SAMPLES_YRI$PC4) - (SD.cutoff*sd(AA_SAMPLES_YRI$PC4)))
+  PC4max <- (mean(AA_SAMPLES_YRI$PC4) + (SD.cutoff*sd(AA_SAMPLES_YRI$PC4)))
   
 sum(PCA$PC4 < PC4min & PCA$ADGC_COHORT == "HISPANIC")
+# 1843
+sum(PCA$PC4 < PC4min)
+# 2063
+SELECTED.HISPANIC <- PCA[(PCA$PC4 < PC4min),]
 
-SELECTED.HISPANIC <- PCA[(PCA$PC4 < PC4min & PCA$ADGC_COHORT == "HISPANIC"),]
 
+PC2_PC4_Hispanic <- p.sd.reportedAFRICAN + geom_point(data = SELECTED.HISPANIC[,c("PC2","PC4")], aes(col="NEW_Hispanic")) +
+  scale_color_manual(values = c(ADGC = 'gold', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", NEW_Hispanic = "black")) 
+
+PC2_PC4_Hispanic
+
+ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/All-Hispanic-in-Hispanic-cluster-from-5SD-of-AA-bottom-side-of-the-rectangle-PC2-and-PC4.jpg", plot = PC2_PC4_Hispanic, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 ###########################################################################################
 ## Now checking if yellow and orange dots are within the same clouds in PC1 and PC2 plot ##
 ###########################################################################################
-sum(PCA$PC4 < -0.005)
-# 2078
-HISPANIC.PC2.PC4 <- PCA[PCA$PC4 < -0.005,]
+dim(SELECTED.HISPANIC)
+# 2063
+HISPANIC.PC2.PC4 <- SELECTED.HISPANIC
 # sum(HISPANIC.PC2.PC4$PC4 > -0.02 & HISPANIC.PC2.PC4$PC2 > 0.0055)
 # HISPANIC.PC2.PC4 <- HISPANIC.PC2.PC4[!(HISPANIC.PC2.PC4$PC4 > -0.02 & HISPANIC.PC2.PC4$PC2 > 0.0055),]
 table(HISPANIC.PC2.PC4$ADGC_COHORT)
