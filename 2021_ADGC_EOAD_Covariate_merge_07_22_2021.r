@@ -3262,6 +3262,7 @@ PC2_PC4_Hispanic
 library (grid)
 library(gridExtra)
 
+
 dim(SELECTED.HISPANIC)
 # 2063 15
 HISPANIC.PC2.PC4 <- SELECTED.HISPANIC
