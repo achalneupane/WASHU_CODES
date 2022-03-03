@@ -3289,7 +3289,6 @@ p <- ggplot(PCA, aes(x=eval(as.symbol(VEC[1])), y=eval(as.symbol(VEC[2])), color
   # annotate("text", x=0, y=0.015, label="Asian", size=4, color = "green")
 p
 
-
 ## SD FILTER for NHW
 # Samples within SD cutoff in reference to CEU HAPMAP samples
 NHW_SAMPLES_CEU <- PCA[PCA$COHORT == "CEU",]
