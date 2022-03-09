@@ -2573,8 +2573,8 @@ FINAL.COVAR <- Reduce(function(x, y) merge(x, y, all=TRUE), list(combined_NHW, A
 ####################################################################################################
 ###################################### HapMap All Ethnicities ######################################
 ####################################################################################################
-setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC")
-PCA <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC_HAPMAP_VARIANTS_ALL_COHORT-HAPMAP-FINAL-MERGED-for_PCA.eigenvec", header =T, stringsAsFactors=FALSE)
+setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC")
+PCA <- read.table("ADGC_HAPMAP_VARIANTS_ALL_COHORT-HAPMAP-FINAL-MERGED-for_PCA.eigenvec", header =T, stringsAsFactors=FALSE)
 dim(PCA)
 HAPMAP.ethnicty <- read.table("relationships_w_pops_121708.txt", header = T )
 head(HAPMAP.ethnicty)
@@ -2591,7 +2591,7 @@ target <- c("JPT", "YRI", "CEU", "ADGC")
 PCA$COHORT <- factor(PCA$COHORT, levels = target)
 PCA <- PCA[order(-as.numeric(factor(PCA$COHORT))),]
 
-
+library(ggplot2)
 ## Generate a new file that has IID, PC1,PC2, and a new column COHORT 
 p <- ggplot(PCA, aes(x=PC1, y=PC2, color=COHORT)) + geom_point() + xlab("PC1") + ylab("PC2") + ggtitle("ADGC_65777") +
   scale_color_manual(values = c('green', 'blue', 'red', "black")) +
@@ -5440,9 +5440,69 @@ write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETH
 write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "HISPANIC",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-HISPANIC-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "AFRICAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-AFRICAN-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
+##########################################################
+## Demographics after merging ADGC with WASHU GWAs Data ##
+##########################################################
+Get_STATs <- function(covars){
+  covars$ETHNICITY <- as.character(covars$ETHNICITY)
+  TOTAL = nrow(covars)
+  # CA,CO, MCI
+  N.controls <- sum(covars$STATUS==1)
+  N.cases <- sum(covars$STATUS==2)
+  N.mci <- sum(covars$STATUS==3)
+  
+  # Number of CA <= 65 and 70 (Cases==2)
+  CA.65 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 2,"AGE_AT_ONSET"])))) <= 65 & as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 2,"AGE_AT_ONSET"])))) > 0)
+  CA.70 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 2,"AGE_AT_ONSET"])))) <= 70 & as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 2,"AGE_AT_ONSET"])))) > 0)
+  # Number of CO > 70 (Cases==2)
+  CO.70 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 1,"AGE_LAST_VISIT"])))) > 70)
+  CO.80 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 1,"AGE_LAST_VISIT"])))) > 80)
+  # Number of MCI <= 65 and 70 (Cases==2)
+  MCI.65 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 3,"AGE_AT_ONSET"])))) <= 65 & as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 3,"AGE_AT_ONSET"])))) > 0 )
+  MCI.70 <- sum(as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 3,"AGE_AT_ONSET"])))) <= 70 & as.vector(na.omit(as.numeric(as.character(covars[covars$STATUS == 3,"AGE_AT_ONSET"])))) > 0)
+  # Number of Others
+  N.OTHERS <- sum(covars$STATUS == -9)
+  
+  # Percent Female
+  PERC.FEMALE <- (sum(covars$SEX == 2, na.rm = T)/(sum(covars$SEX == 1, na.rm = T)+ sum(covars$SEX == 2, na.rm = T))) *100
+  
+  # MISSING AGES CA and CO
+  N.CA.missing.age <- sum(is.na(covars [covars$STATUS == 2, "AGE_AT_ONSET"]))
+  N.CO.missing.age <- sum(is.na(covars [covars$STATUS == 1, "AGE_LAST_VISIT"]))
+  
+  
+  # Percent APOE4
+  # PERC.APOE <- (table( covars[, c("APOE4ANY") ] )[3]/(table( covars[, c("APOE4ANY") ] )[2] + table( covars[, c("APOE4ANY") ] )[3]))*100 
+  POS <- sum(covars[, c("APOE4ANY")] == 1, na.rm = T)
+  NEG <- sum(covars[, c("APOE4ANY")] == 0, na.rm = T)
+  UNK <- sum(covars[, c("APOE4ANY")] == -9, na.rm = T)
+  PERC.APOE <- (POS/ (POS + NEG)) *100
+  
+  CA.APOE.PERC <- sum(covars[ covars$STATUS == 2 , c("APOE4ANY")] == 1, na.rm = T)/ (N.cases) *100
+  CO.APOE.PERC <- sum(covars[ covars$STATUS == 1 , c("APOE4ANY")] == 1, na.rm = T)/ (N.controls) *100
+  MCI.APOE.PERC <- sum(covars[ covars$STATUS == 3 , c("APOE4ANY")] == 1, na.rm = T)/ (N.mci) *100
+  
+  # For Ethnicity
+  STATS <- cbind(ETHNICITY = unique(covars$ETHNICITY), TOTAL = TOTAL, '% FEMALE' = round(PERC.FEMALE, 2), '% APOE' = round(PERC.APOE, 2), 'N CONTROLS (1)' = N.controls, 'N CASES (2)' = N.cases,
+                 'N MCI (3)' = N.mci, 'N CONTROLS > 70 yo' = CO.70, 'N CONTROLS > 80 yo' = CO.80, 'N CONTROLS missing age' = N.CO.missing.age, 'N CASES ≤ 65 yo' = CA.65, 'N CASES ≤ 70 yo' = CA.70,
+                 'N CASES missing age' = N.CA.missing.age, 'N MCI (3) ≤ 65 yo' = MCI.65, 'N MCI (3) ≤ 70 yo' = MCI.70, 'N OTHERS (-9)' = N.OTHERS, '% CONTROLS (1) APOE4+' = round(CO.APOE.PERC, 2),
+                 '% CASES (2) APOE4+' = round(CA.APOE.PERC, 2), '% MCI (3) APOE4+' = round(MCI.APOE.PERC, 2))
+  
+  return(STATS)
+}
 
 
 
+library(data.table)
+ADGC.WASHU.merged <- as.data.frame(rbindlist(list(ADGC.PHENO, WashU.GWAS.Pheno), fill = T))
+
+as.data.frame(t(Get_STATs(ADGC.WASHU.merged[ADGC.WASHU.merged$ETHNICITY == "NHW",])))
+
+unname(cbind.data.frame(as.data.frame(t(Get_STATs(ADGC.WASHU.merged[ADGC.WASHU.merged$ETHNICITY == "NHW",]))),
+       as.data.frame(t(Get_STATs(ADGC.WASHU.merged[ADGC.WASHU.merged$ETHNICITY == "ASIAN",]))),
+       as.data.frame(t(Get_STATs(ADGC.WASHU.merged[ADGC.WASHU.merged$ETHNICITY == "HISPANIC",]))),
+       as.data.frame(t(Get_STATs(ADGC.WASHU.merged[ADGC.WASHU.merged$ETHNICITY == "AFRICAN",]))),
+       as.data.frame(t(Get_STATs(ADGC.WASHU.merged[ADGC.WASHU.merged$ETHNICITY == "WASHU_NOT_REPORTED",])))))
 
 
 
