@@ -3255,6 +3255,12 @@ PC2_PC4_Hispanic
 
 
 
+ggplot(SELECTED.HISPANIC, aes(x=PC2, y=PC4, color=ADGC_COHORT)) + geom_point() + xlab("PC2") + ylab("PC4") + ggtitle("ADGC_Selected_Hispanic") +
+  scale_color_manual(values = c('green', 'blue', 'red', "black", "pink")) +
+  annotate("text", x=0, y=0.008, label="NHW", size=4, color = "red") +
+  annotate("text", x=-0.009, y=0, label="AA", size=4, color = "blue") +
+  annotate("text", x=0.015, y=-0.003, label="Asian", size=4, color = "green")
+
 ###########################################################################################
 ## Now checking if yellow and orange dots are within the same clouds in PC1 and PC2 plot ##
 ###########################################################################################
