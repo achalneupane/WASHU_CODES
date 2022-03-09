@@ -2481,7 +2481,6 @@ ADGC_Hispanic_covar <- RECODE_CACO_SEX(ADGC_Hispanic_covar)
 
 # write.table(ADGC_Hispanic_covar, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_Hispanic_2292.txt", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
-
 ############################################################################################
 ####################### Get Demographic table for cleaned covar data #######################
 ############################################################################################
@@ -5268,17 +5267,18 @@ ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/A
 ###############################################
 ## Merge all phenotypes and select EOAD only ##
 ###############################################
-NHW.PHENO <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_NHW_49586.txt", stringsAsFactors = FALSE, header = T)
+NHW.PHENO <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/CLEANED_PHENO_ADGC_NHW_49586.txt", stringsAsFactors = FALSE, header = T, sep = "\t")
+# NHW.PHENO <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_NHW_49586.txt", stringsAsFactors = FALSE, header = T, sep = "\t")
 head(NHW.PHENO)
 NHW.PHENO$KEY2 <- paste(NHW.PHENO$FID, NHW.PHENO$IID, sep = ":")
 
-AA.PHENO <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_AA_8563.txt", stringsAsFactors = FALSE, header = T)
+AA.PHENO <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/CLEANED_PHENO_ADGC_AA_8563.txt", stringsAsFactors = FALSE, header = T, sep = "\t")
 head(AA.PHENO)
 
-ASIAN.PHENO <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_Asian_4742.txt", stringsAsFactors = FALSE, header = T)
+ASIAN.PHENO <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/CLEANED_PHENO_ADGC_Asian_4742.txt", stringsAsFactors = FALSE, header = T, sep = "\t")
 head(ASIAN.PHENO)
 
-HISPANIC.PHENO <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ADGC_Hispanic_2292.txt", stringsAsFactors = FALSE, header = T)
+HISPANIC.PHENO <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/CLEANED_PHENO_ADGC_Hispanic_2292.txt", stringsAsFactors = FALSE, header = T, sep = "\t")
 head(HISPANIC.PHENO)
 
 # Rbind all four phenotypes together
@@ -5392,10 +5392,30 @@ head(WashU.GWAS.Pheno)
 WashU.GWAS.Pheno$ETHNICITY <- "WASHU_NOT_REPORTED"
 WashU.GWAS.Pheno$COHORT <- "WASHU_GWAS"
 
+## Phenotypes for WashU samples
 
 ###########################################################################################################
-## Now keep EOAD samples (for now, we consider them CA <=65  & CO > 80) only from WashU.GWAS.Pheno by AGE##
+## Now keep EOAD samples (for now, we consider them CA <=70  & CO > 70) only from WashU.GWAS.Pheno by AGE##
 ###########################################################################################################
+WashU.GWAS.Pheno.CA70 <- WashU.GWAS.Pheno[((WashU.GWAS.Pheno$STATUS == 2 & WashU.GWAS.Pheno$AGE_AT_ONSET <= 70 & WashU.GWAS.Pheno$AGE_AT_ONSET > 0) ),]
+WashU.GWAS.Pheno.CO70 <- WashU.GWAS.Pheno[(WashU.GWAS.Pheno$STATUS == 1 & WashU.GWAS.Pheno$AGE_LAST_VISIT > 70),]
+
+WashU.GWAS.Pheno.CA.lteq.70.CO.gt.70 <- rbind.data.frame(WashU.GWAS.Pheno.CA70, WashU.GWAS.Pheno.CO70)
+# Now, merge ADGC PHENO with the WashU phenotypes
+library(data.table) #data.table_1.9.5
+All.Pheno.CA.lteq.70.CO.gt.70 <- rbindlist(list(ADGC.PHENO.CA70.CO70, WashU.GWAS.Pheno.CA.lteq.70.CO.gt.70), fill = TRUE)
+
+table(All.Pheno.CA.lteq.70.CO.gt.70$STATUS)
+# 1    2 
+# 7072 4044 
+
+dim(All.Pheno.CA.lteq.70.CO.gt.70)
+# [1] 11116    49
+write.table(All.Pheno.CA.lteq.70.CO.gt.70, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/cleaned_phenotypes/EOAD.ADGC.WASHU.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+###############################################
+## Now keep EOAD samples CA <=65  & CO > 80) ##
+###############################################
 WashU.GWAS.Pheno.CA65 <- WashU.GWAS.Pheno[((WashU.GWAS.Pheno$STATUS == 2 & WashU.GWAS.Pheno$AGE_AT_ONSET <= 65 & WashU.GWAS.Pheno$AGE_AT_ONSET > 0) ),]
 WashU.GWAS.Pheno.CO80 <- WashU.GWAS.Pheno[(WashU.GWAS.Pheno$STATUS == 1 & WashU.GWAS.Pheno$AGE_LAST_VISIT > 80),]
 
