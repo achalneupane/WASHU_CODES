@@ -3183,7 +3183,7 @@ for (i in 1:length(SD.cutoff.all)){
 p.sd
 
 ## Now add presumed ethnicity
-FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates//cleaned_phenotypes/CLEANED_PHENO_ALL_ETHNICITIES_65183.txt", header = T, sep = "\t")
+FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ALL_ETHNICITIES_65183.txt", header = T, sep = "\t")
 dim(FINAL.COVAR)
 # [1] 65183    45
 FINAL.COVAR$KEY1 <- paste(FINAL.COVAR$FID, FINAL.COVAR$IID, sep = ":")
@@ -3245,7 +3245,7 @@ sum(PCA$PC4 < PC4min & PCA$ADGC_COHORT == "HISPANIC")
 # 1843
 sum(PCA$PC4 < PC4min)
 # 2063
-SELECTED.HISPANIC <- PCA[(PCA$PC4 < PC4min),]
+SELECTED.HISPANIC <- PCA[(PCA$PC4 < PC4min),] # This is where Vicky wanted me to compare PC values for overlapping NHW and Hispanic dots 
 
 
 PC2_PC4_Hispanic <- p.sd.reportedAFRICAN + geom_point(data = SELECTED.HISPANIC[,c("PC2","PC4")], aes(col="NEW_Hispanic")) +
