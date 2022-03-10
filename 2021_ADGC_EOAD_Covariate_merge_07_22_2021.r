@@ -2838,8 +2838,11 @@ ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/A
 ##################################
 ## With Presumed Ethnic cohorts ##
 ##################################
+## Read Fam file for all four ethnicities
+FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/all_ADGC_fam.fam", header = F, stringsAsFactors = F)
+colnames(FINAL.COVAR) <- c("FID", "IID", "PID", "MID", "SEX", "STATUS", "ETHNICITY") 
 dim(FINAL.COVAR)
-# [1] 65183    45
+# [1] 65777 6
 FINAL.COVAR$KEY1 <- paste(FINAL.COVAR$FID, FINAL.COVAR$IID, sep = ":")
 
 PCA$ADGC_COHORT <- FINAL.COVAR$ETHNICITY [match(PCA$KEY, FINAL.COVAR$KEY1)]
@@ -3030,16 +3033,16 @@ p.sd
 
 ## Now add presumed ethnicity
 
-FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ALL_ETHNICITIES_65183.txt", header = T, sep = "\t", stringsAsFactors = F)
-dim(FINAL.COVAR)
-# [1] 65183    45
-FINAL.COVAR$KEY1 <- paste(FINAL.COVAR$FID, FINAL.COVAR$IID, sep = ":")
-PCA$KEY <- paste(PCA$FID, PCA$IID, sep = ":")
-
-PCA$ADGC_COHORT <- as.character(FINAL.COVAR$ETHNICITY [match(PCA$KEY, FINAL.COVAR$KEY1)])
-
-PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- as.character(PCA$COHORT[is.na(PCA$ADGC_COHORT)])
-
+# FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ALL_ETHNICITIES_65183.txt", header = T, sep = "\t", stringsAsFactors = F)
+# dim(FINAL.COVAR)
+# # [1] 65183    45
+# FINAL.COVAR$KEY1 <- paste(FINAL.COVAR$FID, FINAL.COVAR$IID, sep = ":")
+# PCA$KEY <- paste(PCA$FID, PCA$IID, sep = ":")
+# 
+# PCA$ADGC_COHORT <- as.character(FINAL.COVAR$ETHNICITY [match(PCA$KEY, FINAL.COVAR$KEY1)])
+# 
+# PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- as.character(PCA$COHORT[is.na(PCA$ADGC_COHORT)])
+# 
 
 p.sd.reportedNHW.ALL <- p.sd + geom_point(data = PCA[PCA$ADGC_COHORT == "NHW", c("PC2","PC3")], aes(col="Reported_NHW")) +
   scale_color_manual(values = c(ADGC = 'black', CEU='red', JPT = 'green', Reported_NHW = 'yellow', YRI = "blue")) 
@@ -3183,15 +3186,16 @@ for (i in 1:length(SD.cutoff.all)){
 p.sd
 
 ## Now add presumed ethnicity
-FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ALL_ETHNICITIES_65183.txt", header = T, sep = "\t", stringsAsFactors = FALSE)
+# FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ALL_ETHNICITIES_65183.txt", header = T, sep = "\t", stringsAsFactors = FALSE)
+FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/all_ADGC_fam.fam", header = F, stringsAsFactors = F)
+colnames(FINAL.COVAR) <- c("FID", "IID", "PID", "MID", "SEX", "STATUS", "ETHNICITY") 
 dim(FINAL.COVAR)
-# [1] 65183    45
+# [1] 65777 6
 FINAL.COVAR$KEY1 <- paste(FINAL.COVAR$FID, FINAL.COVAR$IID, sep = ":")
-PCA$KEY <- paste(PCA$FID, PCA$IID, sep = ":")
 
-PCA$ADGC_COHORT <- as.character(FINAL.COVAR$ETHNICITY [match(PCA$KEY, FINAL.COVAR$KEY1)])
+PCA$ADGC_COHORT <- FINAL.COVAR$ETHNICITY [match(PCA$KEY, FINAL.COVAR$KEY1)]
 
-PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- as.character(PCA$COHORT[is.na(PCA$ADGC_COHORT)])
+PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- as.character(PCA$COHORT[is.na(PCA$ADGC_COHORT)]) 
 
 
 p.sd.reportedNHW.ALL <- p.sd + geom_point(data = PCA[PCA$ADGC_COHORT == "NHW", c("PC2","PC4")], aes(col="Reported_NHW")) +
@@ -3253,13 +3257,23 @@ PC2_PC4_Hispanic <- p.sd.reportedAFRICAN + geom_point(data = SELECTED.HISPANIC[,
 
 PC2_PC4_Hispanic
 
-
-
+#########################################
+## Finding the nearest neighbor in PCA ##
+#########################################
+SELECTED.HISPANIC.SAVED <- SELECTED.HISPANIC
+SELECTED.HISPANIC$ADGC_COHORT [grepl('HISPANIC',SELECTED.HISPANIC$ADGC_COHORT)] <- "Reported_Hispanic"
+SELECTED.HISPANIC$ADGC_COHORT [grepl('NHW',SELECTED.HISPANIC$ADGC_COHORT)] <- "Reported_NHW"
+SELECTED.HISPANIC$ADGC_COHORT [grepl('ASIAN',SELECTED.HISPANIC$ADGC_COHORT)] <- "Reported_Asian"
+SELECTED.HISPANIC$ADGC_COHORT [grepl('AFRICAN',SELECTED.HISPANIC$ADGC_COHORT)] <- "Reported_AA"
 ggplot(SELECTED.HISPANIC, aes(x=PC2, y=PC4, color=ADGC_COHORT)) + geom_point() + xlab("PC2") + ylab("PC4") + ggtitle("ADGC_Selected_Hispanic") +
-  scale_color_manual(values = c('green', 'blue', 'red', "black", "pink")) +
-  annotate("text", x=0, y=0.008, label="NHW", size=4, color = "red") +
-  annotate("text", x=-0.009, y=0, label="AA", size=4, color = "blue") +
-  annotate("text", x=0.015, y=-0.003, label="Asian", size=4, color = "green")
+  scale_color_manual(values = c(Reported_NHW = 'black', Reported_Hispanic = 'red', Reported_Asian = 'violet', Reported_African = 'blue'))
+  
+
+X <- as.data.frame(SELECTED.HISPANIC$PC2)
+rownames(X) <- SELECTED.HISPANIC$KEY
+Y <- as.data.frame(SELECTED.HISPANIC$PC4)
+rownames(Y) <- SELECTED.HISPANIC$KEY
+PC.2.PC.4.distance <- dist(cbind(X, Y))
 
 ###########################################################################################
 ## Now checking if yellow and orange dots are within the same clouds in PC1 and PC2 plot ##
