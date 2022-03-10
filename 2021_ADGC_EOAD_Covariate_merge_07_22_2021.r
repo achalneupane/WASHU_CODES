@@ -3266,9 +3266,9 @@ SELECTED.HISPANIC$ADGC_COHORT [grepl('NHW',SELECTED.HISPANIC$ADGC_COHORT)] <- "R
 SELECTED.HISPANIC$ADGC_COHORT [grepl('ASIAN',SELECTED.HISPANIC$ADGC_COHORT)] <- "Reported_Asian"
 SELECTED.HISPANIC$ADGC_COHORT [grepl('AFRICAN',SELECTED.HISPANIC$ADGC_COHORT)] <- "Reported_AA"
 
-ggplot(SELECTED.HISPANIC, aes(x=PC2, y=PC4, color=ADGC_COHORT)) + geom_point() + xlab("PC2") + ylab("PC4") + ggtitle("ADGC_Selected_Hispanic") +
+p.hispanic.cluster <- ggplot(SELECTED.HISPANIC, aes(x=PC2, y=PC4, color=ADGC_COHORT)) + geom_point() + xlab("PC2") + ylab("PC4") + ggtitle("ADGC_Selected_Hispanic") +
   scale_color_manual(values = c(Reported_NHW = 'black', Reported_Hispanic = 'red', Reported_Asian = 'violet', Reported_African = 'blue'))
-  
+p.hispanic.cluster  
 
 X<- SELECTED.HISPANIC
 
@@ -3318,15 +3318,24 @@ NEAREST.HISPANIC <- X2
 
 NEAREST.NEIGHBOR.LONG <- rbind(NEAREST.NHW, NEAREST.HISPANIC)
 
-ggplot(NEAREST.NEIGHBOR.LONG, aes(x=PC2, y=PC4, color=ADGC_COHORT)) + geom_point() + xlab("PC2") + ylab("PC4") + ggtitle("ADGC_Selected_Hispanic") +
+p.Hispanic.cluster.nearest.NHW <- ggplot(NEAREST.NEIGHBOR.LONG, aes(x=PC2, y=PC4, color=ADGC_COHORT)) + geom_point() + xlab("PC2") + ylab("PC4") + ggtitle("ADGC_Selected_Hispanic") +
   scale_color_manual(values = c(Reported_NHW = 'black', Reported_Hispanic = 'red', Reported_Asian = 'violet', Reported_African = 'blue'))
+p.Hispanic.cluster.nearest.NHW
 
+A <- NEAREST.NHW[paste0("PC", 1:10)]
+B <- NEAREST.HISPANIC[paste0("PC", 1:10)]
+rownames(A) <- NEAREST.NHW$KEY
+rownames(B) <- NEAREST.HISPANIC$KEY
 
-colnames(NEAREST.NHW) <- paste0("NEAREST_NHW_", colnames(NEAREST.NHW))
-colnames(NEAREST.HISPANIC) <- paste0("NEAREST_HISPANIC_", colnames(NEAREST.NHW))
+cor(NEAREST.NHW[paste0("PC", 1:10)], NEAREST.HISPANIC[paste0("PC", 1:10)])
 
-NEAREST.NEIGHBOR <- cbind.data.frame(NEAREST.NHW, NEAREST.HISPANIC)
-
+# colnames(NEAREST.NHW) <- paste0("NEAREST_NHW_", colnames(NEAREST.NHW))
+# colnames(NEAREST.HISPANIC) <- paste0("NEAREST_HISPANIC_", colnames(NEAREST.NHW))
+# 
+# NEAREST.NEIGHBOR.WIDE <- cbind.data.frame(NEAREST.NHW, NEAREST.HISPANIC)
+# 
+# 
+# cor(NEAREST.NHW, NEAREST.HISPANIC)
 
 
 
