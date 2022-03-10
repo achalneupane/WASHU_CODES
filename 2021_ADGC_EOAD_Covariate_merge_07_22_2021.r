@@ -3265,15 +3265,70 @@ SELECTED.HISPANIC$ADGC_COHORT [grepl('HISPANIC',SELECTED.HISPANIC$ADGC_COHORT)] 
 SELECTED.HISPANIC$ADGC_COHORT [grepl('NHW',SELECTED.HISPANIC$ADGC_COHORT)] <- "Reported_NHW"
 SELECTED.HISPANIC$ADGC_COHORT [grepl('ASIAN',SELECTED.HISPANIC$ADGC_COHORT)] <- "Reported_Asian"
 SELECTED.HISPANIC$ADGC_COHORT [grepl('AFRICAN',SELECTED.HISPANIC$ADGC_COHORT)] <- "Reported_AA"
+
 ggplot(SELECTED.HISPANIC, aes(x=PC2, y=PC4, color=ADGC_COHORT)) + geom_point() + xlab("PC2") + ylab("PC4") + ggtitle("ADGC_Selected_Hispanic") +
   scale_color_manual(values = c(Reported_NHW = 'black', Reported_Hispanic = 'red', Reported_Asian = 'violet', Reported_African = 'blue'))
   
 
-X <- as.data.frame(SELECTED.HISPANIC$PC2)
-rownames(X) <- SELECTED.HISPANIC$KEY
-Y <- as.data.frame(SELECTED.HISPANIC$PC4)
-rownames(Y) <- SELECTED.HISPANIC$KEY
-PC.2.PC.4.distance <- dist(cbind(X, Y))
+X<- SELECTED.HISPANIC
+
+ggplot(X, aes(x=PC2, y=PC4, color=ADGC_COHORT)) + geom_point() + xlab("PC2") + ylab("PC4") + ggtitle("ADGC_Selected_Hispanic") +
+  scale_color_manual(values = c(Reported_NHW = 'black', Reported_Hispanic = 'red', Reported_Asian = 'violet', Reported_African = 'blue'))
+
+distances <- dist(X[c("PC2", "PC4")], diag = TRUE, upper = TRUE)
+distances <- as.matrix(distances)
+
+# Since we are only interested in the distances from the NHW dots, we can subset the matrix rows:
+distances <- distances[X$ADGC_COHORT == "Reported_NHW",]
+
+# But since we don't want to know the distances between NHW points, we remove all the "NHW point" columns
+
+distances <- distances[,X$ADGC_COHORT != "Reported_NHW"]
+
+# If we run a which.min on each row, we find the index of the non-red points in
+# a data frame of the non-red points, so we can subset our original data frame
+# like this:
+
+X2 <- X[X$ADGC_COHORT != "Reported_NHW",][apply(distances, 1, which.min),]
+# So if we take the original plot:
+p <- ggplot(X, aes(x=PC2, y=PC4, color=ADGC_COHORT)) +
+  geom_point() + 
+  xlab("PC2") + 
+  ylab("PC4") + 
+  ggtitle("ADGC_Selected_Hispanic") +
+  scale_color_manual(values = c(Reported_NHW = 'black', 
+                                Reported_Hispanic = 'red', 
+                                Reported_Asian = 'violet', 
+                                Reported_African = 'blue'))
+
+p
+
+# We can draw circles around the nearest points like this:
+p + geom_point(data = X2, shape = 21, size = 5) 
+# It's important to realise that one or two of these points might not look like
+# the closest because PC2 and PC4 are scaled differently on the plot. If you
+# draw with coord_equal you will be able to confirm visually that these are
+# indeed the closest points.
+
+p <- p + geom_point(data = X2, shape = 21, size = 5, color = "black") + coord_equal()
+p
+
+NEAREST.NHW <- X[X$ADGC_COHORT == "Reported_NHW",]
+NEAREST.HISPANIC <- X2
+
+NEAREST.NEIGHBOR.LONG <- rbind(NEAREST.NHW, NEAREST.HISPANIC)
+
+ggplot(NEAREST.NEIGHBOR.LONG, aes(x=PC2, y=PC4, color=ADGC_COHORT)) + geom_point() + xlab("PC2") + ylab("PC4") + ggtitle("ADGC_Selected_Hispanic") +
+  scale_color_manual(values = c(Reported_NHW = 'black', Reported_Hispanic = 'red', Reported_Asian = 'violet', Reported_African = 'blue'))
+
+
+colnames(NEAREST.NHW) <- paste0("NEAREST_NHW_", colnames(NEAREST.NHW))
+colnames(NEAREST.HISPANIC) <- paste0("NEAREST_HISPANIC_", colnames(NEAREST.NHW))
+
+NEAREST.NEIGHBOR <- cbind.data.frame(NEAREST.NHW, NEAREST.HISPANIC)
+
+
+
 
 ###########################################################################################
 ## Now checking if yellow and orange dots are within the same clouds in PC1 and PC2 plot ##
