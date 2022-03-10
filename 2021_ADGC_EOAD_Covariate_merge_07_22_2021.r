@@ -2576,7 +2576,7 @@ FINAL.COVAR <- Reduce(function(x, y) merge(x, y, all=TRUE), list(combined_NHW, A
 setwd("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC")
 PCA <- read.table("ADGC_HAPMAP_VARIANTS_ALL_COHORT-HAPMAP-FINAL-MERGED-for_PCA.eigenvec", header =T, stringsAsFactors=FALSE)
 dim(PCA)
-HAPMAP.ethnicty <- read.table("relationships_w_pops_121708.txt", header = T )
+HAPMAP.ethnicty <- read.table("relationships_w_pops_121708.txt", header = T , stringsAsFactors = FALSE)
 head(HAPMAP.ethnicty)
 
 PCA$COHORT <- "ADGC"
@@ -2844,7 +2844,7 @@ FINAL.COVAR$KEY1 <- paste(FINAL.COVAR$FID, FINAL.COVAR$IID, sep = ":")
 
 PCA$ADGC_COHORT <- FINAL.COVAR$ETHNICITY [match(PCA$KEY, FINAL.COVAR$KEY1)]
 PCA$ADGC_COHORT <- as.character(PCA$ADGC_COHORT)
-PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- PCA$COHORT[is.na(PCA$ADGC_COHORT)] 
+PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- as.character(PCA$COHORT[is.na(PCA$ADGC_COHORT)])
 
 
 p.sd.reportedNHW.ALL <- p.sd + geom_point(data = PCA[PCA$ADGC_COHORT == "NHW", c(3:4)], aes(col="Reported_NHW")) +
@@ -3038,7 +3038,7 @@ PCA$KEY <- paste(PCA$FID, PCA$IID, sep = ":")
 
 PCA$ADGC_COHORT <- as.character(FINAL.COVAR$ETHNICITY [match(PCA$KEY, FINAL.COVAR$KEY1)])
 
-PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- PCA$COHORT[is.na(PCA$ADGC_COHORT)] 
+PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- as.character(PCA$COHORT[is.na(PCA$ADGC_COHORT)])
 
 
 p.sd.reportedNHW.ALL <- p.sd + geom_point(data = PCA[PCA$ADGC_COHORT == "NHW", c("PC2","PC3")], aes(col="Reported_NHW")) +
@@ -3183,7 +3183,7 @@ for (i in 1:length(SD.cutoff.all)){
 p.sd
 
 ## Now add presumed ethnicity
-FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ALL_ETHNICITIES_65183.txt", header = T, sep = "\t")
+FINAL.COVAR <- read.table("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/cleaned_phenotypes/CLEANED_PHENO_ALL_ETHNICITIES_65183.txt", header = T, sep = "\t", stringsAsFactors = FALSE)
 dim(FINAL.COVAR)
 # [1] 65183    45
 FINAL.COVAR$KEY1 <- paste(FINAL.COVAR$FID, FINAL.COVAR$IID, sep = ":")
@@ -3191,7 +3191,7 @@ PCA$KEY <- paste(PCA$FID, PCA$IID, sep = ":")
 
 PCA$ADGC_COHORT <- as.character(FINAL.COVAR$ETHNICITY [match(PCA$KEY, FINAL.COVAR$KEY1)])
 
-PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- PCA$COHORT[is.na(PCA$ADGC_COHORT)] 
+PCA$ADGC_COHORT[is.na(PCA$ADGC_COHORT)] <- as.character(PCA$COHORT[is.na(PCA$ADGC_COHORT)])
 
 
 p.sd.reportedNHW.ALL <- p.sd + geom_point(data = PCA[PCA$ADGC_COHORT == "NHW", c("PC2","PC4")], aes(col="Reported_NHW")) +
