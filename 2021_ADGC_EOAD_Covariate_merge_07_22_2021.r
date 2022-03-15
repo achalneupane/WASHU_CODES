@@ -3700,7 +3700,6 @@ PC2max <- (mean(NHW_SAMPLES_CEU$PC2) + (SD.cutoff*sd(NHW_SAMPLES_CEU$PC2)))
 # For NHW, we will keep samples within 5SD
 SELECTED.p <- SELECTED.p + annotate("rect", xmin=PC1min, xmax=PC1max, ymin=PC2min, ymax=PC2max, 
                                     colour="red", alpha = .3) 
-
 SELECTED.p
 
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-FROM-4ETHNIC-COHORT-ALL-COHORT-SD-cutoff2-final-selection.jpg", plot = SELECTED.p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
