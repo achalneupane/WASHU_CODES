@@ -3339,8 +3339,8 @@ for(i in 1:nrow(NEAREST.NEIGHBOR.WIDE)){
 NEAREST.NEIGHBOR.WIDE$Corr[i]  <- cor(as.numeric(NEAREST.NEIGHBOR.WIDE[i, paste0("NEAREST_NHW_PC", 1:10)]), as.numeric(NEAREST.NEIGHBOR.WIDE[i, paste0("NEAREST_HISPANIC_PC", 1:10)]))  
 }
 
+NEAREST.NEIGHBOR.WIDE$margin0.01.PC4 <- ifelse(NEAREST.NEIGHBOR.WIDE$NEAREST_NHW_PC4 > -0.01|NEAREST.NEIGHBOR.WIDE$NEAREST_HISPANIC_PC4 > -0.01, "YES", "NO")
 write.table(NEAREST.NEIGHBOR.WIDE, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/Nearest_NHW_to_Hispanic_from_the_selected_cluster.csv", col.names = TRUE, row.names = FALSE, sep = '\t', quote = F)
-
 
 ###########################################################################################
 ## Now checking if yellow and orange dots are within the same clouds in PC1 and PC2 plot ##
@@ -4554,7 +4554,6 @@ p
 
 
 # ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/ADGC-ALL-COHORT.jpg", plot = p, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
-
 
 
 ## SD FILTER for NHW
