@@ -4541,7 +4541,6 @@ PC1_PC2_Hispanic2
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-Hispanic_subset_from-PC1-PC2_for_identifying_samples.jpg", plot = PC1_PC2_Hispanic2, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 
-
 ###############################
 ## PCA plot with PC2 and PC3 ##
 ###############################
