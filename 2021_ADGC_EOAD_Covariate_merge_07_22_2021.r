@@ -3514,7 +3514,7 @@ table(datafile$race)
 # ADGC   AFR   AMR   ASN   EUR   SAN 
 # 68107   671   348   515   522   492
 ##Save datafile 
-write.table(datafile, file= "ADGC_PCA.csv", col.names = TRUE, row.names = FALSE, sep = '\t', quote = F) 
+write.table(datafile, file= "ADGC_PCA.csv", col.names = TRUE, row.names = FALSE, sep = '\t', quote = F)
 
 
 
