@@ -2882,9 +2882,9 @@ p.sd.reportedAFRICAN
 ggsave("/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-HapMap-PCA/ADGC/Reported-ALL-ETHNICITY-ADGC-FROM-4ETHNIC-COHORT-ALL-COHORT-SD-cutoff2.jpg", plot = p.sd.reportedAFRICAN, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
 
-##############################################################
-## Get Hispanic outside 4 SD to plot in PC2-PC4 and PC3-PC4 ##
-##############################################################
+##############################################################################
+## Get Hispanic between 3SD and 5SD SD and plot them in PC2-PC4 and PC3-PC4 ##
+##############################################################################
 p.SD.PC1_PC2 <- p.sd.reportedAFRICAN
 # PCA
 
@@ -3718,7 +3718,6 @@ PCA.ADGC <- PCA[PCA$COHORT == "ADGC",]
 #########
 ## NHW ##
 #########
-
 
 SD.cutoff <- 5  
 ## NHW
