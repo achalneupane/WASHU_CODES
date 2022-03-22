@@ -5199,22 +5199,7 @@ write.table(All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICIT
 write.table(All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "AFRICAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.AFRICAN.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 write.table(All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "ASIAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.ASIAN.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
-
-
-
-
-
-
-
-## 65/ 80
-write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "NHW",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-NHW-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "ASIAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-ASIAN-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "HISPANIC",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-HISPANIC-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "AFRICAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-AFRICAN-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-
-
-
-
+##########################################
 
 
 
@@ -5264,6 +5249,7 @@ write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETH
 
 
 ############################################################################################
+## EXTRA !!
 ############################################################################################
 ############
 ## 3D PCA ##
