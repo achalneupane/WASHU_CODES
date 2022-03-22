@@ -5069,87 +5069,141 @@ WashU.GWAS.Pheno <- WashU.GWAS.Pheno[c("FID", "IID", "AGE_LAST_VISIT", "AGE_AT_O
 head(WashU.GWAS.Pheno)
 WashU.GWAS.Pheno$ETHNICITY <- "WASHU_NOT_REPORTED"
 WashU.GWAS.Pheno$COHORT <- "WASHU_GWAS"
-## Phenotypes for WashU samples
-###########################################################################################################
-## Now keep EOAD samples (for now, we consider them CA <=70  & CO > 70) only from WashU.GWAS.Pheno by AGE##
-###########################################################################################################
-WashU.GWAS.Pheno.CA70 <- WashU.GWAS.Pheno[((WashU.GWAS.Pheno$STATUS == 2 & WashU.GWAS.Pheno$AGE_AT_ONSET <= 70 & WashU.GWAS.Pheno$AGE_AT_ONSET > 0) ),]
-WashU.GWAS.Pheno.CO70 <- WashU.GWAS.Pheno[(WashU.GWAS.Pheno$STATUS == 1 & WashU.GWAS.Pheno$AGE_LAST_VISIT > 70),]
-
-WashU.GWAS.Pheno.CA.lteq.70.CO.gt.70 <- rbind.data.frame(WashU.GWAS.Pheno.CA70, WashU.GWAS.Pheno.CO70)
-# Now, merge ADGC PHENO with the WashU phenotypes
-library(data.table) #data.table_1.9.5
-All.Pheno.CA.lteq.70.CO.gt.70 <- rbindlist(list(ADGC.PHENO.CA70.CO70, WashU.GWAS.Pheno.CA.lteq.70.CO.gt.70), fill = TRUE)
-
-table(All.Pheno.CA.lteq.70.CO.gt.70$STATUS)
-# 1     2     3 
-# 17966  7956   886 
-
-dim(All.Pheno.CA.lteq.70.CO.gt.70)
-# [1] 26808    51
-write.table(All.Pheno.CA.lteq.70.CO.gt.70, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/cleaned_phenotypes/EOAD.ADGC.WASHU.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-
-###############################################
-## Now keep EOAD samples CA <=65  & CO > 80) ##
-###############################################
-WashU.GWAS.Pheno.CA65 <- WashU.GWAS.Pheno[((WashU.GWAS.Pheno$STATUS == 2 & WashU.GWAS.Pheno$AGE_AT_ONSET <= 65 & WashU.GWAS.Pheno$AGE_AT_ONSET > 0) ),]
-WashU.GWAS.Pheno.CO80 <- WashU.GWAS.Pheno[(WashU.GWAS.Pheno$STATUS == 1 & WashU.GWAS.Pheno$AGE_LAST_VISIT > 80),]
-
-WashU.GWAS.Pheno.CA.lteq.65.CO.gt.80 <- rbind.data.frame(WashU.GWAS.Pheno.CA65, WashU.GWAS.Pheno.CO80)
-# Now, merge ADGC PHENO with the WashU phenotypes
-library(data.table) #data.table_1.9.5
-All.Pheno.CA.lteq.65.CO.gt.80 <- rbindlist(list(ADGC.PHENO.CA65.CO80,WashU.GWAS.Pheno.CA.lteq.65.CO.gt.80), fill = TRUE)
-
-table(All.Pheno.CA.lteq.65.CO.gt.80$STATUS)
-# 1    2 
-# 7072 4044
-
-dim(All.Pheno.CA.lteq.65.CO.gt.80)
-# [1] 11116    49
-write.table(All.Pheno.CA.lteq.65.CO.gt.80, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/EOAD.ADGC.WASHU.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-################################################################################################
-## Separate the phenotype by reported Ethnicity to extract plink files from Large ADGC cohort ##
-################################################################################################
-All.Pheno.CA.lteq.65.CO.gt.80 <- as.data.frame(All.Pheno.CA.lteq.65.CO.gt.80)
-write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "NHW",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-NHW-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "ASIAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-ASIAN-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "HISPANIC",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-HISPANIC-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "AFRICAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-AFRICAN-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
 ##########################################################
 ## Demographics after merging ADGC with WASHU GWAs Data ##
 ##########################################################
 WashU.GWAS.Pheno.Saved <- WashU.GWAS.Pheno
-WashU.GWAS.Pheno$KEY <- paste(WashU.GWAS.Pheno$FID, WashU.GWAS.Pheno$IID, sep =":")
-WashU.GWAS.Pheno$ETHNICITY[WashU.GWAS.Pheno$KEY %in% PCA.AA$KEY] <- "AFRICAN"
-WashU.GWAS.Pheno$ETHNICITY[WashU.GWAS.Pheno$KEY %in% PCA.ASIAN$KEY] <- "ASIAN"
-WashU.GWAS.Pheno$ETHNICITY[WashU.GWAS.Pheno$KEY %in% PCA.NHW$KEY] <- "NHW"
-WashU.GWAS.Pheno$ETHNICITY[WashU.GWAS.Pheno$KEY %in% PCA.HISPANIC$KEY] <- "HISPANIC"
+WashU.GWAS.Pheno$KEY2 <- paste(WashU.GWAS.Pheno$FID, WashU.GWAS.Pheno$IID, sep =":")
 
 library(data.table)
 ADGC.WASHU.merged <- as.data.frame(rbindlist(list(ADGC.PHENO, WashU.GWAS.Pheno), fill = T))
+ADGC.WASHU.merged$PRESUMED_ETHNICITY <- ADGC.WASHU.merged$ETHNICITY
 
+ADGC.WASHU.merged <- ADGC.WASHU.merged[c("FID", "IID", "AGE_LAST_VISIT", "AGE_AT_ONSET", "STATUS", "APOE", "SEX", "APOE4ANY", "ETHNICITY", "COHORT", "PRESUMED_ETHNICITY", "KEY2")]
+
+ADGC.WASHU.merged$ETHNICITY <- NULL
+
+####################################
+## Age-filtered samples after PCA ##
+####################################
 ADGC.WASHU.merged$ETHNICITY[ADGC.WASHU.merged$KEY2 %in% PCA.HISPANIC$KEY] <- "HISPANIC"
 ADGC.WASHU.merged$ETHNICITY[ADGC.WASHU.merged$KEY2 %in% PCA.NHW$KEY] <- "NHW"
+ADGC.WASHU.merged$ETHNICITY[ADGC.WASHU.merged$KEY2 %in% PCA.AA$KEY] <- "AFRICAN"
+ADGC.WASHU.merged$ETHNICITY[ADGC.WASHU.merged$KEY2 %in% PCA.ASIAN$KEY] <- "ASIAN"
 
+ADGC.WASHU.merged <- ADGC.WASHU.merged[!is.na(ADGC.WASHU.merged$ETHNICITY),]
 
 tt <- unname(cbind.data.frame(as.data.frame(t(Get_STATs(ADGC.WASHU.merged[ADGC.WASHU.merged$ETHNICITY == "AFRICAN",]))),
                         as.data.frame(t(Get_STATs(ADGC.WASHU.merged[ADGC.WASHU.merged$ETHNICITY == "ASIAN",]))),
                         as.data.frame(t(Get_STATs(ADGC.WASHU.merged[ADGC.WASHU.merged$ETHNICITY == "HISPANIC",]))),
                         as.data.frame(t(Get_STATs(ADGC.WASHU.merged[ADGC.WASHU.merged$ETHNICITY == "NHW",])))))
-
+tt
 View(as.matrix(tt))
 
 
+## Get the array information for WashU samples
+washu.array <- read.table("/40/AD/GWAS_data/Combined_Plink/Full_Imputation/02_GRCh38/03_Requests/202111_hg38/2022_02_for_Achal_EOAD_WashU_MAP_for_ADGC/Info_table_complete_array_grouping.txt", stringsAsFactors = F, header = T)
+sum(ADGC.WASHU.merged$IID %in% washu.array$IID)
+# 1993
+ADGC.WASHU.merged$STUDY <- washu.array$array[match(ADGC.WASHU.merged$IID,  washu.array$IID)]
+ADGC.WASHU.merged$STUDY[is.na(ADGC.WASHU.merged$STUDY)] <- ADGC.WASHU.merged$COHORT[is.na(ADGC.WASHU.merged$STUDY)]
+
 write.table(ADGC.WASHU.merged, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/cleaned_phenotypes/ADGC-WashU-phenotype-after-confirming-all-ethnicities-from-PCA.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
+####################################
+## Age-filtered samples after PCA ##
+####################################
+## CA <= 70 & CO > 70 ##
+########################
+WashU.GWAS.Pheno.CA70 <- ADGC.WASHU.merged[((ADGC.WASHU.merged$STATUS == 2| ADGC.WASHU.merged$STATUS == 3) & ADGC.WASHU.merged$AGE_AT_ONSET <= 70 & ADGC.WASHU.merged$AGE_AT_ONSET > 0) ,]
+WashU.GWAS.Pheno.CA70 <- WashU.GWAS.Pheno.CA70[!is.na(WashU.GWAS.Pheno.CA70$AGE_AT_ONSET),]
+dim(WashU.GWAS.Pheno.CA70)
+# 8803    13
+WashU.GWAS.Pheno.CO70 <- ADGC.WASHU.merged[(ADGC.WASHU.merged$STATUS == 1 & ADGC.WASHU.merged$AGE_LAST_VISIT > 70),]
+WashU.GWAS.Pheno.CO70 <- WashU.GWAS.Pheno.CO70[!is.na(WashU.GWAS.Pheno.CO70$AGE_LAST_VISIT),]
+dim(WashU.GWAS.Pheno.CO70)
+# 17926    13
+
+All.Pheno.CA.lteq.70.CO.gt.70 <- rbind.data.frame(WashU.GWAS.Pheno.CA70, WashU.GWAS.Pheno.CO70)
+# > table(All.Pheno.CA.lteq.70.CO.gt.70$PRESUMED_ETHNICITY)
+# AFRICAN              ASIAN           HISPANIC                NHW WASHU_NOT_REPORTED 
+# 1052               2375                543              20872               1887 
+
+## Ethnicity based on PCA
+# > table(All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY)
+# AFRICAN    ASIAN HISPANIC      NHW 
+# 1444     2387      428    22470              4 
+########################
+## CA <= 70 & CO > 70 ##
+########################
+WashU.GWAS.Pheno.CA65 <- ADGC.WASHU.merged[((ADGC.WASHU.merged$STATUS == 2) & ADGC.WASHU.merged$AGE_AT_ONSET <= 65 & ADGC.WASHU.merged$AGE_AT_ONSET > 0) ,]
+WashU.GWAS.Pheno.CA65 <- WashU.GWAS.Pheno.CA65[!is.na(WashU.GWAS.Pheno.CA65$AGE_AT_ONSET),]
+dim(WashU.GWAS.Pheno.CA65)
+# 4021    13
+WashU.GWAS.Pheno.CO80 <- ADGC.WASHU.merged[(ADGC.WASHU.merged$STATUS == 1 & ADGC.WASHU.merged$AGE_LAST_VISIT > 80),]
+WashU.GWAS.Pheno.CO80 <- WashU.GWAS.Pheno.CO80[!is.na(WashU.GWAS.Pheno.CO80$AGE_LAST_VISIT),]
+dim(WashU.GWAS.Pheno.CO80)
+# 17926    13
+
+All.Pheno.CA.lteq.65.CO.gt.80 <- rbind.data.frame(WashU.GWAS.Pheno.CA65, WashU.GWAS.Pheno.CO80)
+# > table(All.Pheno.CA.lteq.65.CO.gt.80$PRESUMED_ETHNICITY)
+# AFRICAN              ASIAN           HISPANIC                NHW WASHU_NOT_REPORTED 
+# 387                599                237               8977                875 
+
+## Ethnicity based on PCA
+# > table(All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY)
+# AFRICAN    ASIAN HISPANIC      NHW 
+# 536      602      196     9741 
+
+#################################################
+## See if there are really mix race in the PCA ##
+#################################################
+## NHW in ASIAN
+cc <- SELECTED.POST.HAPMAP + geom_point(data = PCA.ASIAN[PCA.ASIAN$ADGC_COHORT == "NHW", c("PC1", "PC2")], aes(col="REPORTED_NHW_IN_ASIAN")) +
+  scale_color_manual(values = c(ADGC = 'cyan4', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", SELECTED_NHW = "purple", SELECTED_HISPANIC = "black", SELECTED_AA = "skyblue", WashU = "pink", SELECTED_ASIAN = "chocolate", REPORTED_NHW_IN_ASIAN="white"))
+
+## NHW in AA
+cc + geom_point(data = PCA.AA[PCA.AA$ADGC_COHORT == "HISPANIC", c("PC1", "PC2")], aes(col="REPORTED_NHW_IN_AA")) +
+  scale_color_manual(values = c(ADGC = 'cyan4', CEU='red', JPT = 'green', Reported_NHW = 'yellow', Reported_Hispanic = 'grey', Reported_Asian = 'violet', Reported_African = 'orange', YRI = "blue", SELECTED_NHW = "purple", SELECTED_HISPANIC = "black", SELECTED_AA = "skyblue", WashU = "pink", SELECTED_ASIAN = "chocolate", REPORTED_NHW_IN_ASIAN="white", REPORTED_NHW_IN_AA="white"))
 
 
-######################################
-## Re-assign ethnicity based on PCA ##
-######################################
-## CA <= 70 & CO > 70
-All.Pheno.CA.lteq.70.CO.gt.70$PCA.ETHNICITY <- ADGC.WASHU.merged$ETHNICITY[match(All.Pheno.CA.lteq.70.CO.gt.70$KEY2, ADGC.WASHU.merged$KEY2)]
+#######################################
+## Write files to subset plink files ##
+#######################################
+## CA <= 70 & CO > 70 ##
+########################
+All.Pheno.CA.lteq.65.CO.gt.80 <- as.data.frame(All.Pheno.CA.lteq.70.CO.gt.70)
+write.table(All.Pheno.CA.lteq.70.CO.gt.70[1:2][All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "NHW",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/NHW.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.70.CO.gt.70[1:2][All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "HISPANIC",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/HISPANIC.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.70.CO.gt.70[1:2][All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "AFRICAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/AFRICAN.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.70.CO.gt.70[1:2][All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "ASIAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ASIAN.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+## Pheno
+write.table(All.Pheno.CA.lteq.70.CO.gt.70[All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "NHW",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.NHW.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.70.CO.gt.70[All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "HISPANIC",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.HISPANIC.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.70.CO.gt.70[All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "AFRICAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.AFRICAN.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.70.CO.gt.70[All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "ASIAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.ASIAN.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+########################
+## CA <= 65 & CO > 80 ##
+########################
+All.Pheno.CA.lteq.65.CO.gt.80 <- as.data.frame(All.Pheno.CA.lteq.65.CO.gt.80)
+write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "NHW",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/NHW.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "HISPANIC",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/HISPANIC.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "AFRICAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/AFRICAN.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "ASIAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ASIAN.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+## Pheno
+write.table(All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "NHW",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.NHW.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "HISPANIC",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.HISPANIC.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "AFRICAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.AFRICAN.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "ASIAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.ASIAN.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+
+
+
+
+
 
 
 ## 65/ 80
@@ -5599,5 +5653,56 @@ for (i in 1:length(SD.cutoff.all)){
 p.sd.1KG.nosd
 ggsave("ADGC_with_1000Genome_super_population.jpg", plot = p.sd.1KG.nosd, device = NULL, scale = 1, width = 12, height = 8, dpi = 600, limitsize = TRUE)
 
+###################################### JUNK
+###################################### JUNK
+###################################### JUNK
+###################################### JUNK
+###################################### JUNK
+## Phenotypes for WashU samples
+###########################################################################################################
+## Now keep EOAD samples (for now, we consider them CA <=70  & CO > 70) only from WashU.GWAS.Pheno by AGE##
+###########################################################################################################
+WashU.GWAS.Pheno.CA70 <- WashU.GWAS.Pheno[((WashU.GWAS.Pheno$STATUS == 2 & WashU.GWAS.Pheno$AGE_AT_ONSET <= 70 & WashU.GWAS.Pheno$AGE_AT_ONSET > 0) ),]
+WashU.GWAS.Pheno.CO70 <- WashU.GWAS.Pheno[(WashU.GWAS.Pheno$STATUS == 1 & WashU.GWAS.Pheno$AGE_LAST_VISIT > 70),]
+
+WashU.GWAS.Pheno.CA.lteq.70.CO.gt.70 <- rbind.data.frame(WashU.GWAS.Pheno.CA70, WashU.GWAS.Pheno.CO70)
+# Now, merge ADGC PHENO with the WashU phenotypes
+library(data.table) #data.table_1.9.5
+All.Pheno.CA.lteq.70.CO.gt.70 <- rbindlist(list(ADGC.PHENO.CA70.CO70, WashU.GWAS.Pheno.CA.lteq.70.CO.gt.70), fill = TRUE)
+
+table(All.Pheno.CA.lteq.70.CO.gt.70$STATUS)
+# 1     2     3 
+# 17966  7956   886 
+
+dim(All.Pheno.CA.lteq.70.CO.gt.70)
+# [1] 26808    51
+write.table(All.Pheno.CA.lteq.70.CO.gt.70, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/03_Phenotypes/all_covariates/cleaned_phenotypes/EOAD.ADGC.WASHU.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+###############################################
+## Now keep EOAD samples CA <=65  & CO > 80) ##
+###############################################
+WashU.GWAS.Pheno.CA65 <- WashU.GWAS.Pheno[((WashU.GWAS.Pheno$STATUS == 2 & WashU.GWAS.Pheno$AGE_AT_ONSET <= 65 & WashU.GWAS.Pheno$AGE_AT_ONSET > 0) ),]
+WashU.GWAS.Pheno.CO80 <- WashU.GWAS.Pheno[(WashU.GWAS.Pheno$STATUS == 1 & WashU.GWAS.Pheno$AGE_LAST_VISIT > 80),]
+
+WashU.GWAS.Pheno.CA.lteq.65.CO.gt.80 <- rbind.data.frame(WashU.GWAS.Pheno.CA65, WashU.GWAS.Pheno.CO80)
+# Now, merge ADGC PHENO with the WashU phenotypes
+library(data.table) #data.table_1.9.5
+All.Pheno.CA.lteq.65.CO.gt.80 <- rbindlist(list(ADGC.PHENO.CA65.CO80,WashU.GWAS.Pheno.CA.lteq.65.CO.gt.80), fill = TRUE)
+
+table(All.Pheno.CA.lteq.65.CO.gt.80$STATUS)
+# 1    2 
+# 7072 4044
+
+dim(All.Pheno.CA.lteq.65.CO.gt.80)
+# [1] 11116    49
+write.table(All.Pheno.CA.lteq.65.CO.gt.80, "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/EOAD.ADGC.WASHU.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+################################################################################################
+## Separate the phenotype by reported Ethnicity to extract plink files from Large ADGC cohort ##
+################################################################################################
+All.Pheno.CA.lteq.65.CO.gt.80 <- as.data.frame(All.Pheno.CA.lteq.65.CO.gt.80)
+write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "NHW",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-NHW-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "ASIAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-ASIAN-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "HISPANIC",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-HISPANIC-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "AFRICAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ADGC-AFRICAN-selected_CA_eqlt_65_CO_gt_80_NO_MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
 
