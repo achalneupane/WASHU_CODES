@@ -5180,10 +5180,21 @@ write.table(All.Pheno.CA.lteq.70.CO.gt.70[1:2][All.Pheno.CA.lteq.70.CO.gt.70$ETH
 write.table(All.Pheno.CA.lteq.70.CO.gt.70[1:2][All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "ASIAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ASIAN.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
 ## Pheno
-write.table(All.Pheno.CA.lteq.70.CO.gt.70[All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "NHW",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.NHW.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-write.table(All.Pheno.CA.lteq.70.CO.gt.70[All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "HISPANIC",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.HISPANIC.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-write.table(All.Pheno.CA.lteq.70.CO.gt.70[All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "AFRICAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.AFRICAN.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-write.table(All.Pheno.CA.lteq.70.CO.gt.70[All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "ASIAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.ASIAN.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+gg.NHW.70.70 <- All.Pheno.CA.lteq.70.CO.gt.70[All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "NHW",]
+gg.NHW.70.70$STUDY <- gsub("_Hispanic$|_AA$|_Asian$", "", gg.NHW.70.70$STUDY)
+write.table(gg.NHW.70.70, "/40/AD/GWAS_data/02_processed/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.NHW.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+gg.HISPANIC.70.70 <- All.Pheno.CA.lteq.70.CO.gt.70[All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "HISPANIC",]
+gg.HISPANIC.70.70$STUDY <- gsub("_Hispanic$|_AA$|_Asian$", "", gg.HISPANIC.70.70$STUDY)
+write.table(gg.HISPANIC.70.70, "/40/AD/GWAS_data/02_processed/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.HISPANIC.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+gg.AFRICAN.70.70 <- All.Pheno.CA.lteq.70.CO.gt.70[All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "AFRICAN",]
+gg.AFRICAN.70.70$STUDY <- gsub("_Hispanic$|_AA$|_Asian$", "", gg.AFRICAN.70.70$STUDY)
+write.table(gg.AFRICAN.70.70, "/40/AD/GWAS_data/02_processed/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.AFRICAN.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+gg.ASIAN.70.70 <- All.Pheno.CA.lteq.70.CO.gt.70[All.Pheno.CA.lteq.70.CO.gt.70$ETHNICITY == "ASIAN",]
+gg.ASIAN.70.70$STUDY <- gsub("_Hispanic$|_AA$|_Asian$", "", gg.ASIAN.70.70$STUDY)
+write.table(gg.ASIAN.70.70, "/40/AD/GWAS_data/02_processed/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.ASIAN.confirmed.with.PCA.CA.lteq.70.CO.gt.70.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 ########################
 ## CA <= 65 & CO > 80 ##
 ########################
@@ -5194,10 +5205,21 @@ write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETH
 write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "ASIAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ASIAN.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
 ## Pheno
-write.table(All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "NHW",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.NHW.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-write.table(All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "HISPANIC",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.HISPANIC.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-write.table(All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "AFRICAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.AFRICAN.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
-write.table(All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "ASIAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.ASIAN.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+gg.NHW.65.80 <- All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "NHW",]
+gg.NHW.65.80$STUDY <- gsub("_Hispanic$|_AA$|_Asian$", "", gg.NHW.65.80$STUDY)
+write.table(gg.NHW.65.80, "/40/AD/GWAS_data/02_processed/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.NHW.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+gg.HISPANIC.65.80 <- All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "HISPANIC",]
+gg.HISPANIC.65.80$STUDY <- gsub("_Hispanic$|_AA$|_Asian$", "", gg.HISPANIC.65.80$STUDY)
+write.table(gg.HISPANIC.65.80, "/40/AD/GWAS_data/02_processed/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.HISPANIC.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+gg.AFRICAN.65.80 <- All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "AFRICAN",]
+gg.AFRICAN.65.80$STUDY <- gsub("_Hispanic$|_AA$|_Asian$", "", gg.AFRICAN.65.80$STUDY)
+write.table(gg.AFRICAN.65.80, "/40/AD/GWAS_data/02_processed/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.AFRICAN.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
+gg.ASIAN.65.80 <- All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "ASIAN",]
+gg.ASIAN.65.80$STUDY <- gsub("_Hispanic$|_AA$|_Asian$", "", gg.ASIAN.65.80$STUDY)
+write.table(gg.ASIAN.65.80, "/40/AD/GWAS_data/02_processed/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.ASIAN.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 
 ##########################################
 
