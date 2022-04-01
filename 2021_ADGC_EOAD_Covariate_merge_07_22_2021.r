@@ -5324,10 +5324,30 @@ selected.STUDY <- as.character(table.study$Var1 [table.study$percentage > 2])
 selected.STUDY <- PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY %in% selected.STUDY,]
 selected.STUDY$STUDY <- as.character(selected.STUDY$STUDY)
 table(selected.STUDY$STUDY, selected.STUDY$STATUS)
-##############################
-
 ## Manhattan plot ##
-"Manhattan_LOGISTIC_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic.adjusted"
+LOGISTIC <- fread("V2_Manhattan_LOGISTIC_SEX_STUDY_PC1-PC10_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic", header = T)
+ANNOTATED <- fread("NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01_VCF-annot-snpeff-dbnsfp-ExAC.0.3.GRCh38.vcf.gene.tsv", header = T)
+ANNOTATED$SNP <- sapply(strsplit(ANNOTATED$ID,";"), `[`, 1)
+
+sum(LOGISTIC$SNP %in% ANNOTATED$SNP)
+# 6281240
+dim(LOGISTIC)
+# 6281240      13
+
+LOGISTIC$GENE <- ANNOTATED$GENE[match(LOGISTIC$SNP, ANNOTATED$SNP)]
+LOGISTIC$ORIGINAL_SNP <- LOGISTIC$SNP
+LOGISTIC$SNP <- paste(LOGISTIC$SNP, LOGISTIC$GENE, sep = "\n")
+
+
+TOP.HITS <- LOGISTIC[LOGISTIC$P < 1e-05,]
+TOP.HITS <- TOP.HITS[order(TOP.HITS$P),]
+
+EDER.analysis <- read.table("Meta-analysis_results_2022_Eder_Fonseca.csv", header = T, stringsAsFactors = F, sep = ",")
+EDER.analysis$SNP <- paste(EDER.analysis$Chr, EDER.analysis$Position, EDER.analysis$Allele2, EDER.analysis$Allele1, sep =":")
+sum(EDER.analysis$SNP %in% LOGISTIC$ORIGINAL_SNP)
+
+
+##############################
 
 
 
