@@ -5325,7 +5325,10 @@ selected.STUDY <- PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY %in% selected.STUDY,]
 selected.STUDY$STUDY <- as.character(selected.STUDY$STUDY)
 table(selected.STUDY$STUDY, selected.STUDY$STATUS)
 ## Manhattan plot ##
-LOGISTIC <- fread("V2_Manhattan_LOGISTIC_SEX_STUDY_PC1-PC10_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic", header = T)
+# SEX and PC1-PC10
+LOGISTIC <- fread("Manhattan_LOGISTIC_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic", header = T)
+# # SEX, STUDY, PC1-PC10
+# LOGISTIC <- fread("V2_Manhattan_LOGISTIC_SEX_STUDY_PC1-PC10_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic", header = T)
 ANNOTATED <- fread("NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01_VCF-annot-snpeff-dbnsfp-ExAC.0.3.GRCh38.vcf.gene.tsv", header = T)
 ANNOTATED$SNP <- sapply(strsplit(ANNOTATED$ID,";"), `[`, 1)
 
@@ -5339,8 +5342,40 @@ LOGISTIC$ORIGINAL_SNP <- LOGISTIC$SNP
 LOGISTIC$SNP <- paste(LOGISTIC$SNP, LOGISTIC$GENE, sep = "\n")
 
 
+## Lambda
+inflation <- function(pvalues) {
+  # chisq <- qchisq(1-my.pvalues, 1, lower.tail = F)
+  chisq <- qchisq(1 - pvalues, 1)
+  lambda <- median(chisq) / qchisq(0.5, 1)
+  return(lambda)
+}
+
+my.pvalues <- LOGISTIC$P[!is.na(LOGISTIC$P)]
+my.pvalues <- my.pvalues[!my.pvalues == 0]
+
+LAMBDA <- round(inflation(my.pvalues), digits = 3)
+LAMBDA
+
+
 TOP.HITS <- LOGISTIC[LOGISTIC$P < 1e-05,]
 TOP.HITS <- TOP.HITS[order(TOP.HITS$P),]
+TOP.HITS$SNP <- TOP.HITS$ORIGINAL_SNP
+write.table(TOP.HITS, "/40/AD/GWAS_data/02_Processed/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/TOP-Hits-Manhattan_LOGISTIC_SEX_PC1-PC10_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1.csv", sep ="\t", col.names = T, quote = F, row.names = F)
+
+## Checking Eder's signal
+library(data.table)
+LOGISTIC <- fread("Manhattan_LOGISTIC_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic", header = T)
+ANNOTATED <- fread("NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01_VCF-annot-snpeff-dbnsfp-ExAC.0.3.GRCh38.vcf.gene.tsv", header = T)
+ANNOTATED$SNP <- sapply(strsplit(ANNOTATED$ID,";"), `[`, 1)
+
+sum(LOGISTIC$SNP %in% ANNOTATED$SNP)
+# 6281240
+dim(LOGISTIC)
+# 6281240      13
+
+LOGISTIC$GENE <- ANNOTATED$GENE[match(LOGISTIC$SNP, ANNOTATED$SNP)]
+LOGISTIC$ORIGINAL_SNP <- LOGISTIC$SNP
+LOGISTIC$SNP <- paste(LOGISTIC$SNP, LOGISTIC$GENE, sep = "\n")
 
 EDER.analysis <- read.table("Meta-analysis_results_2022_Eder_Fonseca.csv", header = T, stringsAsFactors = F, sep = ",")
 EDER.analysis$SNP <- paste(EDER.analysis$Chr, EDER.analysis$Position, EDER.analysis$Allele2, EDER.analysis$Allele1, sep =":")
