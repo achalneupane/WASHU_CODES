@@ -5101,6 +5101,26 @@ tt <- unname(cbind.data.frame(as.data.frame(t(Get_STATs(ADGC.WASHU.merged[ADGC.W
 tt
 View(as.matrix(tt))
 
+ADGC.WASHU.merged.without.WashU <- ADGC.WASHU.merged[!grepl("WASHU_GWAS", ADGC.WASHU.merged$COHORT),]
+ADGC.WASHU.merged.WashU.only <- ADGC.WASHU.merged[grepl("WASHU_GWAS", ADGC.WASHU.merged$COHORT),]
+
+## ADGC only
+tt <- unname(cbind.data.frame(as.data.frame(t(Get_STATs(ADGC.WASHU.merged.without.WashU[ADGC.WASHU.merged.without.WashU$ETHNICITY == "AFRICAN",]))),
+                              as.data.frame(t(Get_STATs(ADGC.WASHU.merged.without.WashU[ADGC.WASHU.merged.without.WashU$ETHNICITY == "ASIAN",]))),
+                              as.data.frame(t(Get_STATs(ADGC.WASHU.merged.without.WashU[ADGC.WASHU.merged.without.WashU$ETHNICITY == "HISPANIC",]))),
+                              as.data.frame(t(Get_STATs(ADGC.WASHU.merged.without.WashU[ADGC.WASHU.merged.without.WashU$ETHNICITY == "NHW",])))))
+tt
+View(as.matrix(tt))
+
+## WashU Only
+tt <- unname(cbind.data.frame(as.data.frame(t(Get_STATs(ADGC.WASHU.merged.WashU.only[ADGC.WASHU.merged.WashU.only$ETHNICITY == "AFRICAN",]))),
+                              as.data.frame(t(Get_STATs(ADGC.WASHU.merged.WashU.only[ADGC.WASHU.merged.WashU.only$ETHNICITY == "ASIAN",]))),
+                              as.data.frame(t(Get_STATs(ADGC.WASHU.merged.WashU.only[ADGC.WASHU.merged.WashU.only$ETHNICITY == "NHW",])))))
+
+
+tt
+View(as.matrix(tt))
+
 
 ## Get the array information for WashU samples
 washu.array <- read.table("/40/AD/GWAS_data/Combined_Plink/Full_Imputation/02_GRCh38/03_Requests/202111_hg38/2022_02_for_Achal_EOAD_WashU_MAP_for_ADGC/Info_table_complete_array_grouping.txt", stringsAsFactors = F, header = T)
@@ -5203,11 +5223,18 @@ write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETH
 write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "HISPANIC",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/HISPANIC.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "AFRICAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/AFRICAN.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
 write.table(All.Pheno.CA.lteq.65.CO.gt.80[1:2][All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "ASIAN",], "/40/AD/GWAS_data/Source_Plink/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/ASIAN.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+## WashU Phenotype
+sum(grepl("WASHU_GWAS", All.Pheno.CA.lteq.65.CO.gt.80$COHORT))
+# 875
+WASHU.65.80 <- All.Pheno.CA.lteq.65.CO.gt.80[grepl("WASHU_GWAS", All.Pheno.CA.lteq.65.CO.gt.80$COHORT),]
+write.table(WASHU.65.80, "WashU.Phenotype.confirmed.with.PCA.CA.lteq.65.CO.gt.80.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
 
 ## Pheno
 gg.NHW.65.80 <- All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "NHW",]
 gg.NHW.65.80$STUDY <- gsub("_Hispanic$|_AA$|_Asian$", "", gg.NHW.65.80$STUDY)
 write.table(gg.NHW.65.80, "/40/AD/GWAS_data/02_processed/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/PHENO.NHW.confirmed.with.PCA.CA.lteq.65.CO.gt.80.NO.MCI.csv", sep ="\t", col.names = T, quote = F, row.names = FALSE)
+
 
 gg.HISPANIC.65.80 <- All.Pheno.CA.lteq.65.CO.gt.80[All.Pheno.CA.lteq.65.CO.gt.80$ETHNICITY == "HISPANIC",]
 gg.HISPANIC.65.80$STUDY <- gsub("_Hispanic$|_AA$|_Asian$", "", gg.HISPANIC.65.80$STUDY)
@@ -5293,7 +5320,7 @@ PHENO.PCA.STUDY$ACT1 <- ifelse(PHENO.PCA.STUDY$STUDY == "ACT1", 1, 0)
 write.table(PHENO.PCA.STUDY, "PHENO.NHW.confirmed.with.PCA.CA.lteq.65.CO.gt.80.NO.MCI.with.PCA_with_STUDY.txt", sep =" ", col.names = T, quote = F, row.names = F)
 
 table.study <- as.data.frame(table(PHENO.PCA.STUDY$STUDY))
-table.study$percentage <- round((table.study$Freq/9079)*100, 3)
+table.study$percentage <- round((table.study$Freq/nrow(PHENO.PCA))*100, 3)
 View(table.study)
 
 table(PHENO.PCA.STUDY$STUDY)[table(PHENO.PCA.STUDY$STUDY) >= 10 ]
@@ -5325,10 +5352,10 @@ selected.STUDY <- PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY %in% selected.STUDY,]
 selected.STUDY$STUDY <- as.character(selected.STUDY$STUDY)
 table(selected.STUDY$STUDY, selected.STUDY$STATUS)
 ## Manhattan plot ##
-# SEX and PC1-PC10
+## SEX and PC1-PC10
 LOGISTIC <- fread("Manhattan_LOGISTIC_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic", header = T)
-# # SEX, STUDY, PC1-PC10
-# LOGISTIC <- fread("V2_Manhattan_LOGISTIC_SEX_STUDY_PC1-PC10_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic", header = T)
+## SEX, STUDY, PC1-PC10
+LOGISTIC <- fread("V2_Manhattan_LOGISTIC_SEX_STUDY_PC1-PC10_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic", header = T)
 ANNOTATED <- fread("NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01_VCF-annot-snpeff-dbnsfp-ExAC.0.3.GRCh38.vcf.gene.tsv", header = T)
 ANNOTATED$SNP <- sapply(strsplit(ANNOTATED$ID,";"), `[`, 1)
 
@@ -5360,9 +5387,30 @@ LAMBDA
 TOP.HITS <- LOGISTIC[LOGISTIC$P < 1e-05,]
 TOP.HITS <- TOP.HITS[order(TOP.HITS$P),]
 TOP.HITS$SNP <- TOP.HITS$ORIGINAL_SNP
-write.table(TOP.HITS, "/40/AD/GWAS_data/02_Processed/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/TOP-Hits-Manhattan_LOGISTIC_SEX_PC1-PC10_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1.csv", sep ="\t", col.names = T, quote = F, row.names = F)
+cc <- LOGISTIC[LOGISTIC$CHR ==11,]
 
-## Checking Eder's signal
+# cc <- cc[cc$BP < 2.12e+08,]
+cc <- LOGISTIC[grepl("SLC23A2", LOGISTIC$GENE),]
+manhattan(cc, main = "", ylim=c(0,20), col = c("blue4", "orange3"), suggestiveline = -log10(1e-06), genomewideline = -log10(1e-08), annotateTop = TRUE, annotatePval = 1e-05, chrlabs = as.character(10)) 
+
+
+## SEX, PC1-PC10
+write.table(TOP.HITS, "/40/AD/GWAS_data/02_Processed/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/TOP-Hits-Manhattan_LOGISTIC_SEX_PC1-PC10_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1.txt", sep ="\t", col.names = T, quote = F, row.names = F)
+## SEX, STUDY and PC1-PC10
+write.table(TOP.HITS, "/40/AD/GWAS_data/02_Processed/2021_ADGC_EOAD/02_Processed/01_pre_QC/01-EOAD-preQC/02-Analysis/ADGC-AGE-FILTERED-SUBSET/TOP-Hits-V2_Manhattan_LOGISTIC_SEX_STUDY_PC1-PC10_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1.txt", sep ="\t", col.names = T, quote = F, row.names = F)
+#################
+## Forest plot ##
+#################
+
+
+#################
+
+
+
+
+############################
+## Checking Eder's signal ##
+############################
 library(data.table)
 LOGISTIC <- fread("Manhattan_LOGISTIC_NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01.assoc.logistic", header = T)
 ANNOTATED <- fread("NHW_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-NO-MCI-POST-QC-maf0.02-geno0.01_VCF-annot-snpeff-dbnsfp-ExAC.0.3.GRCh38.vcf.gene.tsv", header = T)
@@ -5374,19 +5422,51 @@ dim(LOGISTIC)
 # 6281240      13
 
 LOGISTIC$GENE <- ANNOTATED$GENE[match(LOGISTIC$SNP, ANNOTATED$SNP)]
-LOGISTIC$ORIGINAL_SNP <- LOGISTIC$SNP
-LOGISTIC$SNP <- paste(LOGISTIC$SNP, LOGISTIC$GENE, sep = "\n")
+LOGISTIC$SNP.POSITION <- paste(LOGISTIC$CHR, LOGISTIC$BP, sep = ":")
+LOGISTIC.WASHU <- LOGISTIC
+colnames(LOGISTIC.WASHU) <- paste(colnames(LOGISTIC), "WASHU", sep = ".")
 
-EDER.analysis <- read.table("Meta-analysis_results_2022_Eder_Fonseca.csv", header = T, stringsAsFactors = F, sep = ",")
-EDER.analysis$SNP <- paste(EDER.analysis$Chr, EDER.analysis$Position, EDER.analysis$Allele2, EDER.analysis$Allele1, sep =":")
-sum(EDER.analysis$SNP %in% LOGISTIC$ORIGINAL_SNP)
+## Eder's (after liftover)
+EDER.analysis <- read.table("Meta-analysis_results_2022_Eder_Fonseca.txt", header = T, stringsAsFactors = F, sep = "\t")
+EDER.analysis$Chr.38 <- as.numeric(gsub("chr", "", sapply(strsplit(EDER.analysis$liftover_id,":"), `[`, 1)))
+EDER.analysis$Position.38 <- as.numeric(sapply(strsplit(EDER.analysis$liftover_id,"-"), `[`, 2))
+EDER.analysis$SNP.38 <- paste(EDER.analysis$Chr.38, EDER.analysis$Position.38, EDER.analysis$Allele1, EDER.analysis$Allele2, sep =":")
+EDER.analysis$SNP.Position.38 <- paste(EDER.analysis$Chr.38, EDER.analysis$Position.38, sep = ":")
+sum(EDER.analysis$SNP.38 %in% LOGISTIC.WASHU$SNP.WASHU)
+# 28
+sum(EDER.analysis$SNP.Position.38 %in% LOGISTIC.WASHU$SNP.POSITION.WASHU)
+# 57
 
+# Match by variant ID (CHR:POS:REF:ALT). Total of 28 matches 
+EDER.analysis.VAR.ID <- cbind.data.frame(EDER.analysis, LOGISTIC.WASHU [match(EDER.analysis$SNP.38, LOGISTIC.WASHU$SNP.WASHU),])
+write.table(EDER.analysis.VAR.ID, "EDER.analysis.VAR.ID.txt", col.names = T, row.names = F, sep = "\t")
 
-##############################
+# Match by Variant Position (CHR:POS). Total of 57 matches
+EDER.analysis.VAR.POS <- cbind.data.frame(EDER.analysis, LOGISTIC.WASHU [match(EDER.analysis$SNP.Position.38, LOGISTIC.WASHU$SNP.POSITION.WASHU),])
+write.table(EDER.analysis.VAR.POS, "EDER.analysis.VAR.POS.txt", col.names = T, row.names = F, sep = "\t")
 
+########################################
+## Hispanic: Merge PCA with Phenotype ##
+########################################
+PCA.analysis <- read.table("HISPANIC_confirmed_with_PCA_CA_lteq_65_CO_gt_80_NO_MCI-sex-CLEAN1-PCAS.eigenvec", header = T, stringsAsFactors = F)
+PCA.analysis$KEY.PCA <- paste(PCA.analysis$FID, PCA.analysis$IID, sep = ":")
+PHENO.NHW <- read.table("PHENO.HISPANIC.confirmed.with.PCA.CA.lteq.65.CO.gt.80.NO.MCI.csv", header = T, stringsAsFactors = F)
+PHENO.PCA <- cbind.data.frame(PHENO.NHW[match(PCA.analysis$KEY.PCA, PHENO.NHW$KEY2),], PCA.analysis[,c("KEY.PCA", paste0("PC", 1:10))])
 
+PHENO.PCA <- PHENO.PCA[, c("FID", "IID", "SEX", "STATUS", "APOE4ANY", "STUDY", "AGE_LAST_VISIT", "AGE_AT_ONSET", "COHORT", "PRESUMED_ETHNICITY", "ETHNICITY",
+                           "PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10")]
 
+PHENO.PCA$STUDY <- as.factor(PHENO.PCA$STUDY)
 
+PHENO.PCA.STUDY <- cbind(PHENO.PCA, as.data.frame(model.matrix(~STUDY, data=PHENO.PCA)))
+colnames(PHENO.PCA.STUDY)[23:34] <- gsub("STUDY", "", colnames(PHENO.PCA.STUDY)[23:34])
+PHENO.PCA.STUDY$ACT3 <- ifelse(PHENO.PCA.STUDY$STUDY == "ACT3", 1, 0)
+write.table(PHENO.PCA.STUDY, "PHENO.HISPANIC.confirmed.with.PCA.CA.lteq.65.CO.gt.80.NO.MCI.with.PCA_with_STUDY.txt", sep =" ", col.names = T, quote = F, row.names = F)
+
+table.study <- as.data.frame(table(PHENO.PCA.STUDY$STUDY))
+table.study$percentage <- round((table.study$Freq/nrow(PHENO.PCA))*100, 3)
+View(table.study)
+table.study$Var1 [table.study$percentage > 2]
 
 
 
