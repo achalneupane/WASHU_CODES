@@ -5401,7 +5401,23 @@ write.table(TOP.HITS, "/40/AD/GWAS_data/02_Processed/2021_ADGC_EOAD/02_Processed
 #################
 ## Forest plot ##
 #################
+source("https://raw.githubusercontent.com/achalneupane/rcodes/master/forestPlot.r") # I ran the manual function with changed x-axis
+FILES <- list.files(pattern = "forest.plot")
 
+for(i in 1:length(FILES)){
+df <- read.delim(FILES[i], sep = " ")
+colnames(df) <- c("STUDY", "CHR", "SNP", "BP", "A1", "TEST", "NMISS", "OR", "SE", "L95", "U95", "STAT", "P")
+head(df)
+
+label = as.character(df$STUDY)
+df$beta <- log(df$OR)
+beta <- df$beta
+se <- df$SE
+# plot(x=c(cntr, cntr), y=c(0, hgt), xlim=c(-0.004, 0.007),
+png(paste0(FILES[i], ".png"), width=8, height=6, units="in", res=300)
+forestplot(beta, se, labels = label, main=gsub("forest.plot", "", FILES[i]))
+dev.off()
+}
 
 #################
 
