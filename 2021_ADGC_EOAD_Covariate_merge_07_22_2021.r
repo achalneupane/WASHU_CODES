@@ -5418,6 +5418,7 @@ STUDIES.USED <- PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY %in% STUDIES.USED,]
 STUDIES.USED$STUDY <- as.character(STUDIES.USED$STUDY)
 as.matrix(table(STUDIES.USED$STUDY, STUDIES.USED$STATUS))
 
+
 label = as.character(df$STUDY)
 df$beta <- log(df$OR)
 beta <- df$beta
