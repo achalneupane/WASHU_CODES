@@ -5319,34 +5319,37 @@ colnames(PHENO.PCA.STUDY)[23:64] <- gsub("STUDY", "", colnames(PHENO.PCA.STUDY)[
 PHENO.PCA.STUDY$ACT1 <- ifelse(PHENO.PCA.STUDY$STUDY == "ACT1", 1, 0)
 write.table(PHENO.PCA.STUDY, "PHENO.NHW.confirmed.with.PCA.CA.lteq.65.CO.gt.80.NO.MCI.with.PCA_with_STUDY.txt", sep =" ", col.names = T, quote = F, row.names = F)
 
+## Create subset of phenotypes for ACT1 ADC10 LOAD ROSMAP1 ADC1 ADC6 ADC7 ACT3
+write.table(PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY == "ACT1",], "PHENO.NHW.ACT1.txt", sep =" ", col.names = T, quote = F, row.names = F)
+write.table(PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY == "ADC10",], "PHENO.NHW.ADC10.txt", sep =" ", col.names = T, quote = F, row.names = F)
+write.table(PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY == "LOAD",], "PHENO.NHW.LOAD.txt", sep =" ", col.names = T, quote = F, row.names = F)
+write.table(PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY == "ROSMAP1",], "PHENO.NHW.ROSMAP1.txt", sep =" ", col.names = T, quote = F, row.names = F)
+write.table(PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY == "ADC1",], "PHENO.NHW.ADC1.txt", sep =" ", col.names = T, quote = F, row.names = F)
+write.table(PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY == "ADC6",], "PHENO.NHW.ADC6.txt", sep =" ", col.names = T, quote = F, row.names = F)
+write.table(PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY == "ADC7",], "PHENO.NHW.ADC7.txt", sep =" ", col.names = T, quote = F, row.names = F)
+write.table(PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY == "ACT3",], "PHENO.NHW.ACT3.txt", sep =" ", col.names = T, quote = F, row.names = F)
+
+
+dd <- cbind(table(PHENO.PCA.STUDY$STUDY, PHENO.PCA.STUDY$STATUS), TOTAL=table(PHENO.PCA.STUDY$STUDY), PERCENTAGE = round((table.study$Freq/nrow(PHENO.PCA.STUDY))*100, 3))
+dd <- as.data.frame(dd)
+head(dd)
+
+dd <- dd[with(dd, order(-PERCENTAGE)), ]
+View(dd)
+
 table.study <- as.data.frame(table(PHENO.PCA.STUDY$STUDY))
-table.study$percentage <- round((table.study$Freq/nrow(PHENO.PCA))*100, 3)
+table.study$percentage <- round((table.study$Freq/nrow(PHENO.PCA.STUDY))*100, 3)
 View(table.study)
-
-table(PHENO.PCA.STUDY$STUDY)[table(PHENO.PCA.STUDY$STUDY) >= 10 ]
-# ACT1      ACT2      ACT3      ADC1     ADC10     ADC11     ADC12      ADC2      ADC3      ADC4      ADC5 
-# 845        14       370       440       745       273       181       174       263       242       341 
-# ADC6      ADC7      ADC8      ADC9      ADNI     CHAP2    CoreEx       EAS       GSA       GSK      LOAD 
-# 389       382       239       325        69        91        80        99       258       191       497 
-# MIRAGE       NBB   NeuroX2      OHSU    OmniEx     RMayo   ROSMAP1   ROSMAP2    TARCC1       UKS  UMVUMSSM 
-# 189        32        84       103       152        88       458        95        72       116       310 
-# UMVUTARC2     UPITT    WASHU1    WHICAP     X660W 
-# 59       326        30       309       120 
-
-names(table(PHENO.PCA.STUDY$STUDY)[table(PHENO.PCA.STUDY$STUDY) >= 10 ])
-# [1] "ACT1"      "ACT2"      "ACT3"      "ADC1"      "ADC10"     "ADC11"     "ADC12"     "ADC2"      "ADC3"      "ADC4"      "ADC5"     
-# [12] "ADC6"      "ADC7"      "ADC8"      "ADC9"      "ADNI"      "CHAP2"     "CoreEx"    "EAS"       "GSA"       "GSK"       "LOAD"     
-# [23] "MIRAGE"    "NBB"       "NeuroX2"   "OHSU"      "OmniEx"    "RMayo"     "ROSMAP1"   "ROSMAP2"   "TARCC1"    "UKS"       "UMVUMSSM" 
-# [34] "UMVUTARC2" "UPITT"     "WASHU1"    "WHICAP"    "X660W"  
 
 table.study <- as.data.frame(table(PHENO.PCA.STUDY$STUDY))
 table.study$percentage <- round((table.study$Freq/9079)*100, 3)
 # View(table.study)
 
-table.study$Var1 [table.study$percentage > 2]
+table.study$Var1 [table.study$percentage > 4]
 ## ACT1,ACT3,ADC1,ADC10,ADC11,ADC3,ADC4,ADC5,ADC6,ADC7,ADC8,ADC9,GSA,GSK,LOAD,MIRAGE,ROSMAP1,UMVUMSSM,UPITT,WHICAP  
 
-selected.STUDY <- as.character(table.study$Var1 [table.study$percentage > 2])
+
+selected.STUDY <- as.character(table.study$Var1 [table.study$percentage > 4])
 
 selected.STUDY <- PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY %in% selected.STUDY,]
 selected.STUDY$STUDY <- as.character(selected.STUDY$STUDY)
@@ -5405,9 +5408,15 @@ source("https://raw.githubusercontent.com/achalneupane/rcodes/master/forestPlot.
 FILES <- list.files(pattern = "forest.plot")
 
 for(i in 1:length(FILES)){
-df <- read.delim(FILES[i], sep = " ")
+df <- read.delim(FILES[i], skip =1, sep = " ", fill = TRUE)
 colnames(df) <- c("STUDY", "CHR", "SNP", "BP", "A1", "TEST", "NMISS", "OR", "SE", "L95", "U95", "STAT", "P")
 head(df)
+STUDIES.USED <- as.character(df$STUDY[!is.na(df$P)])
+TOTAL.samples <- sum(PHENO.PCA.STUDY$STUDY %in% STUDIES.USED)
+
+STUDIES.USED <- PHENO.PCA.STUDY[PHENO.PCA.STUDY$STUDY %in% STUDIES.USED,]
+STUDIES.USED$STUDY <- as.character(STUDIES.USED$STUDY)
+as.matrix(table(STUDIES.USED$STUDY, STUDIES.USED$STATUS))
 
 label = as.character(df$STUDY)
 df$beta <- log(df$OR)
@@ -5415,7 +5424,7 @@ beta <- df$beta
 se <- df$SE
 # plot(x=c(cntr, cntr), y=c(0, hgt), xlim=c(-0.004, 0.007),
 png(paste0(FILES[i], ".png"), width=8, height=6, units="in", res=300)
-forestplot(beta, se, labels = label, main=gsub("forest.plot", "", FILES[i]))
+forestplot(beta, se, labels = label, main=gsub(".forest.plot", "", FILES[i]))
 dev.off()
 }
 
